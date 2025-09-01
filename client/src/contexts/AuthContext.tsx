@@ -33,12 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user && 'role' in user && (user.role === 'admin' || user.role === 'super_admin')
 
   useEffect(() => {
-    // Check for Google OAuth tokens first
-    const checkGoogleSession = async () => {
+    // Check for stored authentication tokens
+    const checkStoredSession = async () => {
       const customAccessToken = localStorage.getItem('snappy_access_token');
       
       if (customAccessToken) {
-        // For users who logged in with Google OAuth, validate the custom token
+        // Validate the stored token
         try {
           const response = await fetch('/api/auth/user', {
             headers: {
@@ -48,16 +48,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (response.ok) {
             const userData = await response.json();
+            console.log('Restored user session:', userData);
             setUser(userData);
             setLoading(false);
             return;
           } else {
+            console.log('Stored token invalid, clearing...');
             // Token is invalid, remove it
             localStorage.removeItem('snappy_access_token');
             localStorage.removeItem('snappy_refresh_token');
           }
         } catch (error) {
-          console.error('Error validating custom token:', error);
+          console.error('Error validating stored token:', error);
           localStorage.removeItem('snappy_access_token');
           localStorage.removeItem('snappy_refresh_token');
         }
@@ -70,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     };
     
-    checkGoogleSession();
+    checkStoredSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -233,7 +235,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Clear custom tokens
+    localStorage.removeItem('snappy_access_token');
+    localStorage.removeItem('snappy_refresh_token');
+    
+    // Clear Supabase session
     await supabase.auth.signOut()
+    
+    // Clear user state
+    setUser(null);
   }
 
   return (
