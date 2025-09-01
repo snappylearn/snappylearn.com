@@ -523,6 +523,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiResponse = await generateIndependentResponse(content);
       }
 
+      // Ensure aiResponse has content
+      if (!aiResponse || !aiResponse.content) {
+        aiResponse = { content: "I'm sorry, I couldn't generate a response. Please try again.", sources: null };
+      }
+
       // Check if response contains artifact
       const artifactMatch = aiResponse.content.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
       let artifactData = null;
