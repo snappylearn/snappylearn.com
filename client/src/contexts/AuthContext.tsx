@@ -114,24 +114,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: data.error || 'Login failed' } };
       }
 
-      // Store the access token and refresh session
-      if (data.access_token) {
-        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-        });
+      // Store tokens and user data directly
+      if (data.access_token && data.user) {
+        // Store custom tokens for API calls
+        localStorage.setItem('snappy_access_token', data.access_token);
+        localStorage.setItem('snappy_refresh_token', data.refresh_token);
         
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          return { error: { message: 'Failed to establish session' } };
-        }
-        
-        console.log('Session set successfully:', sessionData);
-        
-        // Manually update the user state to trigger re-render
-        if (sessionData?.user) {
-          setUser(sessionData.user);
-          // Force immediate redirect to dashboard
+        // Get complete user data from our backend
+        try {
+          const userResponse = await fetch('/api/auth/user', {
+            headers: {
+              'Authorization': `Bearer ${data.access_token}`,
+            },
+          });
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUser(userData);
+            console.log('User data loaded:', userData);
+            
+            // Force immediate redirect to dashboard
+            setTimeout(() => {
+              window.location.replace('/');
+            }, 100);
+          } else {
+            // Fallback to basic user data from login response
+            setUser(data.user);
+            setTimeout(() => {
+              window.location.replace('/');
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // Fallback to basic user data from login response
+          setUser(data.user);
           setTimeout(() => {
             window.location.replace('/');
           }, 100);
