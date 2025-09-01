@@ -1,5 +1,5 @@
 import { type Express, type Request, type Response, type NextFunction, type RequestHandler } from "express";
-import { supabase } from "./lib/supabase";
+import { supabase, supabaseUser } from "./lib/supabase";
 import { storage } from "./storage";
 import { configureSupabaseForDevelopment } from "./auth-config";
 
@@ -37,7 +37,7 @@ export const isAuthenticated: RequestHandler = async (req: Request, res: Respons
 
     const token = authHeader.split(' ')[1];
     
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const { data: { user }, error } = await supabaseUser.auth.getUser(token);
     
     if (error || !user) {
       return res.status(401).json({ message: "Unauthorized" });

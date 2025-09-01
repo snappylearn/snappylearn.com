@@ -1,5 +1,5 @@
 import { type Express, type Request, type Response } from "express";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseUser } from "../lib/supabase";
 import { storage } from "../storage";
 import { z } from "zod";
 
@@ -132,8 +132,8 @@ export function setupAuthRoutes(app: Express) {
         }
       }
       
-      // Fallback to Supabase token validation
-      const { data: { user }, error } = await supabase.auth.getUser(token);
+      // Fallback to Supabase token validation using user client
+      const { data: { user }, error } = await supabaseUser.auth.getUser(token);
       
       if (error || !user) {
         return res.status(401).json({ error: "Unauthorized" });
