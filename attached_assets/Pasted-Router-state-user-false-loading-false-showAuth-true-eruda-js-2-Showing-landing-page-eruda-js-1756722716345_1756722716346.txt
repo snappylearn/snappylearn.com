@@ -1,0 +1,150 @@
+Router state: {user: false, loading: false, showAuth: true}
+eruda.js:2 Showing landing page
+eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+eruda.js:2  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+checkStoredSession @ AuthContext.tsx:43
+(anonymous) @ AuthContext.tsx:75
+commitHookEffectListMount @ chunk-276SZO74.js?v=68e6ec38:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=68e6ec38:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=68e6ec38:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=68e6ec38:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=68e6ec38:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=68e6ec38:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=68e6ec38:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=68e6ec38:9119
+commitRootImpl @ chunk-276SZO74.js?v=68e6ec38:19432
+commitRoot @ chunk-276SZO74.js?v=68e6ec38:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=68e6ec38:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18718
+workLoop @ chunk-276SZO74.js?v=68e6ec38:197
+flushWork @ chunk-276SZO74.js?v=68e6ec38:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=68e6ec38:384Understand this error
+eruda.js:2 Stored token invalid, clearing...
+eruda.js:2 Initial session: null
+eruda.js:2  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+checkStoredSession @ AuthContext.tsx:43
+(anonymous) @ AuthContext.tsx:75
+commitHookEffectListMount @ chunk-276SZO74.js?v=68e6ec38:16915
+invokePassiveEffectMountInDEV @ chunk-276SZO74.js?v=68e6ec38:18324
+invokeEffectsInDev @ chunk-276SZO74.js?v=68e6ec38:19701
+commitDoubleInvokeEffectsInDEV @ chunk-276SZO74.js?v=68e6ec38:19686
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=68e6ec38:19503
+flushPassiveEffects @ chunk-276SZO74.js?v=68e6ec38:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=68e6ec38:9119
+commitRootImpl @ chunk-276SZO74.js?v=68e6ec38:19432
+commitRoot @ chunk-276SZO74.js?v=68e6ec38:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=68e6ec38:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18718
+workLoop @ chunk-276SZO74.js?v=68e6ec38:197
+flushWork @ chunk-276SZO74.js?v=68e6ec38:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=68e6ec38:384Understand this error
+eruda.js:2 Stored token invalid, clearing...
+eruda.js:2 Initial session: null
+eruda.js:2 [vite] server connection lost. Polling for restart...
+VM7 eruda.js:2 Google OAuth client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Router state: {user: false, loading: true, showAuth: false}
+VM7 eruda.js:2 Router state: {user: false, loading: true, showAuth: false}
+VM7 eruda.js:2 Initial session: null
+VM7 eruda.js:2 Router state: {user: false, loading: false, showAuth: true}
+VM7 eruda.js:2 Showing landing page
+VM7 eruda.js:2 Router state: {user: false, loading: false, showAuth: true}
+VM7 eruda.js:2 Showing landing page
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Initial session: null
+VM7 eruda.js:2 Auth state change: INITIAL_SESSION null
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+VM7 eruda.js:2  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ VM7 eruda.js:2
+apply @ VM6 injected.js:253
+signIn @ VM48 AuthContext.tsx:98
+await in signIn
+handleSubmit @ VM96 LoginForm.tsx:39
+callCallback2 @ VM37 chunk-276SZO74.js:3674
+invokeGuardedCallbackDev @ VM37 chunk-276SZO74.js:3699
+invokeGuardedCallback @ VM37 chunk-276SZO74.js:3733
+invokeGuardedCallbackAndCatchFirstError @ VM37 chunk-276SZO74.js:3736
+executeDispatch @ VM37 chunk-276SZO74.js:7014
+processDispatchQueueItemsInOrder @ VM37 chunk-276SZO74.js:7034
+processDispatchQueue @ VM37 chunk-276SZO74.js:7043
+dispatchEventsForPlugins @ VM37 chunk-276SZO74.js:7051
+(anonymous) @ VM37 chunk-276SZO74.js:7174
+batchedUpdates$1 @ VM37 chunk-276SZO74.js:18913
+batchedUpdates @ VM37 chunk-276SZO74.js:3579
+dispatchEventForPluginEventSystem @ VM37 chunk-276SZO74.js:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ VM37 chunk-276SZO74.js:5478
+dispatchEvent @ VM37 chunk-276SZO74.js:5472
+dispatchDiscreteEvent @ VM37 chunk-276SZO74.js:5449Understand this error
+VM7 eruda.js:2 Router state: {user: true, loading: false, showAuth: false}
+VM7 eruda.js:2 Showing authenticated routes
+VM7 eruda.js:2 Router state: {user: true, loading: false, showAuth: false}
+VM7 eruda.js:2 Showing authenticated routes
+Console.js:61 Google OAuth client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+Console.js:61 Google OAuth client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+Console.js:61 Router state: {user: false, loading: true, showAuth: false}
+Console.js:61 Router state: {user: false, loading: true, showAuth: false}
+Console.js:61 Auth state change: INITIAL_SESSION null
+Console.js:61 Router state: {user: false, loading: false, showAuth: true}
+Console.js:61 Showing landing page
+Console.js:61 Router state: {user: false, loading: false, showAuth: true}
+Console.js:61 Showing landing page
+Console.js:61 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+Console.js:61 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+injected.js:253  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+checkStoredSession @ AuthContext.tsx:43
+(anonymous) @ AuthContext.tsx:75
+commitHookEffectListMount @ chunk-276SZO74.js?v=68e6ec38:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=68e6ec38:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=68e6ec38:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=68e6ec38:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=68e6ec38:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=68e6ec38:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=68e6ec38:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=68e6ec38:9119
+commitRootImpl @ chunk-276SZO74.js?v=68e6ec38:19432
+commitRoot @ chunk-276SZO74.js?v=68e6ec38:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=68e6ec38:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18718
+workLoop @ chunk-276SZO74.js?v=68e6ec38:197
+flushWork @ chunk-276SZO74.js?v=68e6ec38:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=68e6ec38:384Understand this error
+Console.js:61 Stored token invalid, clearing...
+Console.js:61 Initial session: null
+injected.js:253  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+checkStoredSession @ AuthContext.tsx:43
+(anonymous) @ AuthContext.tsx:75
+commitHookEffectListMount @ chunk-276SZO74.js?v=68e6ec38:16915
+invokePassiveEffectMountInDEV @ chunk-276SZO74.js?v=68e6ec38:18324
+invokeEffectsInDev @ chunk-276SZO74.js?v=68e6ec38:19701
+commitDoubleInvokeEffectsInDEV @ chunk-276SZO74.js?v=68e6ec38:19686
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=68e6ec38:19503
+flushPassiveEffects @ chunk-276SZO74.js?v=68e6ec38:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=68e6ec38:9119
+commitRootImpl @ chunk-276SZO74.js?v=68e6ec38:19432
+commitRoot @ chunk-276SZO74.js?v=68e6ec38:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=68e6ec38:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18718
+workLoop @ chunk-276SZO74.js?v=68e6ec38:197
+flushWork @ chunk-276SZO74.js?v=68e6ec38:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=68e6ec38:384Understand this error
+Console.js:61 Stored token invalid, clearing...
+Console.js:61 Initial session: null
