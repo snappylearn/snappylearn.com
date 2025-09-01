@@ -13,15 +13,15 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Get auth token from Supabase
-  const { data: { session } } = await supabase.auth.getSession();
+  // Get auth token from localStorage
+  const token = localStorage.getItem('auth_token');
   
   const headers: Record<string, string> = {};
   if (data) {
     headers["Content-Type"] = "application/json";
   }
-  if (session?.access_token) {
-    headers["Authorization"] = `Bearer ${session.access_token}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const res = await fetch(url, {
@@ -41,12 +41,12 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get auth token from Supabase
-    const { data: { session } } = await supabase.auth.getSession();
+    // Get auth token from localStorage
+    const token = localStorage.getItem('auth_token');
     
     const headers: Record<string, string> = {};
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`;
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     const res = await fetch(queryKey[0] as string, {
