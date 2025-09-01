@@ -11,7 +11,7 @@ import {
   insertConversationSchema, 
   insertMessageSchema 
 } from "@shared/schema";
-import { generateIndependentResponse, generateConversationTitle } from "./services/openai";
+import { generateIndependentResponse, generateCollectionResponse, generateConversationTitle } from "./services/openai";
 import { registerPostRoutes } from "./routes/posts";
 import { registerTopicRoutes } from "./routes/topics";
 import { registerFollowRoutes } from "./routes/follows";
@@ -383,7 +383,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const collectionName = collection?.name || "Collection";
         aiResponse = await generateCollectionResponse(fullMessage, documents, collectionName);
       } else {
-        aiResponse = await generateIndependentResponse(fullMessage);
+        const content = await generateIndependentResponse(fullMessage);
+        aiResponse = { content, sources: null };
       }
 
       // Ensure aiResponse has content
@@ -520,7 +521,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const collectionName = collection?.name || "Collection";
         aiResponse = await generateCollectionResponse(content, documents, collectionName, conversationHistory);
       } else {
-        aiResponse = await generateIndependentResponse(content);
+        const responseContent = await generateIndependentResponse(content);
+        aiResponse = { content: responseContent, sources: null };
       }
 
       // Ensure aiResponse has content

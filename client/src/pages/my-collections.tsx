@@ -71,7 +71,7 @@ export default function MyCollections() {
 
       {/* Collections Grid */}
       {filteredCollections.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredCollections.map(collection => (
             <Card key={collection.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-4">

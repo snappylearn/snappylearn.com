@@ -116,6 +116,61 @@ export async function generateIndependentResponse(message: string): Promise<stri
   }
 }
 
+export async function generateCollectionResponse(
+  message: string, 
+  documents: any[], 
+  collectionName: string, 
+  conversationHistory?: any[]
+): Promise<{ content: string; sources: string[] | null }> {
+  try {
+    // Build context from documents
+    const documentContext = documents.map(doc => 
+      `Document: ${doc.filename}\nContent: ${doc.content?.substring(0, 1000) || 'No content available'}...`
+    ).join('\n\n');
+
+    // Build conversation history context
+    const historyContext = conversationHistory?.map(msg => 
+      `${msg.role}: ${msg.content}`
+    ).join('\n') || '';
+
+    const systemPrompt = `You are an AI assistant helping users with questions about documents in their "${collectionName}" collection. 
+    Use the provided document context to give accurate, helpful responses. If the answer isn't in the documents, say so clearly.
+    
+    Available documents:
+    ${documentContext}
+    
+    ${historyContext ? `Previous conversation:\n${historyContext}\n` : ''}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ],
+      temperature: 0.7,
+    });
+
+    const content = response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
+    
+    // Extract sources if documents were referenced
+    const sources = documents.length > 0 ? documents.map(doc => doc.filename) : null;
+
+    return { content, sources };
+  } catch (error) {
+    console.error('Error generating collection response:', error);
+    return { 
+      content: "I'm experiencing technical difficulties. Please try again later.", 
+      sources: null 
+    };
+  }
+}
+
 export async function generateConversationTitle(firstMessage: string): Promise<string> {
   try {
     const prompt = `Generate a short, descriptive title (max 50 characters) for a conversation that starts with: "${firstMessage}"`;
