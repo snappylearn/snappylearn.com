@@ -180,3 +180,43 @@ export function setupAuthRoutes(app: Express) {
     res.json({ success: true, message: "Signed out successfully" });
   });
 }
+
+// JWT Authentication Middleware
+export const jwtAuth = async (req: any, res: any, next: any) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Verify JWT token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role: string };
+    } catch (jwtError: any) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Get user from database
+    const user = await storage.getUser(decoded.userId);
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Add user to request object
+    req.user = user;
+    req.userId = user.id;
+    next();
+  } catch (error) {
+    console.error("JWT auth error:", error);
+    res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
+// Get user ID helper function  
+export const getJwtUserId = (req: any): string => {
+  return req.userId;
+};

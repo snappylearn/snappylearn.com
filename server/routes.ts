@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupSupabaseAuth, isAuthenticated, getUserId } from "./supabaseAuth";
-import { setupAuthRoutes } from "./routes/auth";
+import { setupSupabaseAuth } from "./supabaseAuth";
+import { setupAuthRoutes, jwtAuth, getJwtUserId } from "./routes/auth";
 import { setupGoogleAuth } from "./routes/googleAuth";
 import { registerAdminRoutes } from "./routes/admin";
 import { 
@@ -61,9 +61,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await seedDatabase();
 
   // Test route to make current user admin (for development)
-  app.post("/api/test/make-admin", isAuthenticated, async (req: any, res) => {
+  app.post("/api/test/make-admin", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       await storage.updateUserRole(userId, 'admin', 'system');
       res.json({ message: "User is now admin" });
     } catch (error) {
@@ -75,9 +75,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes are handled by setupSupabaseAuth
 
   // Collections endpoints
-  app.get("/api/collections", isAuthenticated, async (req: any, res) => {
+  app.get("/api/collections", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const collections = await storage.getCollections(userId);
       res.json(collections);
     } catch (error) {
@@ -86,10 +86,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/collections/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const collection = await storage.getCollection(id, userId);
       
       if (!collection) {
@@ -103,9 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/collections", isAuthenticated, async (req: any, res) => {
+  app.post("/api/collections", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const validatedData = insertCollectionSchema.parse({
         ...req.body,
         userId,
@@ -119,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/collections/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = insertCollectionSchema.partial().parse(req.body);
@@ -136,10 +136,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/collections/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const success = await storage.deleteCollection(id, userId);
       
       if (!success) {
@@ -154,10 +154,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document endpoints
-  app.get("/api/collections/:id/documents", isAuthenticated, async (req: any, res) => {
+  app.get("/api/collections/:id/documents", jwtAuth, async (req: any, res) => {
     try {
       const collectionId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Verify user owns the collection
       const collection = await storage.getCollection(collectionId, userId);
@@ -173,10 +173,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/collections/:id/documents", isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post("/api/collections/:id/documents", jwtAuth, upload.single('file'), async (req: any, res) => {
     try {
       const collectionId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Verify user owns the collection
       const collection = await storage.getCollection(collectionId, userId);
@@ -222,10 +222,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/documents/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Get document to verify ownership through collection
       const document = await storage.getDocument(id);
@@ -252,9 +252,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversations endpoints
-  app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -263,10 +263,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const conversation = await storage.getConversation(id, userId);
       
       if (!conversation) {
@@ -304,9 +304,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   });
 
-  app.post("/api/conversations", isAuthenticated, conversationUpload.array('attachments'), async (req: any, res) => {
+  app.post("/api/conversations", jwtAuth, conversationUpload.array('attachments'), async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { message, type, collectionId } = req.body;
       const files = req.files as Express.Multer.File[] || [];
 
@@ -444,10 +444,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/conversations/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const success = await storage.deleteConversation(id, userId);
       
       if (!success) {
@@ -462,10 +462,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Messages endpoints
-  app.get("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations/:id/messages", jwtAuth, async (req: any, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Verify user owns the conversation
       const conversation = await storage.getConversation(conversationId, userId);
@@ -481,10 +481,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+  app.post("/api/conversations/:id/messages", jwtAuth, async (req: any, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { content } = req.body;
 
       // Verify user owns the conversation
@@ -576,9 +576,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Artifact endpoints
-  app.get("/api/artifacts", isAuthenticated, async (req: any, res) => {
+  app.get("/api/artifacts", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { type, collectionId } = req.query;
       
       const filters: any = {};
@@ -593,10 +593,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/artifacts/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       const artifact = await storage.getArtifact(id, userId);
       if (!artifact) {
@@ -610,9 +610,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/artifacts", isAuthenticated, async (req: any, res) => {
+  app.post("/api/artifacts", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { title, type, content, description, collectionId, metadata } = req.body;
       
       // Validate collection ownership if provided
@@ -640,10 +640,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/artifacts/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { title, type, content, description, collectionId, metadata } = req.body;
       
       // Verify user owns the artifact
@@ -676,10 +676,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/artifacts/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       const success = await storage.deleteArtifact(id, userId);
       if (!success) {
