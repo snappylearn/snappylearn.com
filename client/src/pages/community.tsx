@@ -3,7 +3,7 @@ import { Heart, Share, Bookmark, MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useCollections } from "@/hooks/use-collections";
 import { useAuth } from "@/contexts/AuthContext";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
 export default function Community() {
   const { user } = useAuth();
@@ -39,7 +39,7 @@ export default function Community() {
   ];
 
   return (
-    <UnifiedLayout showRightSidebar={true}>
+    <TwitterStyleLayout>
       {/* Feed Tabs */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="border-b border-gray-200">
@@ -114,6 +114,6 @@ export default function Community() {
           ))}
         </div>
       </div>
-    </UnifiedLayout>
+    </TwitterStyleLayout>
   );
 }

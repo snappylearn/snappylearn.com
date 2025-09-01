@@ -11,7 +11,7 @@ import { useArtifacts } from "@/hooks/use-artifacts";
 import { Analytics } from "@/lib/analytics";
 import { usePageView, useTrackAction } from "@/hooks/usePostHog";
 import { AdminTestButton } from "@/components/admin/AdminTestButton";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
 export default function Chat() {
   const [, setLocation] = useLocation();
@@ -89,7 +89,7 @@ export default function Chat() {
   ];
 
   return (
-    <UnifiedLayout>
+    <TwitterStyleLayout>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Conversation History Section */}
         <div className="lg:col-span-1">
@@ -218,6 +218,6 @@ export default function Chat() {
           )}
         </div>
       </div>
-    </UnifiedLayout>
+    </TwitterStyleLayout>
   );
 }
