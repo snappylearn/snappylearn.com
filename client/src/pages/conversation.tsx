@@ -7,7 +7,7 @@ import { ChatInput } from "@/components/chat-input";
 import { MessageComponent } from "@/components/message";
 import { ChatLoading } from "@/components/chat-loading";
 import { ArtifactViewer } from "@/components/artifact-viewer";
-import { Sidebar } from "@/components/sidebar";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 import { useConversation } from "@/hooks/use-conversations";
 import { useMessages, useSendMessage } from "@/hooks/use-messages";
 import { useCollection } from "@/hooks/use-collections";
@@ -70,9 +70,8 @@ export default function Conversation() {
 
   if (!conversation) {
     return (
-      <div className="flex h-screen bg-white">
-        <Sidebar />
-        <div className="flex-1 flex items-center justify-center">
+      <TwitterStyleLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Conversation not found</h2>
             <Button onClick={() => setLocation("/")} variant="outline">
@@ -80,22 +79,21 @@ export default function Conversation() {
             </Button>
           </div>
         </div>
-      </div>
+      </TwitterStyleLayout>
     );
   }
 
   const isCollectionBased = conversation.type === "collection";
 
   return (
-    <div className="flex h-screen bg-white">
-      <Sidebar />
-      <div className={`flex-1 flex flex-col ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
+    <TwitterStyleLayout>
+      <div className={`flex flex-col min-h-screen ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
         {/* Header */}
         <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
-                onClick={() => setLocation("/")}
+                onClick={() => setLocation("/chat")}
                 variant="ghost"
                 size="sm"
                 className="text-gray-400 hover:text-gray-600"
@@ -133,7 +131,7 @@ export default function Conversation() {
 
         {/* Messages Area */}
         <ScrollArea className="flex-1 px-6 py-6">
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="space-y-6">
             {messages.map((message) => (
               <MessageComponent 
                 key={message.id} 
@@ -148,13 +146,11 @@ export default function Conversation() {
 
         {/* Message Input */}
         <div className="border-t border-gray-200 px-6 py-4 flex-shrink-0">
-          <div className="max-w-3xl mx-auto">
-            <ChatInput
-              onSend={handleSendMessage}
-              disabled={sendMessage.isPending}
-              placeholder="Continue the conversation..."
-            />
-          </div>
+          <ChatInput
+            onSend={handleSendMessage}
+            disabled={sendMessage.isPending}
+            placeholder="Continue the conversation..."
+          />
         </div>
       </div>
 
@@ -177,6 +173,6 @@ export default function Conversation() {
           isOpen={isArtifactOpen}
         />
       )}
-    </div>
+    </TwitterStyleLayout>
   );
 }
