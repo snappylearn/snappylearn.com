@@ -1,0 +1,301 @@
+
+TensorLite
+Features
+How It Works
+API
+Pricing
+Dashboard
+Docs
+Sign In Get Started
+Intelligent Personalized Feeds As A Service
+
+TensorLite empowers developers to build context-aware personalized feeds and search experiences with vector embeddings and conversational AI.
+Get Started
+Documentation
+Enterprise-grade security & compliance
+TensorLite API Console
+Copy
+
+// 1. Initialize a collection
+const response = await fetch('https://api.tensorlite.ai/initCollection', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    "collectionName": "articles",
+    "userId": "user123"
+  })
+});
+
+// 2. Index your content
+await fetch('https://api.tensorlite.ai/index/articles', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    "title": "Getting Started with Vector Search",
+    "content": "Vector search is a technique that leverages...",
+    "tags": ["search", "vector", "tutorial"]
+  })
+});
+
+// 3. Search with semantic understanding
+const searchResponse = await fetch('https://api.tensorlite.ai/search/articles', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    "query": "How to implement vector search?",
+    "limit": 5,
+    "filter": {
+      "tags": ["tutorial"]
+    }
+  })
+});
+
+// Search response
+/*
+{
+  "results": [
+    {
+      "title": "Getting Started with Vector Search",
+      "content": "Vector search is a technique that...",
+      "relevance_score": 0.92,
+      "tags": ["search", "vector", "tutorial"]
+    },
+    // More results...
+  ],
+  "found": 8,
+  "took_ms": 45
+}
+*/
+
+// 4. Chat with your data
+const chatResponse = await fetch('https://api.tensorlite.ai/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    "collectionName": "articles",
+    "query": "Find the latest on machine learning",
+    "conversation_id": "conv-123", // Optional, to continue a conversation
+    "user_context": {
+      "interests": ["AI", "neural networks"]
+    }
+  })
+});
+
+// Chat response
+/*
+{
+  "results": [
+    {
+      "title": "Advances in Neural Networks",
+      "description": "Latest research in ML architectures...",
+      "relevance_score": 0.95
+    },
+    // More results...
+  ],
+  "conversation_id": "conv-ae251",
+  "context_used": true,
+  "conversation_model_id": "model-gpt4"
+}
+*/
+
+Trusted by innovative companies
+Company 1
+Company 2
+Company 3
+Company 4
+Company 5
+Company 6
+Features
+
+Build intelligent data experiences
+
+TensorLite combines vector search, conversation history, and analytics to create personalized data experiences.
+Vector Collections
+
+Organize and manage your data with intelligent vector-based collections. Automatic schema detection and optimization for search and chat.
+Learn more
+Conversational AI
+
+Enable natural conversations with your data using powerful AI models. Built-in conversation history and context management.
+Learn more
+Semantic Search
+
+Go beyond keyword search with semantic understanding. Find relevant content based on meaning, not just exact matches.
+Learn more
+Engagement Analytics
+
+Track user interactions with your content. Automatically optimize search results based on engagement metrics.
+Learn more
+Secure API Keys
+
+Manage access with granular API key permissions. Create scoped keys with built-in rate limiting and usage tracking.
+Learn more
+Performance & Scale
+
+Built for speed and scale with sub-50ms response times. Handles millions of documents with intelligent caching and optimization.
+Learn more
+How It Works
+
+Build powerful data experiences in minutes
+
+From initialization to production in three simple steps
+1. Initialize Collections
+
+Create intelligent data collections with a single API call. TensorLite automatically configures optimal settings for search and chat.
+
+// Initialize a collection
+const response = await fetch('https://api.tensorlite.ai/initCollection', {
+  method: 'POST',
+  body: JSON.stringify({
+    "collectionName": "articles"
+  })
+});
+
+2. Index Documents
+
+Add content to your collections with the indexing API. Vector embeddings are automatically generated for semantic search and AI chat.
+
+// Index a document
+await fetch('https://api.tensorlite.ai/index/articles', {
+  method: 'POST',
+  body: JSON.stringify({
+    "title": "Vector Search",
+    "content": "A guide to vector search..."
+  })
+});
+
+3. Search & Chat
+
+Enable users to find and interact with your content through powerful search and natural language conversation APIs.
+
+// Chat with your data
+const response = await fetch('https://api.tensorlite.ai/chat', {
+  method: 'POST',
+  body: JSON.stringify({
+    "collectionName": "articles",
+    "query": "How do I implement search?"
+  })
+});
+
+View the Quick Start Guide
+API Reference
+
+Powerful, flexible endpoints
+
+Our comprehensive REST API makes it easy to integrate personalized feeds and conversational AI into any application.
+Collection Management
+
+Create, configure, and optimize data collections with full control
+Advanced Indexing
+
+Single and bulk indexing with automatic vector embeddings generation
+Conversational AI
+
+Natural language interaction with conversation history and context management
+Event Tracking
+
+Record user interactions to optimize ranking and personalization
+View Full API Documentation
+API Endpoints
+Method
+Endpoint
+Description
+POST
+/initCollection
+Initialize collection
+POST
+/search/:collectionName
+Search documents
+POST
+/chat
+Conversational search
+POST
+/index/:collectionName
+Index document
+POST
+/bulk_index/:collectionName
+Bulk index documents
+POST
+/events/:collectionName
+Track events
+Pricing
+
+Simple, transparent pricing
+
+Start for free, then scale as you grow
+Free
+
+Perfect for personal projects and prototypes
+
+$0 /month
+Get Started Free
+What's included
+
+    Up to 10,000 documents
+    5,000 API calls per month
+    1 active collection
+    Basic analytics
+    Community support
+
+Pro
+
+For production applications and growing teams
+
+$49 /month
+Get Started
+What's included
+
+    Up to 100,000 documents
+    100,000 API calls per month
+    10 active collections
+    Advanced analytics
+    Email support
+    Advanced AI models
+    Custom API keys
+
+Enterprise
+
+For organizations with advanced needs
+
+Custom
+Contact Sales
+What's included
+
+    Unlimited documents
+    Custom API volume
+    Unlimited collections
+    Enterprise analytics
+    Dedicated support
+    Custom integrations
+    SLA guarantees
+
+Ready to enhance your data experience? Start building with TensorLite today.
+
+Create a free account and build your first intelligent feed in minutes. No credit card required.
+Sign Up Free
+Read the Docs
+TensorLite
+
+Building intelligent data experiences with AI
+Product
+
+    Features
+    Pricing
+    Use Cases
+    Integrations
+
+Resources
+
+    Documentation
+    API Reference
+    Tutorials
+    Blog
+
+Company
+
+    About
+    Contact
+    Careers
+    Privacy
+
+© 2025 TensorLite, Inc. All rights reserved.

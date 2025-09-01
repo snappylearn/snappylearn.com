@@ -1,0 +1,698 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupSupabaseAuth, isAuthenticated, getUserId } from "./supabaseAuth";
+import { setupAuthRoutes } from "./routes/auth";
+import { setupGoogleAuth } from "./routes/googleAuth";
+import { registerAdminRoutes } from "./routes/admin";
+import { 
+  insertCollectionSchema, 
+  insertDocumentSchema, 
+  insertConversationSchema, 
+  insertMessageSchema 
+} from "@shared/schema";
+import { generateIndependentResponse, generateConversationTitle } from "./services/openai";
+import { registerPostRoutes } from "./routes/posts";
+import { registerTopicRoutes } from "./routes/topics";
+import { registerFollowRoutes } from "./routes/follows";
+import { seedDatabase } from "./seed";
+import multer from "multer";
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only PDF and TXT files
+    const allowedTypes = [
+      'text/plain',
+      'application/pdf'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Unsupported file type'));
+    }
+  },
+});
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Supabase authentication
+  await setupSupabaseAuth(app);
+  
+  // Setup custom auth routes
+  setupAuthRoutes(app);
+  
+  // Setup Google OAuth routes
+  setupGoogleAuth(app);
+
+  // Setup admin routes
+  registerAdminRoutes(app);
+
+  // Setup social platform routes
+  registerPostRoutes(app);
+  registerTopicRoutes(app);
+  registerFollowRoutes(app);
+
+  // Seed database with demo data
+  await seedDatabase();
+
+  // Test route to make current user admin (for development)
+  app.post("/api/test/make-admin", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      await storage.updateUserRole(userId, 'admin', 'system');
+      res.json({ message: "User is now admin" });
+    } catch (error) {
+      console.error("Error making user admin:", error);
+      res.status(500).json({ error: "Failed to make user admin" });
+    }
+  });
+
+  // Auth routes are handled by setupSupabaseAuth
+
+  // Collections endpoints
+  app.get("/api/collections", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const collections = await storage.getCollections(userId);
+      res.json(collections);
+    } catch (error) {
+      console.error("Error fetching collections:", error);
+      res.status(500).json({ error: "Failed to fetch collections" });
+    }
+  });
+
+  app.get("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      const collection = await storage.getCollection(id, userId);
+      
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+
+      res.json(collection);
+    } catch (error) {
+      console.error("Error fetching collection:", error);
+      res.status(500).json({ error: "Failed to fetch collection" });
+    }
+  });
+
+  app.post("/api/collections", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const validatedData = insertCollectionSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      const collection = await storage.createCollection(validatedData);
+      res.status(201).json(collection);
+    } catch (error) {
+      console.error("Error creating collection:", error);
+      res.status(500).json({ error: "Failed to create collection" });
+    }
+  });
+
+  app.put("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertCollectionSchema.partial().parse(req.body);
+      
+      const collection = await storage.updateCollection(id, updates);
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      res.json(collection);
+    } catch (error) {
+      console.error("Error updating collection:", error);
+      res.status(500).json({ error: "Failed to update collection" });
+    }
+  });
+
+  app.delete("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      const success = await storage.deleteCollection(id, userId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting collection:", error);
+      res.status(500).json({ error: "Failed to delete collection" });
+    }
+  });
+
+  // Document endpoints
+  app.get("/api/collections/:id/documents", isAuthenticated, async (req: any, res) => {
+    try {
+      const collectionId = parseInt(req.params.id);
+      const userId = getUserId(req);
+      
+      // Verify user owns the collection
+      const collection = await storage.getCollection(collectionId, userId);
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      const documents = await storage.getDocuments(collectionId, userId);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ error: "Failed to fetch documents" });
+    }
+  });
+
+  app.post("/api/collections/:id/documents", isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const collectionId = parseInt(req.params.id);
+      const userId = getUserId(req);
+      
+      // Verify user owns the collection
+      const collection = await storage.getCollection(collectionId, userId);
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      let content = '';
+      
+      // Extract text based on file type
+      if (req.file.mimetype === 'application/pdf') {
+        try {
+          const pdf = await import('pdf-parse');
+          const pdfData = await pdf.default(req.file.buffer);
+          content = pdfData.text;
+        } catch (error) {
+          console.error("Error extracting PDF text:", error);
+          return res.status(400).json({ error: "Failed to extract text from PDF" });
+        }
+      } else if (req.file.mimetype === 'text/plain') {
+        content = req.file.buffer.toString('utf-8');
+      } else {
+        return res.status(400).json({ error: "Unsupported file type" });
+      }
+
+      const validatedData = insertDocumentSchema.parse({
+        name: req.file.originalname,
+        content,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        collectionId,
+      });
+
+      const document = await storage.createDocument(validatedData);
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ error: "Failed to upload document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      
+      // Get document to verify ownership through collection
+      const document = await storage.getDocument(id);
+      if (!document) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+      
+      // Verify user owns the collection
+      const collection = await storage.getCollection(document.collectionId, userId);
+      if (!collection) {
+        return res.status(404).json({ error: "Collection not found" });
+      }
+      
+      const success = await storage.deleteDocument(id, userId);
+      if (!success) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
+  // Conversations endpoints
+  app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const conversations = await storage.getConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      const conversation = await storage.getConversation(id, userId);
+      
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ error: "Failed to fetch conversation" });
+    }
+  });
+
+  // Update multer configuration to support more file types
+  const conversationUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = [
+        'text/plain',
+        'text/markdown',
+        'text/csv',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Unsupported file type'));
+      }
+    },
+  });
+
+  app.post("/api/conversations", isAuthenticated, conversationUpload.array('attachments'), async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { message, type, collectionId } = req.body;
+      const files = req.files as Express.Multer.File[] || [];
+
+      // Parse collectionId if it's a string from FormData
+      const parsedCollectionId = collectionId ? parseInt(collectionId) : undefined;
+
+      // Validate collection ownership if provided
+      if (parsedCollectionId) {
+        const collection = await storage.getCollection(parsedCollectionId, userId);
+        if (!collection) {
+          return res.status(404).json({ error: "Collection not found" });
+        }
+      }
+
+      // Process attached files if any
+      let attachmentContent = "";
+      if (files.length > 0) {
+        const attachmentParts: string[] = [];
+        
+        for (const file of files) {
+          let content = "";
+          
+          // Extract text based on file type
+          if (file.mimetype === 'application/pdf') {
+            try {
+              const pdf = await import('pdf-parse');
+              const pdfData = await pdf.default(file.buffer);
+              content = pdfData.text;
+            } catch (error) {
+              console.error("Error extracting PDF text:", error);
+              return res.status(400).json({ error: `Failed to extract text from ${file.originalname}` });
+            }
+          } else if (file.mimetype === 'text/plain' || file.mimetype === 'text/markdown' || file.mimetype === 'text/csv') {
+            content = file.buffer.toString('utf-8');
+          } else {
+            return res.status(400).json({ error: `Unsupported file type: ${file.originalname}` });
+          }
+          
+          attachmentParts.push(`--- Content from ${file.originalname} ---\n${content}\n`);
+        }
+        
+        attachmentContent = attachmentParts.join('\n');
+      }
+
+      // Combine message with attachment content
+      const fullMessage = attachmentContent 
+        ? `${message}\n\n${attachmentContent}` 
+        : message;
+
+      // Generate conversation title from first message
+      const title = await generateConversationTitle(message);
+
+      const conversationData = insertConversationSchema.parse({
+        title,
+        type,
+        collectionId: parsedCollectionId,
+        userId,
+      });
+
+      const conversation = await storage.createConversation(conversationData);
+
+      // Create user message
+      const userMessage = await storage.createMessage({
+        content: fullMessage,
+        role: "user",
+        conversationId: conversation.id,
+      });
+
+      // Generate AI response
+      let aiResponse;
+      if (type === "collection" && parsedCollectionId) {
+        const documents = await storage.getDocuments(parsedCollectionId, userId);
+        const collection = await storage.getCollection(parsedCollectionId, userId);
+        const collectionName = collection?.name || "Collection";
+        aiResponse = await generateCollectionResponse(fullMessage, documents, collectionName);
+      } else {
+        aiResponse = await generateIndependentResponse(fullMessage);
+      }
+
+      // Check if response contains artifact
+      const artifactMatch = aiResponse.content.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
+      let artifactData = null;
+      
+      if (artifactMatch) {
+        const artifactHtml = artifactMatch[1];
+        const titleMatch = artifactHtml.match(/<!-- Artifact Title: (.*?) -->/);
+        const title = titleMatch ? titleMatch[1] : 'Interactive Content';
+        
+        // Determine artifact type based on content
+        let artifactType = 'interactive';
+        if (title.toLowerCase().includes('quiz')) artifactType = 'quiz_builder';
+        else if (title.toLowerCase().includes('calculator')) artifactType = 'math_visualizer';
+        else if (title.toLowerCase().includes('playground')) artifactType = 'code_playground';
+        else if (title.toLowerCase().includes('document')) artifactType = 'document_generator';
+        else if (title.toLowerCase().includes('presentation')) artifactType = 'presentation_maker';
+        else if (title.toLowerCase().includes('chart') || title.toLowerCase().includes('graph')) artifactType = 'data_visualizer';
+        else if (title.toLowerCase().includes('mind map')) artifactType = 'mind_map_creator';
+        
+        // Create artifact record
+        const artifact = await storage.createArtifact({
+          title,
+          type: artifactType,
+          content: artifactHtml,
+          userId,
+          collectionId: parsedCollectionId,
+          metadata: JSON.stringify({ 
+            createdFrom: 'chat',
+            conversationId: conversation.id
+          })
+        });
+        
+        artifactData = {
+          artifactId: artifact.id,
+          title,
+          type: artifactType
+        };
+      }
+
+      // Create AI message
+      const aiMessage = await storage.createMessage({
+        content: aiResponse.content,
+        role: "assistant",
+        conversationId: conversation.id,
+        sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
+        artifactData: artifactData ? JSON.stringify(artifactData) : null,
+      });
+
+      res.status(201).json({
+        conversation,
+        messages: [userMessage, aiMessage],
+      });
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ error: "Failed to create conversation" });
+    }
+  });
+
+  app.delete("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      const success = await storage.deleteConversation(id, userId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      res.status(500).json({ error: "Failed to delete conversation" });
+    }
+  });
+
+  // Messages endpoints
+  app.get("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const userId = getUserId(req);
+      
+      // Verify user owns the conversation
+      const conversation = await storage.getConversation(conversationId, userId);
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+      
+      const messages = await storage.getMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const userId = getUserId(req);
+      const { content } = req.body;
+
+      // Verify user owns the conversation
+      const conversation = await storage.getConversation(conversationId, userId);
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Create user message
+      const userMessage = await storage.createMessage({
+        content,
+        role: "user",
+        conversationId,
+      });
+
+      // Get conversation history for context
+      const existingMessages = await storage.getMessages(conversationId);
+      const conversationHistory = existingMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      // Generate AI response
+      let aiResponse;
+      if (conversation.type === "collection" && conversation.collectionId) {
+        const documents = await storage.getDocuments(conversation.collectionId, userId);
+        const collection = await storage.getCollection(conversation.collectionId, userId);
+        const collectionName = collection?.name || "Collection";
+        aiResponse = await generateCollectionResponse(content, documents, collectionName, conversationHistory);
+      } else {
+        aiResponse = await generateIndependentResponse(content);
+      }
+
+      // Check if response contains artifact
+      const artifactMatch = aiResponse.content.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
+      let artifactData = null;
+      let artifactId = null;
+      
+      if (artifactMatch) {
+        const artifactHtml = artifactMatch[1];
+        const titleMatch = artifactHtml.match(/<!-- Artifact Title: (.*?) -->/);
+        const title = titleMatch ? titleMatch[1] : 'Interactive Content';
+        
+        // Determine artifact type based on content
+        let artifactType = 'interactive';
+        if (title.toLowerCase().includes('quiz')) artifactType = 'quiz_builder';
+        else if (title.toLowerCase().includes('calculator')) artifactType = 'math_visualizer';
+        else if (title.toLowerCase().includes('playground')) artifactType = 'code_playground';
+        else if (title.toLowerCase().includes('document')) artifactType = 'document_generator';
+        else if (title.toLowerCase().includes('presentation')) artifactType = 'presentation_maker';
+        else if (title.toLowerCase().includes('chart') || title.toLowerCase().includes('graph')) artifactType = 'data_visualizer';
+        else if (title.toLowerCase().includes('mind map')) artifactType = 'mind_map_creator';
+        
+        // Create artifact record
+        const artifact = await storage.createArtifact({
+          title,
+          type: artifactType,
+          content: artifactHtml,
+          userId,
+          collectionId: conversation.collectionId,
+          metadata: JSON.stringify({ 
+            createdFrom: 'chat',
+            conversationId: conversationId
+          })
+        });
+        
+        artifactId = artifact.id;
+        artifactData = {
+          artifactId: artifact.id,
+          title,
+          type: artifactType
+        };
+      }
+
+      // Create AI message
+      const aiMessage = await storage.createMessage({
+        content: aiResponse.content,
+        role: "assistant",
+        conversationId,
+        sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
+        artifactData: artifactData ? JSON.stringify(artifactData) : null,
+      });
+
+      res.status(201).json([userMessage, aiMessage]);
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json({ error: "Failed to create message" });
+    }
+  });
+
+  // Artifact endpoints
+  app.get("/api/artifacts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { type, collectionId } = req.query;
+      
+      const filters: any = {};
+      if (type) filters.type = type;
+      if (collectionId) filters.collectionId = parseInt(collectionId);
+      
+      const artifacts = await storage.getArtifacts(userId, filters);
+      res.json(artifacts);
+    } catch (error) {
+      console.error("Error fetching artifacts:", error);
+      res.status(500).json({ error: "Failed to fetch artifacts" });
+    }
+  });
+
+  app.get("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      
+      const artifact = await storage.getArtifact(id, userId);
+      if (!artifact) {
+        return res.status(404).json({ error: "Artifact not found" });
+      }
+      
+      res.json(artifact);
+    } catch (error) {
+      console.error("Error fetching artifact:", error);
+      res.status(500).json({ error: "Failed to fetch artifact" });
+    }
+  });
+
+  app.post("/api/artifacts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserId(req);
+      const { title, type, content, description, collectionId, metadata } = req.body;
+      
+      // Validate collection ownership if provided
+      if (collectionId) {
+        const collection = await storage.getCollection(collectionId, userId);
+        if (!collection) {
+          return res.status(404).json({ error: "Collection not found" });
+        }
+      }
+      
+      const artifact = await storage.createArtifact({
+        title,
+        type,
+        content,
+        description,
+        collectionId,
+        metadata: metadata ? JSON.stringify(metadata) : null,
+        userId,
+      });
+      
+      res.status(201).json(artifact);
+    } catch (error) {
+      console.error("Error creating artifact:", error);
+      res.status(500).json({ error: "Failed to create artifact" });
+    }
+  });
+
+  app.put("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      const { title, type, content, description, collectionId, metadata } = req.body;
+      
+      // Verify user owns the artifact
+      const existingArtifact = await storage.getArtifact(id, userId);
+      if (!existingArtifact) {
+        return res.status(404).json({ error: "Artifact not found" });
+      }
+      
+      // Validate collection ownership if provided
+      if (collectionId) {
+        const collection = await storage.getCollection(collectionId, userId);
+        if (!collection) {
+          return res.status(404).json({ error: "Collection not found" });
+        }
+      }
+      
+      const artifact = await storage.updateArtifact(id, {
+        title,
+        type,
+        content,
+        description,
+        collectionId,
+        metadata: metadata ? JSON.stringify(metadata) : null,
+      });
+      
+      res.json(artifact);
+    } catch (error) {
+      console.error("Error updating artifact:", error);
+      res.status(500).json({ error: "Failed to update artifact" });
+    }
+  });
+
+  app.delete("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = getUserId(req);
+      
+      const success = await storage.deleteArtifact(id, userId);
+      if (!success) {
+        return res.status(404).json({ error: "Artifact not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting artifact:", error);
+      res.status(500).json({ error: "Failed to delete artifact" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}

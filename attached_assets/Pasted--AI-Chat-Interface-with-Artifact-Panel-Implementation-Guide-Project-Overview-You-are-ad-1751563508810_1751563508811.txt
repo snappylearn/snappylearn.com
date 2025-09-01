@@ -1,0 +1,389 @@
+# AI Chat Interface with Artifact Panel - Implementation Guide
+
+## 🎯 Project Overview
+
+You are **adapting THE EXISTING CONVERSATION SCREEN WHICH HAS AN AI chat interface** to add **Claude-style artifacts**. This system will dynamically generate interactive HTML/JavaScript/Tailwind snippets that render in a dedicated panel when the AI creates interactive content.
+
+## 📋 Implementation Requirements
+
+**IMPORTANT**: The following examples are SAMPLES for the LLM to understand the concept. You must adapt these examples to work with your existing platform technologies and structure.
+
+### Key Constraints:
+- ✅ **Existing Conversation Screen**: You have an existing conversation screen with AI chat interface - adapt these examples to your current conversation screen implementation
+- ✅ **Conversation Screen Only**: Artifacts only appear on the existing conversation screen, not other pages
+- ✅ **Hidden by Default**: The artifact panel is hidden by default on the conversation screen
+- ✅ **Left Arrow Toggle**: A left-pointing arrow button allows users to open the panel
+- ✅ **Close Button**: When opened, the artifact panel has a close button on its far right
+- ✅ **Adapt to Your Tech Stack**: Use your existing conversation screen technologies, frameworks, and structure
+
+## 🧠 System Prompt for Your LLM
+
+Add this system prompt to your LLM configuration:
+
+```txt
+You are an AI assistant in a chat interface with artifact support. When users request interactive content (quizzes, flashcards, calculators, games, tools, forms, or any interactive elements), generate HTML/CSS/JavaScript snippets using TailwindCSS.
+
+ARTIFACT GENERATION RULES:
+1. Only create artifacts for interactive content requests (quizzes, tools, games, calculators, forms, etc.)
+2. Do NOT create artifacts for simple questions, greetings, or text-only responses
+3. Wrap all artifact code in special tags: [ARTIFACT_START] and [ARTIFACT_END]
+4. Use TailwindCSS for styling (CDN will be available)
+5. Make artifacts fully functional and standalone
+6. Include a title comment at the top of each artifact
+
+ARTIFACT FORMAT:
+[ARTIFACT_START]
+<!-- Artifact Title: [Brief Description] -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Artifact Title</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body class="p-4 bg-gray-50">
+    <!-- Your interactive content here -->
+</body>
+</html>
+[ARTIFACT_END]
+
+EXAMPLES:
+- User: "Hello" → No artifact needed, respond normally
+- User: "Create a physics quiz" → Generate quiz artifact
+- User: "Make a calculator" → Generate calculator artifact
+- User: "What is gravity?" → No artifact needed, respond normally
+```
+
+## 🏗️ Frontend Implementation Requirements
+
+### 1. HTML Structure (ADAPT TO YOUR EXISTING CONVERSATION SCREEN)
+
+**Note**: This is a SAMPLE structure - integrate these elements into your existing conversation screen with AI chat interface:
+
+```html
+<!-- ADAPT: Add this to your existing conversation screen -->
+<div class="existing-conversation-screen-container">
+    <!-- Your existing AI chat interface goes here -->
+    <div id="existing-ai-chat-interface">
+        <!-- Your current conversation screen implementation -->
+        <!-- Your existing chat messages container -->
+        <!-- Your existing input area -->
+        <!-- Your existing chat functionality -->
+    </div>
+    
+    <!-- NEW: Add artifact panel toggle button (hidden by default) -->
+    <button id="artifact-toggle" class="hidden fixed right-4 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-2 rounded-l-lg shadow-lg hover:bg-blue-600 z-40">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+    
+    <!-- NEW: Artifact Panel (hidden by default) -->
+    <div id="artifact-panel" class="hidden fixed right-0 top-0 w-1/2 h-full bg-white border-l border-gray-300 shadow-xl z-50 flex flex-col">
+        <!-- Artifact Header with Close Button -->
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-800">Artifact</h3>
+            <button id="close-artifact" class="text-gray-600 hover:text-red-600 text-xl font-bold">
+                ✖
+            </button>
+        </div>
+        
+        <!-- Artifact Content -->
+        <div class="flex-1 overflow-hidden">
+            <iframe id="artifact-iframe" class="w-full h-full border-none" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+    </div>
+</div>
+```
+
+### 2. JavaScript Implementation (ADAPT TO YOUR EXISTING CODEBASE)
+
+**Note**: This is a SAMPLE implementation - integrate these functions into your existing JavaScript/framework:
+
+
+
+```javascript
+// ADAPT: Integrate this into your existing JavaScript/framework
+class ArtifactManager {
+    constructor() {
+        this.artifactPanel = document.getElementById('artifact-panel');
+        this.artifactIframe = document.getElementById('artifact-iframe');
+        this.toggleButton = document.getElementById('artifact-toggle');
+        this.closeButton = document.getElementById('close-artifact');
+        
+        // ADAPT: Replace with your existing chat message container
+        this.chatMessages = document.getElementById('your-existing-chat-messages-container');
+        
+        this.isArtifactOpen = false;
+        this.currentArtifact = null;
+        
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        // Left arrow toggle to open artifact panel
+        this.toggleButton.addEventListener('click', () => this.openArtifact());
+        
+        // Close button on far right of artifact panel
+        this.closeButton.addEventListener('click', () => this.closeArtifact());
+        
+        // ADAPT: Integrate with your existing message sending system
+        // This should be called when you process LLM responses
+        // this.processLLMResponse(response);
+    }
+    
+    // ADAPT: Call this method when processing LLM responses in your existing system
+    processLLMResponse(response) {
+        // ADAPT: Adjust based on your LLM response format
+        const message = response.message || response.content || response.text;
+        
+        // Check for artifact tags
+        const artifactMatch = message.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
+        
+        if (artifactMatch) {
+            const artifactHtml = artifactMatch[1];
+            const messageWithoutArtifact = message.replace(/\[ARTIFACT_START\][\s\S]*?\[ARTIFACT_END\]/, '').trim();
+            
+            // ADAPT: Use your existing method to add messages to chat
+            if (messageWithoutArtifact) {
+                this.addAIMessageToChat(messageWithoutArtifact);
+            }
+            
+            // Create artifact card and show artifact
+            this.createArtifactCard(artifactHtml);
+            this.showArtifactToggle();
+            
+        } else {
+            // ADAPT: Use your existing method to add regular messages
+            this.addAIMessageToChat(message);
+        }
+    }
+    
+    // ADAPT: Replace with your existing method to add messages to chat
+    addAIMessageToChat(message) {
+        // Your existing implementation for adding AI messages
+        console.log('Add this message to chat:', message);
+    }
+    
+    createArtifactCard(artifactHtml) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 p-4 my-3 rounded-lg shadow-sm';
+        
+        // Extract title from artifact if available
+        const titleMatch = artifactHtml.match(/<!-- Artifact Title: (.*?) -->/);
+        const title = titleMatch ? titleMatch[1] : 'Interactive Content';
+        
+        cardDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-blue-700">🧩 Artifact Generated</p>
+                    <p class="text-lg font-semibold text-gray-800">${title}</p>
+                </div>
+                <button class="artifact-card-btn px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    View Artifact
+                </button>
+            </div>
+        `;
+        
+        // Add click handler to open artifact
+        cardDiv.querySelector('.artifact-card-btn').addEventListener('click', () => {
+            this.showArtifact(artifactHtml);
+        });
+        
+        // ADAPT: Use your existing method to add elements to chat
+        this.chatMessages.appendChild(cardDiv);
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    }
+    
+    showArtifactToggle() {
+        // Show the left arrow toggle button
+        this.toggleButton.classList.remove('hidden');
+    }
+    
+    showArtifact(artifactHtml) {
+        this.currentArtifact = artifactHtml;
+        this.artifactIframe.srcdoc = artifactHtml;
+        
+        // Show the artifact panel
+        this.artifactPanel.classList.remove('hidden');
+        
+        // Hide the toggle button since panel is now open
+        this.toggleButton.classList.add('hidden');
+        
+        this.isArtifactOpen = true;
+    }
+    
+    openArtifact() {
+        if (this.currentArtifact) {
+            this.showArtifact(this.currentArtifact);
+        }
+    }
+    
+    closeArtifact() {
+        // Hide the artifact panel
+        this.artifactPanel.classList.add('hidden');
+        
+        // Show the left arrow toggle button again
+        this.toggleButton.classList.remove('hidden');
+        
+        this.isArtifactOpen = false;
+    }
+}
+
+// ADAPT: Initialize based on your existing app structure
+// Only initialize on conversation screen
+if (window.location.pathname.includes('/conversation') || window.location.pathname.includes('/chat')) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const artifactManager = new ArtifactManager();
+        
+        // ADAPT: Connect to your existing message processing system
+        // Example: when you receive LLM response, call:
+        // artifactManager.processLLMResponse(response);
+        
+        // Store globally for access from your existing code
+        window.artifactManager = artifactManager;
+    });
+}
+```
+
+### 3. Backend API Integration (ADAPT TO YOUR EXISTING CONVERSATION SCREEN BACKEND)
+
+**Note**: This is a SAMPLE - integrate with your existing conversation screen LLM API handling:
+
+```javascript
+// ADAPT: Example for your existing conversation screen backend/API structure
+// This should be integrated into your current conversation screen LLM API handling
+
+// Example Express.js endpoint (adapt to your conversation screen backend framework)
+app.post('/api/conversation/chat', async (req, res) => {
+    try {
+        const { message } = req.body;
+        
+        // ADAPT: Use your existing conversation screen LLM API call method
+        const llmResponse = await callYourExistingConversationLLMAPI(message);
+        
+        res.json({
+            message: llmResponse,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to process conversation message' });
+    }
+});
+
+// ADAPT: Or if using a different framework/structure for your conversation screen
+// Ensure your conversation screen LLM responses are processed through conversationArtifactManager.processLLMResponse()
+```
+
+## 🎨 Styling Enhancements (ADAPT TO YOUR EXISTING STYLES)
+
+**Note**: These are SAMPLE styles - integrate with your existing CSS/styling system:
+
+```css
+/* ADAPT: Add these styles to your existing CSS/styling system */
+
+/* Left arrow toggle button styles */
+#artifact-toggle {
+    transition: all 0.3s ease;
+}
+
+#artifact-toggle:hover {
+    transform: translateX(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Artifact panel styles */
+#artifact-panel {
+    transition: all 0.3s ease;
+}
+
+/* Artifact card hover effects */
+.artifact-card-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Iframe styling */
+#artifact-iframe {
+    border: none;
+    background: white;
+}
+
+/* ADAPT: Responsive design for your existing breakpoints */
+@media (max-width: 768px) {
+    #artifact-panel {
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 50;
+    }
+    
+    #artifact-toggle {
+        right: 2px;
+    }
+}
+
+/* ADAPT: Dark mode support if your app has it */
+@media (prefers-color-scheme: dark) {
+    #artifact-panel {
+        background-color: #1f2937;
+        border-color: #374151;
+    }
+}
+```
+
+## 🔧 Key Features Implemented
+
+- ✅ **Artifact Detection**: Automatically detects `[ARTIFACT_START]` tags in LLM responses
+- ✅ **Conversation Screen Integration**: Artifacts only appear on your existing conversation screen with AI chat interface
+- ✅ **Hidden by Default**: Artifact panel is hidden by default on the conversation screen
+- ✅ **Left Arrow Toggle**: Left-pointing arrow button to open the artifact panel
+- ✅ **Close Button**: Close button on the far right of the artifact panel
+- ✅ **Artifact Cards**: Special cards in conversation chat for generated artifacts
+- ✅ **Iframe Sandboxing**: Safe rendering of HTML/JS content
+- ✅ **Responsive Design**: Adapts to your existing conversation screen responsive breakpoints
+- ✅ **Integration Ready**: Designed to work with your existing conversation screen codebase
+
+## 🔗 Integration Steps
+
+1. **Add HTML Elements**: Integrate the artifact panel and toggle button into your existing conversation screen
+2. **Adapt JavaScript**: Modify the ArtifactManager class to work with your existing conversation screen message handling
+3. **Update LLM Processing**: Ensure your conversation screen LLM response processing calls `conversationArtifactManager.processLLMResponse()`
+4. **Add Styles**: Integrate the CSS styles with your existing conversation screen styling system
+5. **Test**: Use the provided test examples to verify functionality on your conversation screen
+
+## 🚀 Testing Examples (ADAPT TO YOUR EXISTING CONVERSATION SCREEN INTERFACE)
+
+Test your implementation with these prompts in your existing conversation screen AI chat interface:
+
+1. **No Artifact**: "Hello, how are you?"
+2. **Simple Artifact**: "Create a basic calculator"
+3. **Complex Artifact**: "Make a physics quiz with 5 questions"
+4. **Interactive Artifact**: "Build a color picker tool"
+
+## 📝 Additional Notes
+
+- **Existing Conversation Screen**: All examples are samples - adapt to your current conversation screen with AI chat interface
+- **Conversation Screen Only**: Artifacts only work on your existing conversation screen, not other pages
+- **Hidden by Default**: Panel stays hidden until first artifact is generated in the conversation
+- **Left Arrow Design**: Toggle button uses left-pointing arrow icon on the conversation screen
+- **Close Button Position**: Close button is positioned on the far right of the artifact panel
+- **Iframe Security**: Artifacts run in sandboxed iframes for security
+- **CDN Styling**: Artifacts automatically include TailwindCSS 2.2.19 and Font Awesome 6.0.0 CDN links for proper styling
+- **Responsive**: Panel adapts to your existing conversation screen mobile/desktop breakpoints
+
+## 🔒 Security Considerations
+
+- All artifacts run in sandboxed iframes with restricted permissions
+- No access to parent window or sensitive conversation screen data
+- Scripts are isolated within the artifact context only
+- Always validate and sanitize LLM output before rendering in the conversation screen
+- Artifacts only execute on the conversation screen, not other pages
+
+---
+
+**Ready to integrate into your existing conversation screen!** These samples provide the foundation for adding Claude-style artifacts to your existing conversation screen with AI chat interface. Adapt all code examples to work with your current conversation screen platform technologies and structure.

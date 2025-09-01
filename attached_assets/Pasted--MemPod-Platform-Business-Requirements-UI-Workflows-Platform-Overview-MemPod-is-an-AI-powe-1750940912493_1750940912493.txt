@@ -1,0 +1,255 @@
+# MemPod Platform - Business Requirements & UI Workflows
+
+## Platform Overview
+
+MemPod is an AI-powered knowledge management platform that enables users to organize documents into collections and have intelligent conversations about their knowledge base. The platform supports two types of conversations:
+
+1. **Collection-Based Conversations** - AI chat contextualized to specific knowledge collections
+2. **Independent Conversations** - General AI chat without collection context
+
+## Core Business Requirements
+
+### Knowledge Organization
+- Users can create and manage multiple knowledge collections
+- Each collection can contain multiple documents and resources
+- Collections serve as knowledge contexts for AI conversations
+- Users can browse and search through their collections
+
+### Conversation Types
+- **General Chat**: Independent conversations without collection context
+- **Collection Chat**: Conversations that leverage specific collection knowledge
+- **Conversation History**: All conversations are saved and can be resumed
+- **Context Switching**: Users can move between different conversation contexts
+
+### Document Management
+- Users can add documents to collections
+- Documents provide context for collection-based conversations
+- Document metadata and statistics are displayed
+- Easy document upload and organization workflow
+
+## User Interface Workflows
+
+### 1. Dashboard/Landing Experience
+
+**Purpose**: Main entry point with centered chat interface and conversation discovery
+
+**Layout**:
+- **Center Stage**: Primary chat input interface (prominent and centered)
+- **Below Chat**: Recent conversations grid for easy access
+- **Sidebar**: Navigation with New Chat, Collections list, and Recent Chats
+
+**User Actions Available**:
+- Start a **general conversation** from the centered chat input
+- Start a **collection-based conversation** by selecting a collection from sidebar
+- Resume recent conversations from the grid below chat input
+- Browse collections via sidebar for context-specific conversations
+- Quick access to recent chats via sidebar
+
+**Workflow Options**:
+- **Centered Chat Start**: Primary action - type message in center and start conversation
+- **Collection Selection**: Choose collection from sidebar, then start contextualized chat
+- **Conversation Resume**: Click any recent conversation to continue where left off
+- **Quick Navigation**: Use sidebar for rapid access to collections and recent chats
+
+**Sidebar Components**:
+- **New Chat Button**: Always available to start fresh independent conversation
+- **Collections List**: Browse available knowledge collections for context
+- **Recent Chats**: Quick access to recently active conversations
+
+**Business Value**: Centers the conversation experience while providing easy discovery of previous work and organized knowledge contexts.
+
+---
+
+### 2. Collections Management
+
+**Purpose**: Comprehensive collection organization and oversight
+
+**User Actions Available**:
+- View all collections in grid or list format
+- Search and filter collections by name/description
+- Sort collections by various criteria (date, name, document count)
+- Create new knowledge collections
+- Start conversations from any collection
+- Navigate to detailed collection views
+
+**Workflow Options**:
+- **Collection Creation**: Modal-driven workflow to create new collections
+- **Collection Browsing**: Visual exploration of knowledge organization
+- **Direct Collection Chat**: Start contextualized conversations immediately
+- **Collection Management**: Access detailed views for deeper management
+
+**Business Value**: Enables users to maintain organized knowledge bases and quickly access relevant contexts for conversations.
+
+---
+
+### 3. Collection Detail View
+
+**Purpose**: Deep management of individual collections with immediate conversation access
+
+**User Actions Available**:
+- View all documents within the collection
+- Browse conversation history for this collection
+- Add new documents to the collection
+- Start new collection-contextualized conversations
+- Quick message input for immediate questions
+
+**Layout**:
+- **Left Panel**: Conversation management and quick chat input
+- **Right Panel**: Document management and collection statistics
+
+**Workflow Options**:
+- **Document Addition**: Add knowledge documents to enhance collection context
+- **Conversation Review**: Browse past collection-related discussions
+- **Quick Questions**: Send immediate messages that create new conversations
+- **Context Management**: Understand what knowledge is available for conversations
+
+**Business Value**: Provides comprehensive collection management while maintaining easy access to contextualized AI conversations.
+
+---
+
+### 4. Conversation Interface
+
+**Purpose**: Full-featured chat experience for both conversation types
+
+**Conversation Types Supported**:
+
+#### **Independent Conversations**
+- General AI chat without specific knowledge context
+- Broad knowledge base queries
+- General assistance and information
+
+#### **Collection-Based Conversations**
+- AI responses informed by collection documents
+- Context-aware answers drawing from uploaded knowledge
+- Source citations from collection documents
+- Rich responses with document references
+
+**User Actions Available**:
+- Send messages and receive AI responses
+- View conversation history
+- Access collection context (for collection-based chats)
+- Navigate to related collections or documents
+- Start new conversations
+
+**Business Value**: Delivers the core AI conversation experience with appropriate knowledge context based on conversation type.
+
+---
+
+## Core User Journeys
+
+### Journey 1: Quick General Assistance
+```
+Dashboard (Centered Chat) → Type General Question → Start Independent Conversation → 
+Get AI Response → Continue or Start New Chat via Sidebar
+```
+
+**Business Scenario**: User needs immediate AI assistance and wants the fastest path to conversation.
+
+### Journey 2: Collection-Contextualized Research
+```
+Dashboard → Sidebar Collections → Select Knowledge Collection → 
+Centered Chat with Collection Context → Ask Specific Questions → 
+Get Document-Informed Responses
+```
+
+**Business Scenario**: User has specific knowledge they want to explore with AI assistance.
+
+### Journey 3: Continuing Previous Work
+```
+Dashboard → Recent Conversations (Below Chat or Sidebar) → 
+Resume Conversation → Continue Discussion → 
+Switch Context via Sidebar if Needed
+```
+
+**Business Scenario**: User wants to continue previous conversations or research.
+
+### Journey 4: Exploration and Discovery
+```
+Dashboard → Browse Sidebar Collections → Explore Recent Chats → 
+Use Centered Chat for Questions → Navigate Between Contexts → 
+Build Understanding Across Collections
+```
+
+**Business Scenario**: User explores their knowledge base and discovers new connections through conversations.
+
+## Conversation Context Management
+
+### Independent Conversations
+- **Initiation**: From centered dashboard chat input or sidebar "New Chat" button
+- **Context**: No specific document knowledge
+- **AI Behavior**: General knowledge responses
+- **Use Cases**: Broad questions, general assistance, exploratory conversations
+- **Visual Indicator**: Clear indication that conversation is independent
+
+### Collection-Based Conversations
+- **Initiation**: Select collection from sidebar, then use centered chat input
+- **Context**: Specific collection documents and knowledge
+- **AI Behavior**: Responses informed by collection content with source citations
+- **Use Cases**: Document analysis, specific research questions, knowledge synthesis
+- **Visual Indicator**: Collection name/context displayed prominently
+
+### Context Switching Workflow
+- **From Centered Chat**: Start independent, then select collection from sidebar to add context
+- **From Sidebar Selection**: Choose collection first, then centered chat inherits that context
+- **New Chat Reset**: Sidebar "New Chat" button always resets to independent conversation
+- **Conversation History**: All conversation types preserved and accessible
+
+### Sidebar Navigation Design
+- **New Chat Button**: Prominent button for starting fresh independent conversations
+- **Collections Section**: Expandable/scrollable list of user's knowledge collections
+- **Recent Chats Section**: List of recently active conversations (both types)
+- **Context Indicators**: Visual cues showing which collection (if any) is currently selected
+
+## Business Value Propositions
+
+### For Individual Users
+- **Organized Knowledge**: Structure documents for better AI conversations
+- **Contextual Intelligence**: Get AI responses specific to personal knowledge base
+- **Flexible Interaction**: Choose between general and focused conversations
+- **Conversation Continuity**: Resume and build upon previous discussions
+
+### For Organizations
+- **Knowledge Management**: Centralized document organization with AI access
+- **Team Collaboration**: Shared collections for team knowledge
+- **Intelligent Retrieval**: AI-powered insights from organizational documents
+- **Workflow Integration**: Seamless conversation workflows for different use cases
+
+## Key Success Metrics
+
+### User Engagement
+- Conversation frequency (both types)
+- Collection creation and usage rates
+- Document upload and organization activity
+- Session duration and return visits
+
+### Knowledge Utilization
+- Collection-based vs independent conversation ratios
+- Document reference rates in conversations
+- Knowledge synthesis and insight generation
+- User satisfaction with contextualized responses
+
+### Platform Adoption
+- New user onboarding completion
+- Feature usage across conversation types
+- Collection sharing and collaboration
+- Long-term user retention
+
+## Platform Capabilities Summary
+
+**MemPod's Centered Chat Experience enables users to**:
+- **Start conversations immediately** with the prominent centered chat interface
+- **Choose conversation context** through sidebar collection selection
+- **Resume previous work** via recent conversations display below chat
+- **Switch between contexts** seamlessly using sidebar navigation
+- **Access organized knowledge** through sidebar collections list
+- **Maintain conversation continuity** with persistent chat history
+- **Navigate efficiently** between independent and collection-based conversations
+
+**Key Interface Design Principles**:
+- **Chat-First Design**: Conversation interface is the primary focal point
+- **Context Selection**: Easy access to collections for specialized conversations
+- **Conversation Discovery**: Recent chats prominently displayed for continuation
+- **Flexible Navigation**: Sidebar provides quick access to all conversation types
+- **Visual Clarity**: Clear indicators for conversation context and type
+
+The platform serves as both a knowledge management system and an intelligent conversation partner, with the chat interface at the center of the user experience, supported by organized knowledge contexts and conversation history.

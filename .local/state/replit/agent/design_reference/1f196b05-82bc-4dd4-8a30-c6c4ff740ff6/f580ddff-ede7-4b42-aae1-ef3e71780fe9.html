@@ -1,0 +1,611 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemPod - AI Knowledge Management Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        accent: '#06b6d4'
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <!-- Logo/Header -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-lg font-semibold text-gray-900">MemPod</h1>
+                </div>
+            </div>
+
+            <!-- New Chat Button -->
+            <div class="p-4">
+                <button data-event="click:startNewChat" class="w-full bg-primary text-white rounded-lg px-4 py-3 font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2">
+                    <i class="fas fa-plus text-sm"></i>
+                    <span>New Chat</span>
+                </button>
+            </div>
+
+            <!-- Collections Section -->
+            <div class="flex-1 overflow-y-auto px-4">
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Collections</h3>
+                        <button data-event="click:createCollection" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- @MAP: collections.map(collection => ( -->
+                    <div class="space-y-1">
+                        <div data-mock="true" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                                <i class="fas fa-folder text-blue-600 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate" data-bind="collection.name">Research Papers</p>
+                                <p class="text-xs text-gray-500" data-bind="collection.documentCount">12 documents</p>
+                            </div>
+                        </div>
+                        
+                        <div data-mock="true" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="w-6 h-6 bg-green-100 rounded flex items-center justify-center">
+                                <i class="fas fa-folder text-green-600 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate" data-bind="collection.name">Project Notes</p>
+                                <p class="text-xs text-gray-500" data-bind="collection.documentCount">8 documents</p>
+                            </div>
+                        </div>
+                        
+                        <div data-mock="true" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="w-6 h-6 bg-purple-100 rounded flex items-center justify-center">
+                                <i class="fas fa-folder text-purple-600 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate" data-bind="collection.name">Meeting Records</p>
+                                <p class="text-xs text-gray-500" data-bind="collection.documentCount">15 documents</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Recent Chats Section -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Recent Chats</h3>
+                    
+                    <!-- @MAP: recentChats.map(chat => ( -->
+                    <div class="space-y-1">
+                        <div data-mock="true" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center">
+                                <i class="fas fa-message text-gray-600 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-900 truncate" data-bind="chat.preview">AI Ethics Discussion</p>
+                                <p class="text-xs text-gray-500" data-bind="chat.time">2 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <div data-mock="true" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                                <i class="fas fa-folder text-blue-600 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-900 truncate" data-bind="chat.preview">Research Analysis</p>
+                                <p class="text-xs text-gray-500" data-bind="chat.time">Yesterday</p>
+                            </div>
+                        </div>
+                        
+                        <div data-mock="true" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="w-6 h-6 bg-gray-100 rounded flex items-center justify-center">
+                                <i class="fas fa-message text-gray-600 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-900 truncate" data-bind="chat.preview">General Questions</p>
+                                <p class="text-xs text-gray-500" data-bind="chat.time">3 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+
+            <!-- User Profile -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900" data-bind="user.name">John Doe</p>
+                        <p class="text-xs text-gray-500">Free Plan</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-cog text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- @COMPONENT: ChatInterface -->
+            <div class="flex-1 flex flex-col max-w-4xl mx-auto w-full p-6">
+                
+                <!-- Context Indicator -->
+                <!-- @STATE: selectedCollection:object|null = null -->
+                <div class="mb-6">
+                    <div data-bind="selectedCollection" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-folder text-blue-600"></i>
+                            <span class="text-sm font-medium text-blue-900">Chatting with collection:</span>
+                            <span class="text-sm text-blue-700" data-bind="selectedCollection.name">Research Papers</span>
+                            <button class="ml-auto text-blue-400 hover:text-blue-600">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Welcome/Centered Chat -->
+                <div class="flex-1 flex flex-col justify-center items-center space-y-8">
+                    
+                    <!-- Welcome Message -->
+                    <div class="text-center max-w-2xl">
+                        <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-brain text-white text-2xl"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-3">Welcome to MemPod</h1>
+                        <p class="text-lg text-gray-600 mb-8">Your AI-powered knowledge companion. Start a conversation or explore your collections.</p>
+                    </div>
+
+                    <!-- Centered Chat Input -->
+                    <div class="w-full max-w-2xl">
+                        <div class="relative">
+                            <textarea 
+                                data-event="input:handleInput" 
+                                data-implementation="Should expand as user types and handle enter key for submission"
+                                placeholder="Ask me anything or select a collection for context-specific answers..."
+                                class="w-full p-4 pr-12 border-2 border-gray-200 rounded-xl resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                rows="3"
+                                data-mock="true"
+                            ></textarea>
+                            <button 
+                                data-event="click:sendMessage" 
+                                data-implementation="Should validate input and send message"
+                                class="absolute right-3 bottom-3 w-8 h-8 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                            >
+                                <i class="fas fa-paper-plane text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 text-sm text-gray-500">
+                            <span>Press Enter to send, Shift+Enter for new line</span>
+                            <span class="flex items-center space-x-1">
+                                <i class="fas fa-shield-alt text-xs"></i>
+                                <span>Secure & Private</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button data-event="click:quickAction" class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-sm font-medium text-gray-700">
+                            <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>
+                            Get Ideas
+                        </button>
+                        <button data-event="click:quickAction" class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-sm font-medium text-gray-700">
+                            <i class="fas fa-search mr-2 text-blue-500"></i>
+                            Search Knowledge
+                        </button>
+                        <button data-event="click:quickAction" class="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-sm font-medium text-gray-700">
+                            <i class="fas fa-file-text mr-2 text-green-500"></i>
+                            Analyze Document
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Conversations Grid -->
+                <div class="mt-12">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Recent Conversations</h2>
+                        <button class="text-primary hover:text-indigo-700 font-medium text-sm">View All</button>
+                    </div>
+                    
+                    <!-- @MAP: recentConversations.map(conversation => ( -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div data-mock="true" class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                    <span class="text-xs font-medium text-gray-500 uppercase">Independent</span>
+                                </div>
+                                <span class="text-xs text-gray-400" data-bind="conversation.time">2h ago</span>
+                            </div>
+                            <h3 class="font-medium text-gray-900 mb-2 line-clamp-2" data-bind="conversation.title">AI Ethics Discussion</h3>
+                            <p class="text-sm text-gray-600 line-clamp-2 mb-3" data-bind="conversation.preview">Let's discuss the ethical implications of AI in modern society...</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500" data-bind="conversation.messageCount">8 messages</span>
+                                <i class="fas fa-arrow-right text-xs text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div data-mock="true" class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                    <span class="text-xs font-medium text-blue-600 uppercase">Research Papers</span>
+                                </div>
+                                <span class="text-xs text-gray-400" data-bind="conversation.time">Yesterday</span>
+                            </div>
+                            <h3 class="font-medium text-gray-900 mb-2 line-clamp-2" data-bind="conversation.title">Research Analysis</h3>
+                            <p class="text-sm text-gray-600 line-clamp-2 mb-3" data-bind="conversation.preview">Can you summarize the key findings from the machine learning papers...</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500" data-bind="conversation.messageCount">12 messages</span>
+                                <i class="fas fa-arrow-right text-xs text-gray-400"></i>
+                            </div>
+                        </div>
+
+                        <div data-mock="true" class="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-xs font-medium text-green-600 uppercase">Project Notes</span>
+                                </div>
+                                <span class="text-xs text-gray-400" data-bind="conversation.time">3 days ago</span>
+                            </div>
+                            <h3 class="font-medium text-gray-900 mb-2 line-clamp-2" data-bind="conversation.title">Project Planning</h3>
+                            <p class="text-sm text-gray-600 line-clamp-2 mb-3" data-bind="conversation.preview">Help me organize the project timeline based on the meeting notes...</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500" data-bind="conversation.messageCount">6 messages</span>
+                                <i class="fas fa-arrow-right text-xs text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ChatInterface -->
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @COMPONENT: CollectionModal (Hidden by default) -->
+    <div id="collectionModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Create New Collection</h3>
+                <button data-event="click:closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form data-event="submit:createCollection" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Collection Name</label>
+                    <input 
+                        type="text" 
+                        data-implementation="Should validate collection name"
+                        placeholder="Enter collection name"
+                        class="w-full p-3 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        required
+                        data-mock="true"
+                    >
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                    <textarea 
+                        placeholder="Describe what this collection will contain"
+                        class="w-full p-3 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
+                        rows="3"
+                        data-mock="true"
+                    ></textarea>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button 
+                        type="button" 
+                        data-event="click:closeModal"
+                        class="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit"
+                        data-implementation="Should create collection and close modal"
+                        class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                    >
+                        Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: CollectionModal -->
+
+    <!-- @COMPONENT: ConversationView (Hidden by default) -->
+    <div id="conversationView" class="fixed inset-0 bg-white hidden flex-col z-40">
+        <!-- Conversation Header -->
+        <header class="border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button data-event="click:backToDashboard" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-lg font-semibold text-gray-900" data-bind="conversation.title">AI Ethics Discussion</h1>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-sm text-gray-500" data-bind="conversation.type">Independent Conversation</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-share"></i>
+                    </button>
+                    <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                    <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Messages Area -->
+        <div class="flex-1 overflow-y-auto px-6 py-6">
+            <div class="max-w-3xl mx-auto space-y-6">
+                
+                <!-- @MAP: messages.map(message => ( -->
+                <!-- User Message -->
+                <div data-mock="true" class="flex justify-end">
+                    <div class="max-w-2xl bg-primary text-white rounded-2xl rounded-br-md px-4 py-3">
+                        <p data-bind="message.content">What are the main ethical concerns surrounding AI development in 2024?</p>
+                        <span class="text-xs text-indigo-200 mt-2 block" data-bind="message.time">2:34 PM</span>
+                    </div>
+                </div>
+
+                <!-- AI Response -->
+                <div data-mock="true" class="flex justify-start">
+                    <div class="max-w-2xl">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <div class="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                                <i class="fas fa-brain text-white text-xs"></i>
+                            </div>
+                            <span class="text-sm font-medium text-gray-700">MemPod AI</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
+                            <p class="text-gray-800" data-bind="message.content">The main ethical concerns in AI development for 2024 include:</p>
+                            <ul class="mt-3 space-y-2 text-gray-800">
+                                <li>• <strong>Privacy and Data Protection:</strong> Ensuring user data rights and consent</li>
+                                <li>• <strong>Algorithmic Bias:</strong> Preventing discrimination in AI decision-making</li>
+                                <li>• <strong>Transparency:</strong> Making AI systems explainable and accountable</li>
+                                <li>• <strong>Job Displacement:</strong> Managing workforce transitions</li>
+                                <li>• <strong>Misinformation:</strong> Combating deepfakes and AI-generated false content</li>
+                            </ul>
+                            <span class="text-xs text-gray-500 mt-3 block" data-bind="message.time">2:34 PM</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="border-t border-gray-200 px-6 py-4">
+            <div class="max-w-3xl mx-auto">
+                <div class="relative">
+                    <textarea 
+                        data-event="input:handleInput"
+                        data-implementation="Should auto-resize and handle message sending"
+                        placeholder="Continue the conversation..."
+                        class="w-full p-4 pr-12 border border-gray-200 rounded-xl resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        rows="2"
+                        data-mock="true"
+                    ></textarea>
+                    <button 
+                        data-event="click:sendMessage"
+                        data-implementation="Should send message and update conversation"
+                        class="absolute right-3 bottom-3 w-8 h-8 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                    >
+                        <i class="fas fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ConversationView -->
+
+    <!-- @COMPONENT: CollectionsView (Hidden by default) -->
+    <div id="collectionsView" class="fixed inset-0 bg-gray-50 hidden flex-col z-40">
+        <!-- Collections Header -->
+        <header class="bg-white border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button data-event="click:backToDashboard" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">Collections</h1>
+                        <p class="text-sm text-gray-600">Organize your knowledge into collections</p>
+                    </div>
+                </div>
+                <button data-event="click:createCollection" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                    <i class="fas fa-plus mr-2"></i>
+                    New Collection
+                </button>
+            </div>
+        </header>
+
+        <!-- Collections Grid -->
+        <div class="flex-1 overflow-y-auto px-6 py-6">
+            <div class="max-w-6xl mx-auto">
+                
+                <!-- Search and Filters -->
+                <div class="mb-6 flex items-center space-x-4">
+                    <div class="relative flex-1 max-w-md">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search collections..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                            data-mock="true"
+                        >
+                    </div>
+                    <select class="px-4 py-2 border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all" data-mock="true">
+                        <option>All Collections</option>
+                        <option>Recently Created</option>
+                        <option>Most Documents</option>
+                        <option>Recently Used</option>
+                    </select>
+                </div>
+
+                <!-- Collections Grid -->
+                <!-- @MAP: collections.map(collection => ( -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div data-mock="true" class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-folder text-blue-600 text-lg"></i>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2" data-bind="collection.name">Research Papers</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-bind="collection.description">Academic papers and research documents for AI and machine learning topics.</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500" data-bind="collection.documentCount">12 documents</span>
+                            <span class="text-gray-500" data-bind="collection.lastUsed">2 hours ago</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex space-x-2">
+                            <button data-event="click:openCollection" class="flex-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                                Open Chat
+                            </button>
+                            <button data-event="click:viewCollection" class="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                View
+                            </button>
+                        </div>
+                    </div>
+
+                    <div data-mock="true" class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-folder text-green-600 text-lg"></i>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2" data-bind="collection.name">Project Notes</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-bind="collection.description">Meeting notes, project plans, and team collaboration documents.</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500" data-bind="collection.documentCount">8 documents</span>
+                            <span class="text-gray-500" data-bind="collection.lastUsed">Yesterday</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex space-x-2">
+                            <button data-event="click:openCollection" class="flex-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                                Open Chat
+                            </button>
+                            <button data-event="click:viewCollection" class="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                View
+                            </button>
+                        </div>
+                    </div>
+
+                    <div data-mock="true" class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-folder text-purple-600 text-lg"></i>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600 transition-colors">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2" data-bind="collection.name">Meeting Records</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-bind="collection.description">Weekly team meetings and client call transcripts.</p>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500" data-bind="collection.documentCount">15 documents</span>
+                            <span class="text-gray-500" data-bind="collection.lastUsed">3 days ago</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-100 flex space-x-2">
+                            <button data-event="click:openCollection" class="flex-1 bg-primary text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                                Open Chat
+                            </button>
+                            <button data-event="click:viewCollection" class="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                View
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: CollectionsView -->
+
+    <!-- Basic JavaScript for Demo Interactions -->
+    <script>
+        (function() {
+            // TODO: Implement proper React state management and API integration
+            
+            // Modal management
+            const collectionModal = document.getElementById('collectionModal');
+            const conversationView = document.getElementById('conversationView');
+            const collectionsView = document.getElementById('collectionsView');
+            
+            // Demo modal toggle
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-event*="createCollection"]')) {
+                    collectionModal.classList.remove('hidden');
+                    collectionModal.classList.add('flex');
+                }
+                
+                if (e.target.closest('[data-event*="closeModal"]')) {
+                    collectionModal.classList.add('hidden');
+                    collectionModal.classList.remove('flex');
+                }
+                
+                // Demo view switching
+                if (e.target.closest('[data-event*="backToDashboard"]')) {
+                    conversationView.classList.add('hidden');
+                    collectionsView.classList.add('hidden');
+                }
+            });
+            
+            // Demo interactions - TODO: Replace with proper React event handlers
+            console.log('MemPod initialized - Ready for React integration');
+        })();
+    </script>
+</body>
+</html>

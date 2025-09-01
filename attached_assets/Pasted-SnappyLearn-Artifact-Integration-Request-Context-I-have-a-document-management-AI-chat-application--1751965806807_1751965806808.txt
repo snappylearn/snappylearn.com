@@ -1,0 +1,42 @@
+SnappyLearn Artifact Integration Request
+Context
+I have a document management & AI chat application called SnappyLearn built with React 18 + TypeScript frontend, Node.js + Express backend, PostgreSQL database with Drizzle ORM, and OpenAI GPT-4o integration.
+Current Issue
+My artifact integration works during initial generation but loses chat history context when continuing conversations after artifact creation.
+Required Changes
+1. Fix Artifact Chat History Persistence
+
+Modify the conversation flow to maintain chat context after artifact generation
+Ensure messages with artifacts are properly stored in the database with artifact metadata
+Update the AI service to include artifact history in subsequent conversation context
+Fix the message threading to preserve artifact references
+
+2. Add Dedicated Artifact Page
+Create a new /artifacts route with educational tools:
+
+Code Playground: Interactive code editor with syntax highlighting (supports HTML, CSS, JS, Python, etc.)
+Math Visualizer: Interactive graphing calculator and equation solver
+Document Generator: Templates for essays, reports, study guides
+Quiz Builder: Create interactive quizzes and flashcards
+Presentation Maker: Simple slide creator with educational themes
+Data Visualizer: Chart generator for educational data
+Mind Map Creator: Visual concept mapping tool
+
+3. Technical Implementation Requirements
+
+Add artifact metadata to the messages database schema
+Create artifact storage and retrieval system
+Implement artifact versioning for educational content
+Add artifact sharing capabilities between users
+Integrate artifacts with existing collection system
+Maintain consistent SnappyLearn branding and purple gradient theme
+
+4. UI/UX Requirements
+
+Follow existing Radix UI + shadcn/ui design system
+Responsive design for mobile and desktop
+Integrate with current sidebar navigation
+Add artifact preview thumbnails
+Include search and filter functionality for artifacts
+
+Please implement these changes while maintaining the existing authentication system, database structure, and overall architecture.
