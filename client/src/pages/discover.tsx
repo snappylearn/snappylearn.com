@@ -12,7 +12,7 @@ import {
   Users, 
   FileText
 } from "lucide-react";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
 export default function Discover() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -124,7 +124,7 @@ export default function Discover() {
   }
 
   return (
-    <UnifiedLayout>
+    <TwitterStyleLayout>
           {/* Category Tabs */}
           <div className="mb-6">
             <div className="flex flex-wrap gap-2">
@@ -239,6 +239,6 @@ export default function Discover() {
               </div>
             </div>
           )}
-    </UnifiedLayout>
+    </TwitterStyleLayout>
   );
 }
