@@ -1,23 +1,18 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { User as SupabaseUser, AuthError } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
-import { Analytics } from '@/lib/analytics'
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
-// Support both Supabase users and custom users
-type User = SupabaseUser | {
+interface User {
   id: string
   email: string
   firstName?: string | null
   lastName?: string | null
   profileImageUrl?: string | null
-  role?: string | null
+  role: string
 }
 
 interface AuthContextType {
   user: User | null
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>
-  signInWithGoogle: (credential: string) => Promise<{ error: AuthError | null }>
+  signIn: (email: string, password: string) => Promise<{ error: { message: string } | null }>
+  signUp: (email: string, password: string) => Promise<{ error: { message: string } | null }>
   signOut: () => Promise<void>
   loading: boolean
   isAdmin: boolean
@@ -25,72 +20,86 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
+}
+
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  
+
   // Check if user is admin
-  const isAdmin = user && 'role' in user && (user.role === 'admin' || user.role === 'super_admin')
+  const isAdmin = user && (user.role === 'admin' || user.role === 'super_admin')
 
   useEffect(() => {
-    // Simple session check using Supabase only
+    // Check for stored JWT token
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session:', session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+          console.log('No stored token found');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Found stored token, validating...');
+        
+        // Validate token with backend
+        const response = await fetch('/api/auth/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('Token valid, user restored:', userData.email);
+          setUser(userData);
+        } else {
+          console.log('Token invalid, clearing...');
+          localStorage.removeItem('auth_token');
+        }
       } catch (error) {
         console.error('Session check error:', error);
-        setUser(null);
+        localStorage.removeItem('auth_token');
+      } finally {
         setLoading(false);
       }
     };
     
     checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state change:', event, session);
-        const newUser = session?.user ?? null;
-        setUser(newUser)
-        setLoading(false)
-        
-        // Handle PostHog analytics for auth events
-        if (event === 'SIGNED_IN' && newUser) {
-          Analytics.identify(newUser.id, {
-            email: newUser.email,
-            created_at: newUser.created_at,
-          });
-          Analytics.trackSignIn('supabase', newUser.id);
-          window.history.replaceState({}, '', '/');
-        } else if (event === 'SIGNED_OUT') {
-          Analytics.trackSignOut();
-          Analytics.reset();
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
   }, [])
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Use Supabase directly for simple authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) {
-        return { error: { message: error.message } };
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return { error: { message: data.error || 'Login failed' } };
       }
 
-      if (data?.user) {
-        console.log('Login successful:', data.user.email);
+      if (data.token && data.user) {
+        // Store JWT token
+        localStorage.setItem('auth_token', data.token);
         setUser(data.user);
-        // The auth state change listener will handle the redirect
+        console.log('Login successful:', data.user.email);
         return { error: null };
       }
 
@@ -102,74 +111,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Use Supabase directly for signup
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        return { error: { message: error.message } };
-      }
-
-      if (data?.user) {
-        console.log('Signup successful:', data.user.email);
-        // Auto-login after signup if email is confirmed
-        if (data.user.email_confirmed_at) {
-          setUser(data.user);
-        }
-        return { error: null };
-      }
-
-      return { error: { message: 'Signup failed' } };
-    } catch (error) {
-      return { error: { message: 'Network error occurred' } };
-    }
-  }
-
-  const signInWithGoogle = async (credential: string) => {
-    try {
-      const response = await fetch('/api/auth/google', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ credential }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
       
       if (!response.ok) {
-        return { error: { message: data.error || 'Google sign-in failed' } };
+        return { error: { message: data.error || 'Signup failed' } };
       }
 
-      // For existing users, our backend returns custom tokens and user data
-      if (data.access_token && data.user) {
-        // Store the custom tokens in localStorage for future API calls
-        localStorage.setItem('snappy_access_token', data.access_token);
-        localStorage.setItem('snappy_refresh_token', data.refresh_token);
-        
-        // Set user state directly from our backend response
-        setUser(data.user);
-        
-        // Track analytics for Google sign-in
-        Analytics.identify(data.user.id, {
-          email: data.user.email,
-          name: data.user.firstName && data.user.lastName ? `${data.user.firstName} ${data.user.lastName}` : data.user.email,
-        });
-        Analytics.trackSignIn('google', data.user.id);
-        
-        console.log('Google sign-in successful for existing user:', data.user);
-        
-        // Force immediate redirect to dashboard
-        setTimeout(() => {
-          window.location.replace('/');
-        }, 100);
-      } else {
-        // For new users, handle Supabase session (if needed in future)
-        console.log('Google sign-in response:', data);
-      }
-
+      console.log('Signup successful:', data.message);
       return { error: null };
     } catch (error) {
       return { error: { message: 'Network error occurred' } };
@@ -177,20 +133,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    try {
+      // Call backend signout endpoint (optional)
+      await fetch('/api/auth/signout', { method: 'POST' });
+    } catch (error) {
+      console.log('Signout endpoint error:', error);
+    } finally {
+      // Clear token and user state
+      localStorage.removeItem('auth_token');
+      setUser(null);
+      console.log('Signed out successfully');
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signInWithGoogle, signOut, loading, isAdmin }}>
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
 }

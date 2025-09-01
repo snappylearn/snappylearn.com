@@ -9,6 +9,7 @@ import {
   adminAuditLog,
   type User,
   type UpsertUser,
+  type InsertUser,
   type Collection,
   type InsertCollection,
   type Document,
