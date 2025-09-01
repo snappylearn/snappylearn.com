@@ -51,7 +51,7 @@ export default function SocialLanding() {
         <div className="text-sm text-gray-600">
           Already have an account?{" "}
           <button
-            onClick={() => setIsSignUp(false)}
+            onClick={() => {/* Navigate to sign in */}}
             className="text-purple-600 font-medium hover:underline"
           >
             Sign In →
