@@ -1,0 +1,49 @@
+Router state: {user: false, loading: false, showAuth: true}
+Console.js:61 Showing landing page
+Console.js:61 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+Console.js:61 Google OAuth configured: true Client ID: 559650623795-agqubhoo2gsalqluntni3gf943s5dtca.apps.googleusercontent.com
+injected.js:253  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+checkStoredSession @ AuthContext.tsx:43
+(anonymous) @ AuthContext.tsx:75
+commitHookEffectListMount @ chunk-276SZO74.js?v=68e6ec38:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=68e6ec38:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=68e6ec38:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=68e6ec38:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=68e6ec38:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=68e6ec38:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=68e6ec38:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=68e6ec38:9119
+commitRootImpl @ chunk-276SZO74.js?v=68e6ec38:19432
+commitRoot @ chunk-276SZO74.js?v=68e6ec38:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=68e6ec38:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18718
+workLoop @ chunk-276SZO74.js?v=68e6ec38:197
+flushWork @ chunk-276SZO74.js?v=68e6ec38:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=68e6ec38:384Understand this error
+Console.js:61 Stored token invalid, clearing...
+Console.js:61 Initial session: null
+injected.js:253  GET https://da6afd71-767b-4670-8918-afe03cef7b9c-00-y40k1h2s43fh.kirk.replit.dev/api/auth/user 401 (Unauthorized)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+checkStoredSession @ AuthContext.tsx:43
+(anonymous) @ AuthContext.tsx:75
+commitHookEffectListMount @ chunk-276SZO74.js?v=68e6ec38:16915
+invokePassiveEffectMountInDEV @ chunk-276SZO74.js?v=68e6ec38:18324
+invokeEffectsInDev @ chunk-276SZO74.js?v=68e6ec38:19701
+commitDoubleInvokeEffectsInDEV @ chunk-276SZO74.js?v=68e6ec38:19686
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=68e6ec38:19503
+flushPassiveEffects @ chunk-276SZO74.js?v=68e6ec38:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=68e6ec38:9119
+commitRootImpl @ chunk-276SZO74.js?v=68e6ec38:19432
+commitRoot @ chunk-276SZO74.js?v=68e6ec38:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=68e6ec38:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=68e6ec38:18718
+workLoop @ chunk-276SZO74.js?v=68e6ec38:197
+flushWork @ chunk-276SZO74.js?v=68e6ec38:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=68e6ec38:384Understand this error
+Console.js:61 Stored token invalid, clearing...
+Console.js:61 Initial session: null

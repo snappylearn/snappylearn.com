@@ -92,19 +92,23 @@ export function setupAuthRoutes(app: Express) {
     }
   });
 
-  // User endpoint - validates Google OAuth tokens and returns user data
+  // User endpoint - validates tokens and returns user data
   app.get("/api/auth/user", async (req: Request, res: Response) => {
     try {
       const authHeader = req.headers.authorization;
+      console.log("Auth header received:", authHeader ? `Bearer ${authHeader.substring(7, 20)}...` : "None");
       
       if (!authHeader?.startsWith('Bearer ')) {
+        console.log("Invalid auth header format");
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const token = authHeader.split(' ')[1];
+      console.log("Token type:", token.startsWith('eyJ') ? 'JWT' : token.startsWith('snappy_') ? 'Custom' : 'Unknown');
       
       // Check if it's a Google OAuth token (starts with 'snappy_')
       if (token.startsWith('snappy_')) {
+        console.log("Processing custom token");
         // Extract user ID from token
         const tokenParts = token.split('_');
         if (tokenParts.length >= 2) {
@@ -113,15 +117,18 @@ export function setupAuthRoutes(app: Express) {
           // Validate token timestamp (simple validation)
           const timestamp = tokenParts[2];
           if (timestamp && Date.now() - parseInt(timestamp) > 24 * 60 * 60 * 1000) {
+            console.log("Custom token expired");
             return res.status(401).json({ error: "Token expired" });
           }
           
           // Get user from database
           const user = await storage.getUser(userId);
           if (!user) {
+            console.log("User not found for custom token");
             return res.status(401).json({ error: "User not found" });
           }
           
+          console.log("Custom token validation successful");
           return res.json({
             id: user.id,
             email: user.email,
@@ -133,18 +140,29 @@ export function setupAuthRoutes(app: Express) {
       }
       
       // Fallback to Supabase token validation using user client
+      console.log("Validating Supabase JWT token");
       const { data: { user }, error } = await supabaseUser.auth.getUser(token);
       
-      if (error || !user) {
+      if (error) {
+        console.log("Supabase token validation error:", error.message);
         return res.status(401).json({ error: "Unauthorized" });
       }
+      
+      if (!user) {
+        console.log("No user returned from Supabase");
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      console.log("Supabase token valid, user ID:", user.id);
 
       // Get user from database
       const dbUser = await storage.getUser(user.id);
       if (!dbUser) {
+        console.log("User not found in database:", user.id);
         return res.status(401).json({ error: "User not found" });
       }
 
+      console.log("Database user found, authentication successful");
       res.json({
         id: dbUser.id,
         email: dbUser.email,
