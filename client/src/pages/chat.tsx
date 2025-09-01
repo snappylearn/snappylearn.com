@@ -102,7 +102,6 @@ export default function Chat() {
                     <ConversationCard
                       key={conversation.id}
                       conversation={conversation}
-                      onClick={() => setLocation(`/conversations/${conversation.id}`)}
                     />
                   ))
                 ) : (
