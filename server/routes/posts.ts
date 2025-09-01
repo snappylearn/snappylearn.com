@@ -17,7 +17,7 @@ import {
   insertRepostSchema,
   type PostWithDetails
 } from "@shared/schema";
-import { isAuthenticated } from "../replitAuth";
+import { jwtAuth, getJwtUserId } from "../routes/auth";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { generateTopicFromContent, generatePostExcerpt } from "../services/openai";
 
@@ -26,7 +26,7 @@ export function registerPostRoutes(app: Express) {
   // Get feed posts with pagination
   app.get("/api/posts", async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
@@ -180,9 +180,9 @@ export function registerPostRoutes(app: Express) {
   });
 
   // Create new post
-  app.post("/api/posts", isAuthenticated, async (req: any, res) => {
+  app.post("/api/posts", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -242,9 +242,9 @@ export function registerPostRoutes(app: Express) {
   });
 
   // Like/unlike post
-  app.post("/api/posts/:id/like", isAuthenticated, async (req: any, res) => {
+  app.post("/api/posts/:id/like", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -290,9 +290,9 @@ export function registerPostRoutes(app: Express) {
   });
 
   // Bookmark/unbookmark post
-  app.post("/api/posts/:id/bookmark", isAuthenticated, async (req: any, res) => {
+  app.post("/api/posts/:id/bookmark", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -335,9 +335,9 @@ export function registerPostRoutes(app: Express) {
   });
 
   // Repost
-  app.post("/api/posts/:id/repost", isAuthenticated, async (req: any, res) => {
+  app.post("/api/posts/:id/repost", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }
@@ -379,7 +379,7 @@ export function registerPostRoutes(app: Express) {
   app.get("/api/posts/:id/comments", async (req: any, res) => {
     try {
       const postId = parseInt(req.params.id);
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
 
       const commentsData = await db
         .select({
@@ -411,9 +411,9 @@ export function registerPostRoutes(app: Express) {
   });
 
   // Add comment to post
-  app.post("/api/posts/:id/comments", isAuthenticated, async (req: any, res) => {
+  app.post("/api/posts/:id/comments", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = getJwtUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Authentication required" });
       }

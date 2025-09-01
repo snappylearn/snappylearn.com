@@ -186,7 +186,19 @@ export function PostCard({ post }: PostCardProps) {
               )}
             </Button>
             
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => {
+                // TODO: Open comments modal or navigate to post detail page
+                console.log('Comments clicked for post:', post.id);
+                toast({
+                  title: "Comments",
+                  description: "Comments feature coming soon!",
+                });
+              }}
+            >
               <MessageCircle className="w-4 h-4" />
               {post.stats.commentCount > 0 && (
                 <span className="text-sm">{post.stats.commentCount}</span>
