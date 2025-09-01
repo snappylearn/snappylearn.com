@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCollections, useDeleteCollection } from "@/hooks/use-collections";
 import type { Collection } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
 export default function MyCollections() {
   const [, setLocation] = useLocation();
@@ -44,7 +44,7 @@ export default function MyCollections() {
   };
 
   return (
-    <UnifiedLayout>
+    <TwitterStyleLayout>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">My Collections</h1>
@@ -156,6 +156,6 @@ export default function MyCollections() {
           )}
         </div>
       )}
-    </UnifiedLayout>
+    </TwitterStyleLayout>
   );
 }
