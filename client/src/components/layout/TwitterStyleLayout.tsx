@@ -250,10 +250,70 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
                 </CardContent>
               </Card>
 
+              {/* Trending Topics */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Trending Topics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {topics.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      Topics will appear here as content is created.
+                    </p>
+                  ) : (
+                    topics.slice(0, 6).map((topic: any) => (
+                      <div key={topic.id} className="flex items-center justify-between">
+                        <Badge 
+                          variant="outline" 
+                          className="flex items-center gap-2 cursor-pointer hover:bg-purple-50"
+                          style={{ 
+                            borderColor: topic.color || '#6366f1',
+                            color: topic.color || '#6366f1'
+                          }}
+                        >
+                          <div 
+                            className="w-2 h-2 rounded-full" 
+                            style={{ backgroundColor: topic.color || '#6366f1' }}
+                          />
+                          {topic.name}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          New
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Community Stats */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold">Community</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Posts</span>
+                    <span className="font-semibold">{posts.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Topics</span>
+                    <span className="font-semibold">{topics.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">Active Today</span>
+                    <span className="font-semibold">1</span>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Trending Posts */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold">Trending</CardTitle>
+                  <CardTitle className="text-lg font-semibold">Trending Posts</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {posts.slice(0, 3).map((post: any, index: number) => (

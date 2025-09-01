@@ -49,10 +49,9 @@ export default function Home() {
 
   return (
     <TwitterStyleLayout>
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Feed */}
-          <div className="lg:col-span-2">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Main Feed */}
+        <div>
             <CreatePostForm />
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
@@ -127,103 +126,6 @@ export default function Home() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
-          
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Trending Topics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Trending Topics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {trendingTopics.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Topics will appear here as content is created.
-                  </p>
-                ) : (
-                  trendingTopics.map((topic) => (
-                    <div key={topic.id} className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className="flex items-center gap-2"
-                        style={{ 
-                          borderColor: topic.color || '#6366f1',
-                          color: topic.color || '#6366f1'
-                        }}
-                      >
-                        <div 
-                          className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: topic.color || '#6366f1' }}
-                        />
-                        {topic.name}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        New
-                      </span>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* Community Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Community</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Posts</span>
-                  <span className="font-semibold">{posts.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Topics</span>
-                  <span className="font-semibold">{topics.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Active Today</span>
-                  <span className="font-semibold">1</span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.location.href = '/my-collections'}
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  My Collections
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.location.href = '/discover'}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Discover
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => window.location.href = '/chat'}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  AI Chat
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </TwitterStyleLayout>

@@ -146,23 +146,6 @@ export default function Chat() {
             />
           </div>
 
-          {/* Quick Actions */}
-          <div className="mb-12">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {quickActions.map((action) => (
-                <Button
-                  key={action.label}
-                  variant="outline"
-                  className="h-16 flex flex-col items-center justify-center space-y-2 hover:bg-gray-50"
-                  onClick={() => handleQuickAction(action.label)}
-                >
-                  <action.icon className={`h-5 w-5 ${action.color}`} />
-                  <span className="text-sm font-medium">{action.label}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
 
           {/* Recent Conversations */}
           {recentConversations.length > 0 && (
