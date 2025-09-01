@@ -62,6 +62,11 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
     queryKey: ['/api/posts'],
   });
 
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['/api/conversations'],
+    enabled: location === '/chat' || location.startsWith('/conversations/'),
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto flex">
@@ -151,31 +156,36 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
           <ScrollArea className="h-full">
             <div className="p-4 space-y-6">
               
-              {/* Recent Chats - only show on chat page */}
-              {location === '/chat' && (
+              {/* Recent Chats - show on chat page and conversation detail pages */}
+              {(location === '/chat' || location.startsWith('/conversations/')) && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg font-semibold">Recent Chats</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {/* Mock recent chats - replace with real data */}
-                    {[
-                      { title: "AI Research Discussion", time: "2 hours ago", messages: 15 },
-                      { title: "Learning Strategies", time: "1 day ago", messages: 8 },
-                      { title: "Philosophy Collection Chat", time: "3 days ago", messages: 22 }
-                    ].map((chat, index) => (
-                      <div key={index} className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
-                          {chat.title}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {chat.messages} messages • {chat.time}
-                        </p>
-                      </div>
-                    ))}
-                    <Button variant="link" className="w-full text-purple-600 text-sm">
-                      View all chats
-                    </Button>
+                    {conversations.length > 0 ? (
+                      conversations.slice(0, 3).map((conversation: any) => (
+                        <Link key={conversation.id} href={`/conversations/${conversation.id}`}>
+                          <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                            <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
+                              {conversation.title?.replace(/"/g, '') || 'Untitled Conversation'}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {conversation.type === 'collection' ? 'Collection Chat' : 'Independent Chat'} • {new Date(conversation.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        No conversations yet. Start a new chat!
+                      </p>
+                    )}
+                    <Link href="/chat">
+                      <Button variant="link" className="w-full text-purple-600 text-sm">
+                        Start new chat
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               )}
