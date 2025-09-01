@@ -38,8 +38,6 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "My Collections", href: "/my-collections", icon: FolderOpen },
-    { name: "Conversations", href: "/conversations", icon: MessageSquare },
-    { name: "Artifacts", href: "/artifacts", icon: Sparkles },
     { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
@@ -153,6 +151,35 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
           <ScrollArea className="h-full">
             <div className="p-4 space-y-6">
               
+              {/* Recent Chats - only show on chat page */}
+              {location === '/chat' && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg font-semibold">Recent Chats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Mock recent chats - replace with real data */}
+                    {[
+                      { title: "AI Research Discussion", time: "2 hours ago", messages: 15 },
+                      { title: "Learning Strategies", time: "1 day ago", messages: 8 },
+                      { title: "Philosophy Collection Chat", time: "3 days ago", messages: 22 }
+                    ].map((chat, index) => (
+                      <div key={index} className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
+                          {chat.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {chat.messages} messages • {chat.time}
+                        </p>
+                      </div>
+                    ))}
+                    <Button variant="link" className="w-full text-purple-600 text-sm">
+                      View all chats
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Who to Follow */}
               <Card>
                 <CardHeader className="pb-3">

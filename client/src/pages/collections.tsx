@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { CollectionCard } from "@/components/collection-card";
 import { CreateCollectionModal } from "@/components/create-collection-modal";
-import { Sidebar } from "@/components/sidebar";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 import { useCollections } from "@/hooks/use-collections";
 import { useCreateConversation } from "@/hooks/use-conversations";
 
@@ -60,16 +60,10 @@ export default function Collections() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar 
-        selectedCollectionId={selectedCollectionId}
-        onSelectCollection={setSelectedCollectionId}
-        onNewChat={handleNewChat}
-      />
-      
-      <main className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+    <TwitterStyleLayout>
+      <div>
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">Collections</h1>
@@ -83,10 +77,10 @@ export default function Collections() {
               New Collection
             </Button>
           </div>
-        </header>
+        </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto px-6 py-6">
+        <div className="px-6">
           {/* Search and Filters */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -235,7 +229,7 @@ export default function Collections() {
           open={showCreateModal} 
           onOpenChange={setShowCreateModal} 
         />
-      </main>
-    </div>
+      </div>
+    </TwitterStyleLayout>
   );
 }

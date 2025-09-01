@@ -90,30 +90,7 @@ export default function Chat() {
 
   return (
     <TwitterStyleLayout>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Conversation History Section */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Recent Conversations</h3>
-              <div className="space-y-3">
-                {recentConversations.length > 0 ? (
-                  recentConversations.map((conversation) => (
-                    <ConversationCard
-                      key={conversation.id}
-                      conversation={conversation}
-                    />
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-sm">No conversations yet. Start a new chat below!</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Chat Section */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6">
 
           {/* Collection Context */}
           {selectedCollection && (
@@ -147,30 +124,6 @@ export default function Chat() {
           </div>
 
 
-          {/* Recent Conversations */}
-          {recentConversations.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">Recent Conversations</h2>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setLocation("/conversations")}
-                  className="text-sm"
-                >
-                  View All
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recentConversations.map((conversation) => (
-                  <ConversationCard
-                    key={conversation.id}
-                    conversation={conversation}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Educational Artifacts */}
           {artifacts.length > 0 && (
             <div className="mt-12">
@@ -199,7 +152,6 @@ export default function Chat() {
               </div>
             </div>
           )}
-        </div>
       </div>
     </TwitterStyleLayout>
   );
