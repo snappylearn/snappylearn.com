@@ -33,46 +33,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user && 'role' in user && (user.role === 'admin' || user.role === 'super_admin')
 
   useEffect(() => {
-    // Check for stored authentication tokens
-    const checkStoredSession = async () => {
-      const customAccessToken = localStorage.getItem('snappy_access_token');
-      
-      if (customAccessToken) {
-        // Validate the stored token
-        try {
-          const response = await fetch('/api/auth/user', {
-            headers: {
-              'Authorization': `Bearer ${customAccessToken}`,
-            },
-          });
-          
-          if (response.ok) {
-            const userData = await response.json();
-            console.log('Restored user session:', userData);
-            setUser(userData);
-            setLoading(false);
-            return;
-          } else {
-            console.log('Stored token invalid, clearing...');
-            // Token is invalid, remove it
-            localStorage.removeItem('snappy_access_token');
-            localStorage.removeItem('snappy_refresh_token');
-          }
-        } catch (error) {
-          console.error('Error validating stored token:', error);
-          localStorage.removeItem('snappy_access_token');
-          localStorage.removeItem('snappy_refresh_token');
-        }
+    // Simple session check using Supabase only
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch (error) {
+        console.error('Session check error:', error);
+        setUser(null);
+        setLoading(false);
       }
-      
-      // Fallback to Supabase session for traditional auth
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session:', session);
-      setUser(session?.user ?? null)
-      setLoading(false)
     };
     
-    checkStoredSession();
+    checkSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -102,61 +77,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      // Use Supabase directly for simple authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return { error: { message: data.error || 'Login failed' } };
+      if (error) {
+        return { error: { message: error.message } };
       }
 
-      // Store tokens and user data directly
-      if (data.access_token && data.user) {
-        // Store custom tokens for API calls
-        localStorage.setItem('snappy_access_token', data.access_token);
-        localStorage.setItem('snappy_refresh_token', data.refresh_token);
-        
-        // Get complete user data from our backend
-        try {
-          const userResponse = await fetch('/api/auth/user', {
-            headers: {
-              'Authorization': `Bearer ${data.access_token}`,
-            },
-          });
-          
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
-            setUser(userData);
-            console.log('User data loaded:', userData);
-            
-            // Force immediate redirect to dashboard
-            setTimeout(() => {
-              window.location.replace('/');
-            }, 100);
-          } else {
-            // Fallback to basic user data from login response
-            setUser(data.user);
-            setTimeout(() => {
-              window.location.replace('/');
-            }, 100);
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          // Fallback to basic user data from login response
-          setUser(data.user);
-          setTimeout(() => {
-            window.location.replace('/');
-          }, 100);
-        }
+      if (data?.user) {
+        console.log('Login successful:', data.user.email);
+        setUser(data.user);
+        // The auth state change listener will handle the redirect
+        return { error: null };
       }
 
-      return { error: null };
+      return { error: { message: 'Login failed' } };
     } catch (error) {
       return { error: { message: 'Network error occurred' } };
     }
@@ -164,22 +102,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Use custom signup endpoint that auto-confirms users
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      // Use Supabase directly for signup
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return { error: { message: data.error || 'Signup failed' } };
+      if (error) {
+        return { error: { message: error.message } };
       }
 
-      return { error: null };
+      if (data?.user) {
+        console.log('Signup successful:', data.user.email);
+        // Auto-login after signup if email is confirmed
+        if (data.user.email_confirmed_at) {
+          setUser(data.user);
+        }
+        return { error: null };
+      }
+
+      return { error: { message: 'Signup failed' } };
     } catch (error) {
       return { error: { message: 'Network error occurred' } };
     }
@@ -235,15 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    // Clear custom tokens
-    localStorage.removeItem('snappy_access_token');
-    localStorage.removeItem('snappy_refresh_token');
-    
-    // Clear Supabase session
     await supabase.auth.signOut()
-    
-    // Clear user state
-    setUser(null);
   }
 
   return (
