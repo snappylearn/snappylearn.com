@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddDocumentDropdown } from "@/components/add-document-dropdown";
 import { ChatInput } from "@/components/chat-input";
 import { ConversationCard } from "@/components/conversation-card";
-import { Sidebar } from "@/components/sidebar";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 import { useCollection } from "@/hooks/use-collections";
 import { useCreateConversation, useConversations } from "@/hooks/use-conversations";
 import { documentsApi } from "@/lib/api";
@@ -93,140 +93,122 @@ export default function CollectionDetail() {
 
   if (!collection) {
     return (
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar 
-          selectedCollectionId={selectedCollectionId}
-          onSelectCollection={setSelectedCollectionId}
-          onNewChat={handleNewChat}
-        />
-        <main className="flex-1 flex items-center justify-center bg-gray-50">
+      <TwitterStyleLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Collection not found</h2>
-            <Button onClick={() => setLocation("/collections")} variant="outline">
+            <Button onClick={() => setLocation("/my-collections")} variant="outline">
               Back to Collections
             </Button>
           </div>
-        </main>
-      </div>
+        </div>
+      </TwitterStyleLayout>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar 
-        selectedCollectionId={selectedCollectionId}
-        onSelectCollection={setSelectedCollectionId}
-        onNewChat={handleNewChat}
-      />
-      
-      <main className="flex-1 flex flex-col overflow-hidden bg-white">
+    <TwitterStyleLayout>
+      <div className="space-y-6">
         {/* Header */}
-        <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
-          <div className="mb-4">
-            <h1 className="text-xl font-semibold text-gray-900">{collection.name}</h1>
-            {collection.description && (
-              <p className="text-sm text-gray-600">{collection.description}</p>
-            )}
-          </div>
-
-          {/* Chat Input */}
-          <div className="mb-4">
-            <ChatInput
-              onSend={handleSendMessage}
-              disabled={createConversation.isPending}
-              placeholder={`Start a conversation in this workspace`}
-            />
-          </div>
-
-          {/* Tabs */}
-          <Tabs defaultValue="conversations" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-100">
-              <TabsTrigger value="conversations" className="data-[state=active]:bg-white">
-                Conversations
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="data-[state=active]:bg-white">
-                Documents
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="conversations" className="mt-6 space-y-0">
-              {collectionConversations.length > 0 ? (
-                <div className="space-y-4">
-                  {collectionConversations.map((conversation) => (
-                    <ConversationCard key={conversation.id} conversation={conversation} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome</h3>
-                  <p className="text-sm text-gray-500 max-w-md mx-auto">
-                    Start by attaching files to your workspace. They will be used in all chats in this workspace.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="documents" className="mt-6 space-y-0">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Documents</h3>
-                <AddDocumentDropdown 
-                  collectionId={collectionId} 
-                  onComplete={() => {}}
-                />
-              </div>
-
-              {documents.length > 0 ? (
-                <div className="space-y-3">
-                  {documents.map((document) => (
-                    <div
-                      key={document.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <File className="w-5 h-5 text-gray-500" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {document.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {formatFileSize(document.size)} • {new Date(document.uploadedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => handleDeleteDocument(document.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <File className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome</h3>
-                  <p className="text-sm text-gray-500 max-w-md mx-auto">
-                    Start by attaching files to your workspace. They will be used in all chats in this workspace.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </header>
-
-        {/* Main Content Area - Empty for now, similar to the reference image */}
-        <div className="flex-1 overflow-auto">
-          {/* This area remains clean like in the reference image */}
+        <div className="mb-4">
+          <h1 className="text-xl font-semibold text-gray-900">{collection.name}</h1>
+          {collection.description && (
+            <p className="text-sm text-gray-600">{collection.description}</p>
+          )}
         </div>
-      </main>
-    </div>
+
+        {/* Chat Input */}
+        <div className="mb-4">
+          <ChatInput
+            onSend={handleSendMessage}
+            disabled={createConversation.isPending}
+            placeholder={`Start a conversation in this workspace`}
+          />
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="conversations" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+            <TabsTrigger value="conversations" className="data-[state=active]:bg-white">
+              Conversations
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="data-[state=active]:bg-white">
+              Documents
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="conversations" className="mt-6 space-y-0">
+            {collectionConversations.length > 0 ? (
+              <div className="space-y-4">
+                {collectionConversations.map((conversation) => (
+                  <ConversationCard key={conversation.id} conversation={conversation} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome</h3>
+                <p className="text-sm text-gray-500 max-w-md mx-auto">
+                  Start by attaching files to your workspace. They will be used in all chats in this workspace.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="documents" className="mt-6 space-y-0">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-medium text-gray-900">Documents</h3>
+              <AddDocumentDropdown 
+                collectionId={collectionId} 
+                onComplete={() => {}}
+              />
+            </div>
+
+            {documents.length > 0 ? (
+              <div className="space-y-3">
+                {documents.map((document) => (
+                  <div
+                    key={document.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <File className="w-5 h-5 text-gray-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {document.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatFileSize(document.size)} • {new Date(document.uploadedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => handleDeleteDocument(document.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                  <File className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome</h3>
+                <p className="text-sm text-gray-500 max-w-md mx-auto">
+                  Start by attaching files to your workspace. They will be used in all chats in this workspace.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </TwitterStyleLayout>
   );
 }
