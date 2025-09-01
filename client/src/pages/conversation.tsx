@@ -28,6 +28,11 @@ export default function Conversation() {
   const { data: collection } = useCollection(conversation?.collectionId || 0);
   const sendMessage = useSendMessage();
 
+  // Debug logging
+  console.log('Conversation data:', conversation);
+  console.log('Collection ID:', conversation?.collectionId);
+  console.log('Collection data:', collection);
+
   const handleSendMessage = (content: string) => {
     sendMessage.mutate({ conversationId, content });
   };

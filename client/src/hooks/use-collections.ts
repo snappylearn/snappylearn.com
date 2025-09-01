@@ -15,7 +15,7 @@ export function useCollection(id: number) {
   return useQuery({
     queryKey: ["/api/collections", id],
     queryFn: () => collectionsApi.getById(id),
-    enabled: !!id,
+    enabled: !!id && id > 0,
   });
 }
 

@@ -137,9 +137,9 @@ export default function CollectionDetail() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="conversations" className="mt-6 space-y-0">
+          <TabsContent value="conversations" className="mt-6">
             {collectionConversations.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {collectionConversations.map((conversation) => (
                   <ConversationCard key={conversation.id} conversation={conversation} />
                 ))}
