@@ -106,12 +106,18 @@ export default function Conversation() {
                   <div className={`w-2 h-2 rounded-full ${
                     isCollectionBased ? "bg-blue-500" : "bg-gray-500"
                   }`} />
-                  <span className="text-sm text-gray-500">
-                    {isCollectionBased && collection 
-                      ? `Collection: ${collection.name}`
-                      : "Independent Conversation"
-                    }
-                  </span>
+                  {isCollectionBased && collection ? (
+                    <button
+                      onClick={() => setLocation(`/collections/${collection.id}`)}
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
+                      {collection.name}
+                    </button>
+                  ) : (
+                    <span className="text-sm text-gray-500">
+                      Independent Conversation
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
