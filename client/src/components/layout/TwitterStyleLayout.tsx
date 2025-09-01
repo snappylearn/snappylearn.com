@@ -37,7 +37,7 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
     { name: "Home", href: "/", icon: Home },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "My Collections", href: "/my-collections", icon: FolderOpen },
+    { name: "My Collections", href: "/collections", icon: FolderOpen },
     { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
