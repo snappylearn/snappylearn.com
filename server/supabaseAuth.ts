@@ -76,7 +76,7 @@ export async function setupSupabaseAuth(app: Express) {
   // Get current user
   app.get("/api/auth/user", isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = getUserId(req as AuthenticatedRequest);
       const user = await storage.getUser(userId);
       
       if (!user) {
