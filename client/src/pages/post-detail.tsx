@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Heart, MessageCircle, Bookmark, Share, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 import type { PostWithDetails, Comment } from "@shared/schema";
 import { BookmarkPopover } from "@/components/BookmarkPopover";
 
@@ -88,32 +89,36 @@ export default function PostDetail() {
 
   if (postLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <TwitterStyleLayout>
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
         </div>
-      </div>
+      </TwitterStyleLayout>
     );
   }
 
   if (!post) {
     return (
-      <div className="container mx-auto p-6">
-        <Button
-          variant="ghost"
-          onClick={() => setLocation("/")}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Feed
-        </Button>
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-gray-500">Post not found</p>
-          </CardContent>
-        </Card>
-      </div>
+      <TwitterStyleLayout>
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation("/")}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Feed
+          </Button>
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-gray-500">Post not found</p>
+            </CardContent>
+          </Card>
+        </div>
+      </TwitterStyleLayout>
     );
   }
 
@@ -122,7 +127,8 @@ export default function PostDetail() {
     : post.author?.firstName || 'Anonymous User';
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <TwitterStyleLayout>
+      <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Back button */}
       <Button
         variant="ghost"
@@ -271,6 +277,7 @@ export default function PostDetail() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </TwitterStyleLayout>
   );
 }

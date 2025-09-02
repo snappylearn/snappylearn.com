@@ -531,6 +531,122 @@ export function registerPostRoutes(app: Express) {
     }
   });
 
+  // Get individual post by ID
+  app.get("/api/posts/:id", async (req: any, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const userId = getJwtUserId(req);
+
+      // Get the individual post with all details including user actions
+      const [postData] = await db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          content: posts.content,
+          excerpt: posts.excerpt,
+          authorId: posts.authorId,
+          topicId: posts.topicId,
+          communityId: posts.communityId,
+          type: posts.type,
+          metadata: posts.metadata,
+          isPublished: posts.isPublished,
+          isPinned: posts.isPinned,
+          viewCount: posts.viewCount,
+          createdAt: posts.createdAt,
+          updatedAt: posts.updatedAt,
+          author: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+          },
+          topic: {
+            id: topics.id,
+            name: topics.name,
+            slug: topics.slug,
+            color: topics.color,
+            icon: topics.icon,
+          }
+        })
+        .from(posts)
+        .leftJoin(users, eq(posts.authorId, users.id))
+        .leftJoin(topics, eq(posts.topicId, topics.id))
+        .where(and(eq(posts.id, postId), eq(posts.isPublished, true)))
+        .limit(1);
+
+      if (!postData) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      // Get user actions for this specific post
+      let userActions = {
+        isLiked: false,
+        isBookmarked: false,
+        isReposted: false,
+        isFollowing: false,
+      };
+
+      if (userId) {
+        // Check if user liked this post
+        const likeExists = await db
+          .select()
+          .from(likes)
+          .where(and(eq(likes.userId, userId), eq(likes.postId, postId)))
+          .limit(1);
+
+        // Check if user bookmarked this post
+        const bookmarkExists = await db
+          .select()
+          .from(bookmarks)
+          .where(and(eq(bookmarks.userId, userId), eq(bookmarks.postId, postId)))
+          .limit(1);
+
+        // Check if user reposted this post
+        const repostExists = await db
+          .select()
+          .from(reposts)
+          .where(and(eq(reposts.userId, userId), eq(reposts.postId, postId)))
+          .limit(1);
+
+        userActions.isLiked = likeExists.length > 0;
+        userActions.isBookmarked = bookmarkExists.length > 0;
+        userActions.isReposted = repostExists.length > 0;
+      }
+
+      // Get post statistics
+      const [postStats] = await db
+        .select({
+          likeCount: sql<number>`count(distinct ${likes.id})`,
+          commentCount: sql<number>`count(distinct ${comments.id})`,
+          bookmarkCount: sql<number>`count(distinct ${bookmarks.id})`,
+          repostCount: sql<number>`count(distinct ${reposts.id})`,
+        })
+        .from(posts)
+        .leftJoin(likes, eq(posts.id, likes.postId))
+        .leftJoin(comments, eq(posts.id, comments.postId))
+        .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
+        .leftJoin(reposts, eq(posts.id, reposts.postId))
+        .where(eq(posts.id, postId))
+        .groupBy(posts.id);
+
+      const result = {
+        ...postData,
+        userActions,
+        stats: postStats || {
+          likeCount: 0,
+          commentCount: 0,
+          bookmarkCount: 0,
+          repostCount: 0,
+        },
+      };
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching post:", error);
+      res.status(500).json({ error: "Failed to fetch post" });
+    }
+  });
+
   // Get comments for a post
   app.get("/api/posts/:id/comments", async (req: any, res) => {
     try {
