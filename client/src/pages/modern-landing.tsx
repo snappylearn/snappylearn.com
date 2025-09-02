@@ -73,14 +73,14 @@ export default function ModernLanding() {
               🚀 AI-Powered Learning Platform
             </Badge>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Your AI-Powered <br />
+              Turn What You Learn Into <br />
               <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Knowledge Companion
+                Lasting Knowledge
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Upload your documents, organize them in smart collections, and chat with an AI that understands your content. 
-              Turn any document into an interactive learning experience.
+              SnappyLearn helps you capture notes, bookmark content, and use AI to organize your learning. 
+              Build personal knowledge hubs or share insights with your community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -88,7 +88,7 @@ export default function ModernLanding() {
                 size="lg" 
                 className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3"
               >
-                Get Started Free
+                Start Building Your Knowledge Hub
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button variant="outline" size="lg" className="px-8 py-3">
@@ -104,10 +104,10 @@ export default function ModernLanding() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything you need to learn smarter
+              AI + Social Learning That Actually Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              SnappyLearn combines document management, AI chat, and conversation history to transform how you interact with your knowledge.
+              Focus on personal benefit first, then connect with others. Use concrete actions to organize, share, and automate your learning.
             </p>
           </div>
           
@@ -117,11 +117,11 @@ export default function ModernLanding() {
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                   <FileText className="w-6 h-6 text-purple-600" />
                 </div>
-                <CardTitle>Smart Collections</CardTitle>
+                <CardTitle>📚 Your Personal Knowledge Hub</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Organize your documents into smart collections. Upload PDFs, text files, and attachments with automatic content extraction for AI analysis.
+                  Save articles, posts, and documents in one place. AI organizes and tags them automatically.
                 </p>
               </CardContent>
             </Card>
@@ -131,11 +131,11 @@ export default function ModernLanding() {
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
                   <MessageCircle className="w-6 h-6 text-indigo-600" />
                 </div>
-                <CardTitle>Conversational AI</CardTitle>
+                <CardTitle>⚡ AI That Works For You</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Chat naturally with your documents using GPT-4. Ask questions, get insights, and receive answers with source citations from your uploaded content.
+                  Summarize long articles, track trends, or set tasks that deliver insights to your inbox daily.
                 </p>
               </CardContent>
             </Card>
@@ -145,11 +145,11 @@ export default function ModernLanding() {
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                   <Search className="w-6 h-6 text-green-600" />
                 </div>
-                <CardTitle>Intelligent Search</CardTitle>
+                <CardTitle>🤝 Learning With Others</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Find relevant content across all your documents based on meaning, not just keywords. AI understands context to surface the most relevant information.
+                  Join communities of like-minded learners. Share insights, ask questions, and grow together.
                 </p>
               </CardContent>
             </Card>
@@ -159,11 +159,11 @@ export default function ModernLanding() {
                 <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
                   <Zap className="w-6 h-6 text-yellow-600" />
                 </div>
-                <CardTitle>Fast & Reliable</CardTitle>
+                <CardTitle>📈 Insights That Matter</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Built for speed with optimized performance. Handle large document collections with ease.
+                  See what you've learned, revisit key takeaways, and stay on top of what's trending.
                 </p>
               </CardContent>
             </Card>
@@ -173,11 +173,11 @@ export default function ModernLanding() {
                 <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-red-600" />
                 </div>
-                <CardTitle>Secure & Private</CardTitle>
+                <CardTitle>🔒 Private Learning</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Your data stays secure with enterprise-grade encryption and privacy controls.
+                  Your Personal Knowledge Hub. Organize notes, bookmarks, and documents into collections with AI support.
                 </p>
               </CardContent>
             </Card>
@@ -187,11 +187,11 @@ export default function ModernLanding() {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-blue-600" />
                 </div>
-                <CardTitle>Conversation History</CardTitle>
+                <CardTitle>🌐 Community Insights</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Keep track of all your conversations with the AI. Resume previous discussions and build on past insights across your document collections.
+                  Share your knowledge publicly, collaborate, and amplify your impact.
                 </p>
               </CardContent>
             </Card>
@@ -216,9 +216,9 @@ export default function ModernLanding() {
               <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-2xl font-bold text-white">1</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Collections</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Notebooks</h3>
               <p className="text-gray-600">
-                Organize your documents into smart collections. Upload PDFs, text files, and attachments with drag-and-drop ease.
+                Organize your documents into smart notebooks. Upload PDFs, text files, and attachments with drag-and-drop ease.
               </p>
             </div>
 
@@ -278,7 +278,7 @@ export default function ModernLanding() {
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-gray-700">1 collection</span>
+                    <span className="text-gray-700">1 notebook</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
@@ -314,7 +314,7 @@ export default function ModernLanding() {
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-gray-700">Unlimited collections</span>
+                    <span className="text-gray-700">Unlimited notebooks</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
@@ -375,10 +375,10 @@ export default function ModernLanding() {
       <section className="py-20 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to enhance your learning experience?
+            Ready to build your AI-powered knowledge hub?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join thousands of learners who are already using SnappyLearn to unlock the power of their documents.
+            Join 10K+ active learners who are already using SnappyLearn to organize their knowledge and connect with others.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -386,7 +386,7 @@ export default function ModernLanding() {
               size="lg" 
               className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3"
             >
-              Get Started Free
+              Start Building Your Knowledge Hub
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-purple-600 px-8 py-3">
