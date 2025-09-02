@@ -843,9 +843,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Communities endpoints
-  app.get("/api/communities", async (req, res) => {
+  app.get("/api/communities", async (req: any, res) => {
     try {
-      const userId = req.session?.user?.claims?.sub;
+      // Get userId from JWT if authenticated
+      let userId: string | undefined;
+      try {
+        userId = getJwtUserId(req);
+      } catch (error) {
+        // User not authenticated, continue without userId
+      }
+      
       const communities = await storage.getCommunitiesWithStats(userId);
       res.json(communities);
     } catch (error) {
@@ -887,7 +894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/communities/:id/join", jwtAuth, async (req: any, res) => {
+  app.delete("/api/communities/:id/leave", jwtAuth, async (req: any, res) => {
     try {
       const userId = getJwtUserId(req);
       const communityId = parseInt(req.params.id);

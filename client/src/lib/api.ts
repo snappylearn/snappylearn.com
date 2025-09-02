@@ -119,3 +119,14 @@ export const messagesApi = {
     return res.json();
   },
 };
+
+// Communities API
+export const communitiesApi = {
+  join: async (communityId: number): Promise<void> => {
+    await apiRequest("POST", `/api/communities/${communityId}/join`);
+  },
+
+  leave: async (communityId: number): Promise<void> => {
+    await apiRequest("DELETE", `/api/communities/${communityId}/leave`);
+  },
+};

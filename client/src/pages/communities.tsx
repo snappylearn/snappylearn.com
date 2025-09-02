@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { communitiesApi } from "@/lib/api";
 import { 
   Search, 
   Eye, 
@@ -25,6 +26,7 @@ import {
   X
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
+import type { CommunityWithStats, Tag } from "@shared/schema";
 
 export default function Communities() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,12 +43,49 @@ export default function Communities() {
   const { toast } = useToast();
 
   // Fetch tags for multi-select
-  const { data: availableTags = [] } = useQuery({
+  const { data: availableTags = [] } = useQuery<Tag[]>({
     queryKey: ['/api/tags'],
   });
 
-  const { data: communities = [], isLoading } = useQuery({
+  const { data: communities = [], isLoading } = useQuery<CommunityWithStats[]>({
     queryKey: ['/api/communities'],
+  });
+
+  // Mutations for join/leave
+  const joinCommunityMutation = useMutation({
+    mutationFn: (communityId: number) => communitiesApi.join(communityId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
+      toast({
+        title: "Success",
+        description: "Successfully joined the community!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to join community. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const leaveCommunityMutation = useMutation({
+    mutationFn: (communityId: number) => communitiesApi.leave(communityId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
+      toast({
+        title: "Success", 
+        description: "Successfully left the community.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to leave community. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Sample communities data for demo
@@ -119,10 +158,15 @@ export default function Communities() {
     }
   ];
 
-  const filteredCommunities = sampleCommunities.filter(community =>
+  // Use real communities data instead of sample data
+  const communitiesData: CommunityWithStats[] = communities.length > 0 ? communities : sampleCommunities;
+  
+  const filteredCommunities = communitiesData.filter((community: CommunityWithStats) =>
     community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    community.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    community.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    (community.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (community.tags || []).some((tag: Tag | any) => 
+      (typeof tag === 'string' ? tag : tag.name).toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   // Create community mutation
@@ -240,9 +284,13 @@ export default function Communities() {
               size="sm"
               variant={community.isJoined ? "secondary" : "default"}
               onClick={() => {
-                // TODO: Implement join/leave community functionality
-                console.log(community.isJoined ? "Leave community:" : "Join community:", community.id);
+                if (community.isJoined) {
+                  leaveCommunityMutation.mutate(community.id);
+                } else {
+                  joinCommunityMutation.mutate(community.id);
+                }
               }}
+              disabled={joinCommunityMutation.isPending || leaveCommunityMutation.isPending}
             >
               {community.isJoined ? "Joined" : "Join"}
             </Button>
@@ -300,9 +348,13 @@ export default function Communities() {
               size="sm"
               variant={community.isJoined ? "secondary" : "default"}
               onClick={() => {
-                // TODO: Implement join/leave community functionality
-                console.log(community.isJoined ? "Leave community:" : "Join community:", community.id);
+                if (community.isJoined) {
+                  leaveCommunityMutation.mutate(community.id);
+                } else {
+                  joinCommunityMutation.mutate(community.id);
+                }
               }}
+              disabled={joinCommunityMutation.isPending || leaveCommunityMutation.isPending}
             >
               {community.isJoined ? "Joined" : "Join"}
             </Button>
