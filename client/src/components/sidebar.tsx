@@ -83,7 +83,7 @@ export function Sidebar({ selectedCollectionId, onSelectCollection, onNewChat }:
               >
                 <Folder className="w-4 h-4" />
                 <h3 className="text-sm font-semibold uppercase tracking-wide">
-                  Collections
+                  Notebooks
                 </h3>
               </Link>
               <Button

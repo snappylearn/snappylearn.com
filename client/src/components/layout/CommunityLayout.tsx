@@ -41,7 +41,7 @@ export function CommunityLayout({ children }: CommunityLayoutProps) {
       active: location === "/discover"
     },
     {
-      name: "My Collections",
+      name: "Notebooks",
       href: "/my-collections",
       icon: FolderOpen,
       active: location === "/my-collections"

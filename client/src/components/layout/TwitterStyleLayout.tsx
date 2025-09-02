@@ -24,11 +24,12 @@ import { useQuery } from "@tanstack/react-query";
 
 interface TwitterStyleLayoutProps {
   children: ReactNode;
+  currentCollectionId?: number;
 }
 
 const snappyLearnLogo = "/snappylearn-transparent-logo.png";
 
-export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
+export function TwitterStyleLayout({ children, currentCollectionId }: TwitterStyleLayoutProps) {
   const [location] = useLocation();
   const { user, signOut } = useAuth();
 
@@ -37,7 +38,7 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
     { name: "Home", href: "/", icon: Home },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "My Collections", href: "/collections", icon: FolderOpen },
+    { name: "Notebooks", href: "/collections", icon: FolderOpen },
     { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
@@ -104,7 +105,7 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
 
             {/* Create Button */}
             <div className="p-4">
-              <Link href="/chat">
+              <Link href={currentCollectionId ? `/chat?collectionId=${currentCollectionId}` : "/chat"}>
                 <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white h-12 text-base font-medium rounded-full">
                   <Plus className="h-5 w-5 mr-2" />
                   Start Chat
@@ -181,7 +182,7 @@ export function TwitterStyleLayout({ children }: TwitterStyleLayoutProps) {
                         No conversations yet. Start a new chat!
                       </p>
                     )}
-                    <Link href="/chat">
+                    <Link href={currentCollectionId ? `/chat?collectionId=${currentCollectionId}` : "/chat"}>
                       <Button variant="link" className="w-full text-purple-600 text-sm">
                         Start new chat
                       </Button>

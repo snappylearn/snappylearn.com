@@ -14,8 +14,17 @@ import { AdminTestButton } from "@/components/admin/AdminTestButton";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
 export default function Chat() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | undefined>();
+  
+  // Check for collectionId in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const collectionIdParam = urlParams.get('collectionId');
+    if (collectionIdParam) {
+      setSelectedCollectionId(parseInt(collectionIdParam));
+    }
+  }, [location]);
   const { data: conversations = [] } = useConversations();
   const { data: collections = [] } = useCollections();
   const { data: artifacts = [] } = useArtifacts();

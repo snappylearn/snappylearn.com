@@ -91,7 +91,7 @@ export default function Conversation() {
   const isCollectionBased = conversation.type === "collection";
 
   return (
-    <TwitterStyleLayout>
+    <TwitterStyleLayout currentCollectionId={conversation?.collectionId}>
       <div className={`flex flex-col min-h-screen ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
         {/* Header */}
         <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
