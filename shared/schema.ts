@@ -76,7 +76,10 @@ export const collections = pgTable("collections", {
   isDefault: boolean("is_default").default(false), // For Personal Collection
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  // Ensure only one default (Personal) notebook per user
+  index("idx_user_default_collection").on(table.userId, table.isDefault),
+]);
 
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),

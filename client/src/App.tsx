@@ -27,6 +27,7 @@ import Agents from "@/pages/agents";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Profile from "@/pages/profile";
 import UsageDashboard from "@/pages/usage-dashboard";
+import PostDetail from "@/pages/post-detail";
 import NotFound from "@/pages/not-found";
 import { MainLayout } from "@/components/layout/MainLayout";
 
@@ -74,6 +75,7 @@ function Router() {
       <Route path="/tasks" component={Tasks} />
       <Route path="/conversations" component={Conversations} />
       <Route path="/conversations/:id" component={Conversation} />
+      <Route path="/posts/:id" component={PostDetail} />
       <Route path="/artifacts" component={ArtifactsPage} />
       <Route path="/billing" component={UsageDashboard} />
       <Route path="/admin" component={AdminDashboard} />

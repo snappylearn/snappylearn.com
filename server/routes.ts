@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: "Personal Notebook",
             description: "Your default notebook for saved posts and documents",
             userId: userId,
-            privateStatusTypeId: "private",
+            visibilityTypeId: 1, // Private
             isDefault: true,
           });
           // Refetch collections to include the newly created Personal Collection

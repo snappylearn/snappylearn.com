@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,6 +34,7 @@ export function PostCard({ post }: PostCardProps) {
   const [showFullContent, setShowFullContent] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const likePostMutation = useMutation({
     mutationFn: async () => {
@@ -177,14 +179,7 @@ export function PostCard({ post }: PostCardProps) {
               variant="ghost" 
               size="sm" 
               className="gap-2"
-              onClick={() => {
-                // TODO: Open comments modal or navigate to post detail page
-                console.log('Comments clicked for post:', post.id);
-                toast({
-                  title: "Comments",
-                  description: "Comments feature coming soon!",
-                });
-              }}
+              onClick={() => setLocation(`/posts/${post.id}`)}
             >
               <MessageCircle className="w-4 h-4" />
               {post.stats.commentCount > 0 && (

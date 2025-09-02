@@ -51,7 +51,7 @@ export function setupAuthRoutes(app: Express) {
           name: "Personal Notebook",
           description: "Your default notebook for saved posts and documents",
           userId: newUser.id,
-          privateStatusTypeId: "private",
+          visibilityTypeId: 1, // Private
           isDefault: true,
         });
         console.log("Personal Notebook created for user:", newUser.email);

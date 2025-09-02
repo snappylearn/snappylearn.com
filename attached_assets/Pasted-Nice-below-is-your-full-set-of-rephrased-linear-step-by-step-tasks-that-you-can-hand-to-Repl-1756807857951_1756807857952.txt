@@ -1,0 +1,292 @@
+Nice — below is your full set of **rephrased, linear, step-by-step tasks** that you can hand to Replit/devs. Each task lists **what to change → exact steps → how to test → clear acceptance criteria**. Do them **in order** and **run the tests after each step**. No guessing, no circling.
+
+---
+
+# Fix & QA Checklist — Step-by-step (execute in order)
+
+## Pre-flight (run once)
+
+1. Pull latest branch, start dev servers.
+2. Confirm routes and API base URLs in `.env`.
+3. Open two browser windows: Client and Server logs.
+
+**Quick check**
+
+* Client runs at `http://localhost:5173`
+* Server runs at `http://localhost:3000` (or configured port)
+
+---
+
+## 1 — Ensure every user has exactly **one** Personal Notebook
+
+**Goal:** Every user (new + existing) has a single notebook named **Personal Notebook**.
+
+**Steps**
+
+1. Verify signup flow triggers a helper to create a `Personal Notebook` if none exists.
+2. Add a backfill script to create Personal Notebook for existing users without one.
+3. Add a guard so multiple Personal Notebooks cannot be created (unique constraint or check by `user_id + name`).
+
+**Tests**
+
+* Create a new user → open Collections page → confirm `Personal Notebook` exists.
+* Run backfill script (or check DB) → confirm every user has exactly one `Personal Notebook`.
+* Try to create `Personal Notebook` again for a user → operation should be rejected.
+
+**Acceptance**
+
+* ✅ New users get 1 Personal Notebook automatically.
+* ✅ Existing users have 1 Personal Notebook after backfill.
+* ✅ DB prevents duplicates.
+
+---
+
+## 2 — Home Feed: Like, Repost, Bookmark (fix buttons)
+
+**Goal:** Like, Repost, Bookmark actions trigger API, update UI, and persist.
+
+**Steps**
+
+1. Find UI button handlers for Like, Repost, Bookmark on `PostCard`.
+2. Confirm they call the correct API endpoints (e.g., `POST /posts/:id/like`, `/repost`, `/bookmark`).
+3. Ensure optimistic UI updates (toggle state) while awaiting response; revert on error.
+4. For Bookmark: open `BookmarkPopover` and ensure it lists collections and can save to multiple collections (default: Personal Notebook pre-checked).
+5. Verify server endpoints write to `documents` and `collectionDocuments`.
+
+**Tests**
+
+* Click Like → UI increments like count and button visually toggles; refresh page → like persists.
+* Click Repost → new repost appears (or repost count increments); persists after refresh.
+* Click Bookmark → popover appears → select collection(s) → save → bookmark persists; `documents` + `collection_documents` entries exist.
+
+**Acceptance**
+
+* ✅ Buttons respond immediately.
+* ✅ Server state updates correctly.
+* ✅ Bookmark saves to one or multiple notebooks and default Personal Notebook checked.
+
+---
+
+## 3 — Home Feed: Post Detail & Comments
+
+**Goal:** Clicking Comments navigates to Post Detail page showing comments list + input box.
+
+**Steps**
+
+1. Ensure comment button navigates to route `/post/:postId` (or PostDetail component).
+2. PostDetail page must fetch post + comments and render:
+
+   * Comments list (existing comments)
+   * Comment input box (submit appends comment)
+3. Implement scroll-to-top/focus on input when opened from feed.
+4. Ensure API endpoints for fetching and posting comments work.
+
+**Tests**
+
+* Click Comments on a post → open PostDetail page → existing comments shown.
+* Type and submit a comment → comment appears in list immediately → persists after refresh.
+* Error cases: if posting fails, show toast with error.
+
+**Acceptance**
+
+* ✅ Post Detail loads correctly and comments can be created/read.
+
+---
+
+## 4 — Discover Page — Communities Tab (Join & View)
+
+**Goal:** Join and View buttons work (join membership and open community detail).
+
+**Steps**
+
+1. Locate buttons in CommunityCard component.
+2. Ensure `onClick` handlers call:
+
+   * Join: `POST /communities/:id/join` and update UI to Joined state.
+   * View: navigate to `/communities/:id` (CommunityDetail).
+3. Add loading state and error handling.
+
+**Tests**
+
+* Click Join → button toggles to Joined (or Join -> Joined) and server membership created.
+* Click View → navigates to community detail page.
+
+**Acceptance**
+
+* ✅ Join and View function and persist membership.
+
+---
+
+## 5 — Discover Page — Notebooks Tab (layout + tags)
+
+**Goal:** Move “Updated X days ago” to bottom of card; confirm tags and add multi-select on create notebook.
+
+**Steps**
+
+1. NotebookCard component: rearrange DOM so tags and description are in the body and `Updated` timestamp is placed in the footer (bottom) — use flex column with `justify-between`.
+2. Inspect CSS to prevent timestamp squeezing: ensure card has `min-height` or use `flex-col` + `space-between`.
+3. Confirm tags displayed on notebook cards are coming from `tags` relation (not hardcoded).
+4. If tags come from DB, ensure Notebook creation UI includes a multi-select field that writes an array of `tag_ids` to the backend.
+
+**Tests**
+
+* Notebook cards show timestamp at bottom consistently (desktop + mobile).
+* Creating a notebook: multi-select tags, submit → tags appear on card and stored in DB.
+
+**Acceptance**
+
+* ✅ Timestamp anchored bottom.
+* ✅ Tags are dynamic from DB and the create form supports multi-select.
+
+---
+
+## 6 — Discover Page — People Tab (layout + follow)
+
+**Goal:** Show two user cards per row; Follow buttons work.
+
+**Steps**
+
+1. Change layout grid to `grid grid-cols-1 sm:grid-cols-2 gap-4` (or equivalent) to show two cards per row on wider screens.
+2. Inspect `Follow` button handler:
+
+   * Ensure it calls `POST /users/:id/follow` (or toggle endpoint).
+   * Ensure state updates to “Following”.
+3. Add optimistic UI update + rollback on failure.
+4. Handle unauthenticated user (show login prompt).
+
+**Tests**
+
+* Page displays two cards per row on desktop, one on mobile.
+* Click Follow → button changes to Following; check DB `follows` entry.
+* Click again (unfollow) → toggles off.
+
+**Acceptance**
+
+* ✅ Two cards per row layout.
+* ✅ Follow/unfollow works and persists.
+
+---
+
+## 7 — Agents Page (filters, follow, Add Assistant)
+
+**Goal:** Filter buttons apply filters; Follow works; Add Assistant opens form.
+
+**Steps**
+
+1. Filter buttons: ensure clicking sets local state and triggers data fetch with filter query params (or filters client-side).
+
+   * Example: `/api/agents?role=assistant&topic=ai`
+2. Ensure agent listing re-renders with filtered results.
+3. Fix Follow button similar to People Tab (`POST /agents/:id/follow`).
+4. Add Assistant button: wire it to open modal or navigate to Assistant creation page.
+
+   * If Admin-only, check admin flag and show appropriate UI.
+5. Add loading & empty states for filtered results.
+
+**Tests**
+
+* Click each filter → list updates accordingly.
+* Click Follow on an agent → Following state updates and persists.
+* Click Add Assistant → creation form/modal opens.
+
+**Acceptance**
+
+* ✅ Filters change the listing.
+* ✅ Follow works.
+* ✅ Add Assistant opens the creation flow.
+
+---
+
+## 8 — Communities Page — Create New Community
+
+**Goal:** Create New Community button opens a form; tags are selectable.
+
+**Steps**
+
+1. Wire `Create New Community` to open modal or navigate to creation page.
+2. Form fields: `name`, `description`, `tags` (multi-select), `visibility`.
+3. Tags control should fetch options from `tags` table (typeahead / multi-select).
+4. On submit: POST to `/communities` with `tag_ids`. Confirm membership for creator.
+
+**Tests**
+
+* Click Create → form appears.
+* Select multiple tags → submit → community created with tags visible on detail page.
+
+**Acceptance**
+
+* ✅ Create flow appears and creates community with tags.
+
+---
+
+## 9 — Post Creation: Replace Topic with Tags (global change)
+
+**Goal:** Post creation uses `tags` (multi-select from tags table) instead of Topic.
+
+**Steps**
+
+1. UI: Update create post form to show `Tags` (multi-select) with autocomplete from `/tags`.
+2. Backend: Update post create endpoint to accept `tag_ids[]` and persist many-to-many (posts\_tags) if not already present.
+3. Update Community create flow and Notebook create flow to reuse same tags component.
+4. Update Post listing card to show tags.
+
+**Tests**
+
+* Create a post: select multiple tags → submit → tags appear on post and saved in DB.
+* Create community/notebook: multi-select tags and verify tags saved.
+
+**Acceptance**
+
+* ✅ Tags used consistently across Posts, Communities, Notebooks.
+
+---
+
+## 10 — Tasks Page: Fix Schedule / Pause button behaviour
+
+**Goal:** UI shows **Schedule** or **Pause** depending on task state (not both).
+
+**Steps**
+
+1. Task component state: `scheduled` boolean.
+2. If `scheduled === false` → show **Schedule** button (opens scheduling modal).
+3. If `scheduled === true` → show **Pause** button (which pauses the schedule).
+4. Ensure Test button remains for manual run.
+5. Update API to `POST /tasks/:id/schedule` and `POST /tasks/:id/pause` accordingly.
+
+**Tests**
+
+* Create a task (unscheduled) → Schedule button shown.
+* After scheduling → button becomes Pause.
+* Pause → button becomes Schedule again.
+* Test → runs a manual test call and returns expected output.
+
+**Acceptance**
+
+* ✅ Schedule / Pause are mutually exclusive and state-driven.
+* ✅ Test still available.
+
+---
+
+## Final QA Sweep (after all fixes)
+
+1. Run full regression for these flows:
+
+   * Feed interactions (like/repost/bookmark/comment)
+   * Notebook creation & display
+   * Discover tabs (Communities, Notebooks, People)
+   * Agents page filters + assistant creation
+   * Community creation
+   * Post creation with tags
+   * Tasks scheduling
+2. Run browser devtools network tab to ensure no failing API calls or 500s.
+3. Validate DB entries are correct for likes, bookmarks (documents + collection\_documents), follows, comments, tags.
+
+**Final Acceptance**
+
+* ✅ All listed features work and persist.
+* ✅ No front-end console errors or broken network calls for these flows.
+* ✅ UI is responsive and layouts updated (two cards per row, bottom timestamp).
+
+---
+
+If you want, I can convert this into a **one-page QA checklist** (tick boxes for each test) that you can paste into Replit issues or your task tracker. Which format would you prefer?
