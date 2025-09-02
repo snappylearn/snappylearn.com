@@ -8,6 +8,11 @@ import {
   artifacts,
   tenants,
   adminAuditLog,
+  subscriptionPlans,
+  userSubscriptions,
+  creditTransactions,
+  userCredits,
+  creditGifts,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -30,6 +35,16 @@ import {
   type TenantWithStats,
   type UserWithTenant,
   type AdminDashboardStats,
+  type SubscriptionPlan,
+  type UserSubscription,
+  type UserSubscriptionWithPlan,
+  type CreditTransaction,
+  type UserCredits,
+  type CreditGift,
+  type InsertUserSubscription,
+  type InsertCreditTransaction,
+  type InsertUserCredits,
+  type InsertCreditGift,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, sql, and } from "drizzle-orm";
@@ -89,6 +104,20 @@ export interface IStorage {
   updateUserRole(userId: string, role: string, adminId: string): Promise<boolean>;
   logAdminAction(log: InsertAdminAuditLog): Promise<AdminAuditLog>;
   getAdminAuditLogs(filters?: { adminId?: string; targetType?: string; limit?: number }): Promise<AdminAuditLog[]>;
+
+  // Subscription methods
+  getUserSubscription(userId: string): Promise<UserSubscriptionWithPlan | undefined>;
+  createOrUpdateSubscription(userId: string, data: { planId: string; status: string; stripeCustomerId?: string; stripePaymentIntentId?: string; isYearly?: boolean }): Promise<UserSubscription>;
+  getStripeCustomerId(userId: string): Promise<string | undefined>;
+  updateStripeCustomerId(userId: string, stripeCustomerId: string): Promise<void>;
+  
+  // Credit methods
+  getUserCredits(userId: string): Promise<UserCredits | undefined>;
+  addCredits(userId: string, amount: number, type: string, description: string, referenceId?: string): Promise<void>;
+  deductCredits(userId: string, amount: number, type: string, description: string, referenceId?: string): Promise<void>;
+  giftCredits(fromUserId: string, toUserId: string, amount: number, message?: string): Promise<void>;
+  getCreditTransactions(userId: string, limit?: number): Promise<CreditTransaction[]>;
+  getMonthlyUsage(userId: string): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -712,6 +741,251 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await query;
+  }
+
+  // Subscription methods
+  async getUserSubscription(userId: string): Promise<UserSubscriptionWithPlan | undefined> {
+    const [result] = await db
+      .select({
+        subscription: userSubscriptions,
+        plan: subscriptionPlans
+      })
+      .from(userSubscriptions)
+      .leftJoin(subscriptionPlans, eq(userSubscriptions.planId, subscriptionPlans.id))
+      .where(eq(userSubscriptions.userId, userId))
+      .orderBy(desc(userSubscriptions.createdAt))
+      .limit(1);
+
+    if (!result) return undefined;
+
+    return {
+      ...result.subscription,
+      plan: result.plan!
+    };
+  }
+
+  async createOrUpdateSubscription(userId: string, data: { planId: string; status: string; stripeCustomerId?: string; stripePaymentIntentId?: string; isYearly?: boolean }): Promise<UserSubscription> {
+    // Check if user already has a subscription
+    const [existing] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId));
+
+    const subscriptionData = {
+      userId,
+      planId: parseInt(data.planId) || 1, // Default to free plan if invalid
+      stripeCustomerId: data.stripeCustomerId,
+      status: data.status,
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + (data.isYearly ? 365 : 30) * 24 * 60 * 60 * 1000),
+      updatedAt: new Date()
+    };
+
+    if (existing) {
+      // Update existing subscription
+      const [updated] = await db
+        .update(userSubscriptions)
+        .set(subscriptionData)
+        .where(eq(userSubscriptions.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      // Create new subscription
+      const [created] = await db
+        .insert(userSubscriptions)
+        .values(subscriptionData)
+        .returning();
+      return created;
+    }
+  }
+
+  async getStripeCustomerId(userId: string): Promise<string | undefined> {
+    const [result] = await db
+      .select({ stripeCustomerId: userSubscriptions.stripeCustomerId })
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId));
+    
+    return result?.stripeCustomerId || undefined;
+  }
+
+  async updateStripeCustomerId(userId: string, stripeCustomerId: string): Promise<void> {
+    await db
+      .update(userSubscriptions)
+      .set({ stripeCustomerId, updatedAt: new Date() })
+      .where(eq(userSubscriptions.userId, userId));
+  }
+
+  // Credit methods
+  async getUserCredits(userId: string): Promise<UserCredits | undefined> {
+    const [result] = await db
+      .select()
+      .from(userCredits)
+      .where(eq(userCredits.userId, userId));
+    
+    return result || undefined;
+  }
+
+  async addCredits(userId: string, amount: number, type: string, description: string, referenceId?: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Get current balance or create new record
+      const [currentCredits] = await tx
+        .select()
+        .from(userCredits)
+        .where(eq(userCredits.userId, userId));
+      
+      const currentBalance = currentCredits?.balance || 0;
+      const newBalance = currentBalance + amount;
+
+      // Update or create user credits
+      if (currentCredits) {
+        await tx
+          .update(userCredits)
+          .set({ balance: newBalance, updatedAt: new Date() })
+          .where(eq(userCredits.userId, userId));
+      } else {
+        await tx
+          .insert(userCredits)
+          .values({ userId, balance: newBalance, monthlyAllowance: amount });
+      }
+
+      // Record transaction
+      await tx
+        .insert(creditTransactions)
+        .values({
+          userId,
+          type,
+          amount,
+          balance: newBalance,
+          description,
+          referenceId
+        });
+    });
+  }
+
+  async deductCredits(userId: string, amount: number, type: string, description: string, referenceId?: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Get current balance
+      const [currentCredits] = await tx
+        .select()
+        .from(userCredits)
+        .where(eq(userCredits.userId, userId));
+      
+      if (!currentCredits || currentCredits.balance < amount) {
+        throw new Error("Insufficient credits");
+      }
+
+      const newBalance = currentCredits.balance - amount;
+
+      // Update user credits
+      await tx
+        .update(userCredits)
+        .set({ balance: newBalance, updatedAt: new Date() })
+        .where(eq(userCredits.userId, userId));
+
+      // Record transaction (negative amount)
+      await tx
+        .insert(creditTransactions)
+        .values({
+          userId,
+          type,
+          amount: -amount,
+          balance: newBalance,
+          description,
+          referenceId
+        });
+    });
+  }
+
+  async giftCredits(fromUserId: string, toUserId: string, amount: number, message?: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Deduct from sender
+      await this.deductCredits(fromUserId, amount, "gift_sent", `Gift to user ${toUserId}`);
+      
+      // Add to recipient
+      await this.addCredits(toUserId, amount, "gift_received", `Gift from user ${fromUserId}: ${message || ''}`);
+      
+      // Record gift
+      await tx
+        .insert(creditGifts)
+        .values({
+          fromUserId,
+          toUserId,
+          amount,
+          message,
+          status: "accepted",
+          acceptedAt: new Date()
+        });
+    });
+  }
+
+  async getCreditTransactions(userId: string, limit: number = 20): Promise<CreditTransaction[]> {
+    return await db
+      .select()
+      .from(creditTransactions)
+      .where(eq(creditTransactions.userId, userId))
+      .orderBy(desc(creditTransactions.createdAt))
+      .limit(limit);
+  }
+
+  async getMonthlyUsage(userId: string): Promise<any> {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const transactions = await db
+      .select()
+      .from(creditTransactions)
+      .where(
+        and(
+          eq(creditTransactions.userId, userId),
+          sql`${creditTransactions.createdAt} >= ${startOfMonth}`
+        )
+      );
+
+    const usage = {
+      thisMonth: {
+        aiPosts: 0,
+        agentInteractions: 0,
+        taskRuns: 0,
+        creditsUsed: 0
+      },
+      breakdown: [] as Array<{ feature: string; creditsUsed: number; percentage: number }>
+    };
+
+    const featureUsage: Record<string, number> = {};
+    let totalUsed = 0;
+
+    transactions.forEach(tx => {
+      if (tx.amount < 0) { // Only negative amounts (usage)
+        const credits = Math.abs(tx.amount);
+        totalUsed += credits;
+        
+        // Categorize usage based on description or type
+        if (tx.description.includes('post')) {
+          usage.thisMonth.aiPosts += credits;
+          featureUsage['AI Posts'] = (featureUsage['AI Posts'] || 0) + credits;
+        } else if (tx.description.includes('agent')) {
+          usage.thisMonth.agentInteractions += credits;
+          featureUsage['Agent Interactions'] = (featureUsage['Agent Interactions'] || 0) + credits;
+        } else if (tx.description.includes('task')) {
+          usage.thisMonth.taskRuns += credits;
+          featureUsage['Task Runs'] = (featureUsage['Task Runs'] || 0) + credits;
+        } else {
+          featureUsage['Other'] = (featureUsage['Other'] || 0) + credits;
+        }
+      }
+    });
+
+    usage.thisMonth.creditsUsed = totalUsed;
+
+    // Calculate breakdown percentages
+    usage.breakdown = Object.entries(featureUsage).map(([feature, creditsUsed]) => ({
+      feature,
+      creditsUsed,
+      percentage: totalUsed > 0 ? Math.round((creditsUsed / totalUsed) * 100) : 0
+    }));
+
+    return usage;
   }
 }
 

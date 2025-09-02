@@ -619,3 +619,152 @@ export type CommunityWithStats = Community & {
     profileImageUrl: string | null;
   };
 };
+
+// Subscription Plans table for Premium/Pro tiers
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(), // 'free', 'pro', 'premium'
+  displayName: varchar("display_name", { length: 100 }).notNull(), // 'Free', 'Pro', 'Premium'
+  description: text("description"),
+  price: integer("price").notNull(), // Price in cents (e.g., 999 for $9.99)
+  interval: varchar("interval", { length: 20 }).default("month"), // 'month', 'year'
+  credits: integer("credits").notNull(), // Monthly credit allowance
+  maxNotebooks: integer("max_notebooks").default(1),
+  maxTasks: integer("max_tasks").default(1),
+  maxAgents: integer("max_agents").default(1),
+  maxCommunities: integer("max_communities").default(1),
+  features: text("features").array(), // Array of feature descriptions
+  isActive: boolean("is_active").default(true),
+  stripePriceId: varchar("stripe_price_id"), // Stripe price ID for payments
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User Subscriptions table for tracking current plans
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  planId: integer("plan_id").notNull(),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  status: varchar("status", { length: 20 }).default("active"), // 'active', 'canceled', 'past_due', 'unpaid'
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_subscriptions_user").on(table.userId),
+  index("idx_user_subscriptions_stripe").on(table.stripeSubscriptionId),
+]);
+
+// Credit Transactions table for tracking credit usage and purchases
+export const creditTransactions = pgTable("credit_transactions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  type: varchar("type", { length: 30 }).notNull(), // 'subscription_grant', 'purchase', 'usage', 'gift_sent', 'gift_received'
+  amount: integer("amount").notNull(), // Positive for credits added, negative for usage
+  balance: integer("balance").notNull(), // User's balance after this transaction
+  description: text("description").notNull(),
+  metadata: jsonb("metadata").default(null), // Additional context (feature used, gift sender, etc.)
+  referenceId: varchar("reference_id"), // Reference to subscription, purchase, or gift
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_credit_transactions_user").on(table.userId),
+  index("idx_credit_transactions_type").on(table.type),
+]);
+
+// User Credits table for current balances
+export const userCredits = pgTable("user_credits", {
+  userId: varchar("user_id").primaryKey(),
+  balance: integer("balance").default(0),
+  monthlyAllowance: integer("monthly_allowance").default(0), // From subscription
+  lastRefreshDate: timestamp("last_refresh_date").defaultNow(), // When monthly credits were last added
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_user_credits_balance").on(table.balance),
+]);
+
+// Credit Gifts table for peer-to-peer credit transfers
+export const creditGifts = pgTable("credit_gifts", {
+  id: serial("id").primaryKey(),
+  fromUserId: varchar("from_user_id").notNull(),
+  toUserId: varchar("to_user_id").notNull(),
+  amount: integer("amount").notNull(),
+  message: text("message"),
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'accepted', 'declined'
+  createdAt: timestamp("created_at").defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+}, (table) => [
+  index("idx_credit_gifts_to_user").on(table.toUserId),
+  index("idx_credit_gifts_from_user").on(table.fromUserId),
+]);
+
+// Insert schemas for subscription tables
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCreditTransactionSchema = createInsertSchema(creditTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserCreditsSchema = createInsertSchema(userCredits).omit({
+  lastRefreshDate: true,
+  updatedAt: true,
+});
+
+export const insertCreditGiftSchema = createInsertSchema(creditGifts).omit({
+  id: true,
+  createdAt: true,
+  acceptedAt: true,
+});
+
+// Types for subscription tables
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+
+export type CreditTransaction = typeof creditTransactions.$inferSelect;
+export type InsertCreditTransaction = z.infer<typeof insertCreditTransactionSchema>;
+
+export type UserCredits = typeof userCredits.$inferSelect;
+export type InsertUserCredits = z.infer<typeof insertUserCreditsSchema>;
+
+export type CreditGift = typeof creditGifts.$inferSelect;
+export type InsertCreditGift = z.infer<typeof insertCreditGiftSchema>;
+
+// Enhanced types for subscription management
+export type UserSubscriptionWithPlan = UserSubscription & {
+  plan: SubscriptionPlan;
+};
+
+export type UserDashboardData = {
+  subscription: UserSubscriptionWithPlan;
+  credits: UserCredits;
+  usage: {
+    thisMonth: {
+      aiPosts: number;
+      agentInteractions: number;
+      taskRuns: number;
+      creditsUsed: number;
+    };
+    breakdown: Array<{
+      feature: string;
+      creditsUsed: number;
+      percentage: number;
+    }>;
+  };
+  recentTransactions: CreditTransaction[];
+};

@@ -16,6 +16,7 @@ import { registerPostRoutes } from "./routes/posts";
 import { registerTopicRoutes } from "./routes/topics";
 import { registerFollowRoutes } from "./routes/follows";
 import { seedDatabase } from "./seed";
+import { registerSubscriptionRoutes } from "./routes/subscription";
 import multer from "multer";
 
 // Configure multer for file uploads
@@ -56,6 +57,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerPostRoutes(app);
   registerTopicRoutes(app);
   registerFollowRoutes(app);
+  
+  // Setup subscription routes
+  registerSubscriptionRoutes(app);
 
   // Seed database with demo data
   await seedDatabase();
