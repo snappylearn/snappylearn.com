@@ -223,9 +223,12 @@ export function PostCard({ post }: PostCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              className={`${post.userActions?.isBookmarked ? 'text-blue-500 hover:text-blue-600' : ''}`}
+              className={`gap-2 ${post.userActions?.isBookmarked ? 'text-blue-500 hover:text-blue-600' : ''}`}
             >
               <Bookmark className={`w-4 h-4 ${post.userActions?.isBookmarked ? 'fill-current' : ''}`} />
+              {post.stats.bookmarkCount > 0 && (
+                <span className="text-sm">{post.stats.bookmarkCount}</span>
+              )}
             </Button>
           </BookmarkPopover>
         </div>

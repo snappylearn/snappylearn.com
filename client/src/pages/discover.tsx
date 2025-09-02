@@ -165,7 +165,7 @@ export default function Discover() {
 
   // Combine collections with sample data for display
   const allCollections = [
-    ...collections.map(col => ({
+    ...(collections as any[]).map((col: any) => ({
       id: col.id,
       title: col.name,
       description: col.description || "No description available",
@@ -190,7 +190,7 @@ export default function Discover() {
   );
 
   // Combine real users with sample users for display
-  const displayUsers = allUsers.length > 0 ? allUsers : sampleUsers;
+  const displayUsers = (allUsers as any[]).length > 0 ? (allUsers as any[]) : sampleUsers;
   const filteredUsers = displayUsers.filter((user: any) =>
     `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (user.bio || user.about || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -382,7 +382,7 @@ export default function Discover() {
                     </div>
 
                     <div className="flex flex-wrap gap-1 mt-3">
-                      {collection.tags.map((tag) => (
+                      {collection.tags.map((tag: string) => (
                         <Badge key={tag} variant="secondary" className="text-xs">
                           {tag}
                         </Badge>

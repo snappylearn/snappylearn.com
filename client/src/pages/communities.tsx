@@ -33,7 +33,16 @@ export default function Communities() {
   const [newCommunity, setNewCommunity] = useState({
     name: "",
     description: "",
-    tags: ""
+    selectedTags: [] as number[],
+    visibility: "public"
+  });
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch tags for multi-select
+  const { data: availableTags = [] } = useQuery({
+    queryKey: ['/api/tags'],
   });
 
   const { data: communities = [], isLoading } = useQuery({
@@ -116,11 +125,54 @@ export default function Communities() {
     community.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Create community mutation
+  const createCommunityMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('POST', '/api/communities', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
+      toast({
+        title: "Success",
+        description: "Community created successfully!",
+      });
+      setCreateDialogOpen(false);
+      setNewCommunity({ name: "", description: "", selectedTags: [], visibility: "public" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create community",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateCommunity = () => {
-    // TODO: Implement API call to create community
-    console.log("Creating community:", newCommunity);
-    setCreateDialogOpen(false);
-    setNewCommunity({ name: "", description: "", tags: "" });
+    if (!newCommunity.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Community name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createCommunityMutation.mutate({
+      name: newCommunity.name,
+      description: newCommunity.description,
+      visibility: newCommunity.visibility,
+      tagIds: newCommunity.selectedTags,
+    });
+  };
+
+  const toggleTag = (tagId: number) => {
+    setNewCommunity(prev => ({
+      ...prev,
+      selectedTags: prev.selectedTags.includes(tagId)
+        ? prev.selectedTags.filter(id => id !== tagId)
+        : [...prev.selectedTags, tagId]
+    }));
   };
 
   const renderCommunityCard = (community: any) => (
@@ -323,21 +375,52 @@ export default function Communities() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="tags">Tags (comma-separated)</Label>
-                  <Input
-                    id="tags"
-                    value={newCommunity.tags}
-                    onChange={(e) => setNewCommunity(prev => ({ ...prev, tags: e.target.value }))}
-                    placeholder="e.g. Tech, AI, Startups"
-                  />
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
+                    {availableTags.length === 0 ? (
+                      <span className="text-sm text-gray-500">No tags available</span>
+                    ) : (
+                      availableTags.map((tag: any) => (
+                        <div
+                          key={tag.id}
+                          className={`flex items-center space-x-1 px-2 py-1 rounded text-sm cursor-pointer border ${
+                            newCommunity.selectedTags.includes(tag.id)
+                              ? 'bg-purple-100 border-purple-300 text-purple-700'
+                              : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                          }`}
+                          onClick={() => toggleTag(tag.id)}
+                        >
+                          <span>{tag.name}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="visibility">Visibility</Label>
+                  <Select
+                    value={newCommunity.visibility}
+                    onValueChange={(value) => setNewCommunity(prev => ({ ...prev, visibility: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public - Anyone can join</SelectItem>
+                      <SelectItem value="private">Private - Invitation only</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateCommunity} disabled={!newCommunity.name.trim()}>
-                  Create Community
+                <Button 
+                  onClick={handleCreateCommunity} 
+                  disabled={!newCommunity.name.trim() || createCommunityMutation.isPending}
+                >
+                  {createCommunityMutation.isPending ? "Creating..." : "Create Community"}
                 </Button>
               </div>
             </DialogContent>
