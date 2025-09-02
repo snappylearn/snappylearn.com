@@ -28,7 +28,7 @@ export default function ModernLanding() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900">SnappyLearn</h1>
             <p className="text-gray-600 mt-2">
-              Your AI-powered knowledge companion
+              Turn what you learn into lasting knowledge
             </p>
           </div>
           <SignUpForm 
@@ -378,7 +378,7 @@ export default function ModernLanding() {
             Ready to build your AI-powered knowledge hub?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join 10K+ active learners who are already using SnappyLearn to organize their knowledge and connect with others.
+            Join 10K+ active users who are already using SnappyLearn to organize their knowledge and connect with others.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
