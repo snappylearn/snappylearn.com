@@ -34,6 +34,13 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
   const [location] = useLocation();
   const { user, signOut } = useAuth();
 
+  // Fetch collections data for the sidebar
+  const { data: collections = [] } = useQuery({
+    queryKey: ['/api/collections'],
+    enabled: !!user,
+  });
+
+
   // Left sidebar navigation items
   const navigation = [
     { name: "Home", href: "/", icon: Home },
