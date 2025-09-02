@@ -9,8 +9,10 @@ import {
   insertCollectionSchema, 
   insertDocumentSchema, 
   insertConversationSchema, 
-  insertMessageSchema 
+  insertMessageSchema,
+  insertCommunitySchema
 } from "@shared/schema";
+import { z } from "zod";
 import { generateIndependentResponse, generateCollectionResponse, generateConversationTitle } from "./services/openai";
 import { registerPostRoutes } from "./routes/posts";
 import { registerTopicRoutes } from "./routes/topics";
@@ -823,6 +825,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting account:", error);
       res.status(500).json({ error: "Failed to delete account" });
+    }
+  });
+
+  // Tags endpoints
+  app.get("/api/tags", async (req, res) => {
+    try {
+      const query = req.query.search as string;
+      const tags = query 
+        ? await storage.searchTags(query)
+        : await storage.getAllTags();
+      res.json(tags);
+    } catch (error) {
+      console.error("Error fetching tags:", error);
+      res.status(500).json({ message: "Failed to fetch tags" });
+    }
+  });
+
+  // Communities endpoints
+  app.get("/api/communities", async (req, res) => {
+    try {
+      const userId = req.session?.user?.claims?.sub;
+      const communities = await storage.getCommunitiesWithStats(userId);
+      res.json(communities);
+    } catch (error) {
+      console.error("Error fetching communities:", error);
+      res.status(500).json({ message: "Failed to fetch communities" });
+    }
+  });
+
+  app.post("/api/communities", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      
+      const validatedData = insertCommunitySchema.extend({
+        tagIds: z.array(z.number()),
+      }).parse(req.body);
+
+      const community = await storage.createCommunity(validatedData, userId);
+      res.status(201).json(community);
+    } catch (error) {
+      console.error("Error creating community:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create community" });
+      }
+    }
+  });
+
+  app.post("/api/communities/:id/join", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const communityId = parseInt(req.params.id);
+      
+      await storage.joinCommunity(userId, communityId);
+      res.json({ message: "Successfully joined community" });
+    } catch (error) {
+      console.error("Error joining community:", error);
+      res.status(500).json({ message: "Failed to join community" });
+    }
+  });
+
+  app.delete("/api/communities/:id/join", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const communityId = parseInt(req.params.id);
+      
+      await storage.leaveCommunity(userId, communityId);
+      res.json({ message: "Successfully left community" });
+    } catch (error) {
+      console.error("Error leaving community:", error);
+      res.status(500).json({ message: "Failed to leave community" });
     }
   });
 

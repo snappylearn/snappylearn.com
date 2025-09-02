@@ -435,13 +435,24 @@ export type UserTopicInterest = typeof userTopicInterests.$inferSelect;
 export type InsertUserTopicInterest = z.infer<typeof insertUserTopicInterestSchema>;
 
 
+// Tags table for organizing content
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  color: varchar("color", { length: 7 }).default("#3B82F6"), // Hex color code
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Communities table for user-created discussion groups
 export const communities = pgTable("communities", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   bannerImage: varchar("banner_image"),
-  tags: text("tags").array(), // Array of tag strings
+  visibility: varchar("visibility", { length: 20 }).default("public"), // 'public', 'private', 'invite_only'
   createdBy: varchar("created_by").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -449,6 +460,16 @@ export const communities = pgTable("communities", {
 }, (table) => [
   index("idx_communities_creator").on(table.createdBy),
   index("idx_communities_active").on(table.isActive),
+]);
+
+// Community tags junction table
+export const communityTags = pgTable("community_tags", {
+  id: serial("id").primaryKey(),
+  communityId: integer("community_id").notNull(),
+  tagId: integer("tag_id").notNull(),
+}, (table) => [
+  index("idx_community_tags_community").on(table.communityId),
+  index("idx_community_tags_tag").on(table.tagId),
 ]);
 
 // User communities junction table for membership
@@ -480,11 +501,21 @@ export const tasks = pgTable("tasks", {
   index("idx_tasks_next_run").on(table.nextRun),
 ]);
 
-// Insert schemas for communities and tasks
+// Insert schemas for tags, communities and tasks  
+export const insertTagSchema = createInsertSchema(tags).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertCommunitySchema = createInsertSchema(communities).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertCommunityTagSchema = createInsertSchema(communityTags).omit({
+  id: true,
 });
 
 export const insertUserCommunitySchema = createInsertSchema(userCommunities).omit({
@@ -499,9 +530,15 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   lastRun: true,
 });
 
-// Types for communities and tasks
+// Types for tags, communities and tasks
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = z.infer<typeof insertTagSchema>;
+
 export type Community = typeof communities.$inferSelect;
 export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
+
+export type CommunityTag = typeof communityTags.$inferSelect;
+export type InsertCommunityTag = z.infer<typeof insertCommunityTagSchema>;
 
 export type UserCommunity = typeof userCommunities.$inferSelect;
 export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
@@ -631,6 +668,7 @@ export type CommunityWithStats = Community & {
   memberCount: number;
   postCount: number;
   isJoined?: boolean;
+  tags: Tag[];
   creator: {
     id: string;
     firstName: string | null;

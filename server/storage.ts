@@ -45,9 +45,17 @@ import {
   type InsertCreditTransaction,
   type InsertUserCredits,
   type InsertCreditGift,
+  tags,
+  communities,
+  communityTags,
+  userCommunities,
+  type Tag,
+  type Community,
+  type InsertCommunity,
+  type CommunityWithStats,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, count, sql, and } from "drizzle-orm";
+import { eq, desc, count, sql, and, ilike, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User methods - required for multi-provider Auth
@@ -986,6 +994,118 @@ export class DatabaseStorage implements IStorage {
     }));
 
     return usage;
+  }
+
+  // Tags methods
+  async getAllTags(): Promise<Tag[]> {
+    return await db.select().from(tags).where(eq(tags.isActive, true)).orderBy(tags.name);
+  }
+
+  async searchTags(query: string): Promise<Tag[]> {
+    return await db.select().from(tags)
+      .where(and(
+        eq(tags.isActive, true),
+        ilike(tags.name, `%${query}%`)
+      ))
+      .orderBy(tags.name);
+  }
+
+  // Communities methods
+  async getCommunitiesWithStats(userId?: string): Promise<CommunityWithStats[]> {
+    const query = db
+      .select({
+        community: communities,
+        creator: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+        },
+        memberCount: sql<number>`COALESCE(COUNT(DISTINCT ${userCommunities.id}), 0)`,
+        postCount: sql<number>`0`, // TODO: Implement posts for communities
+      })
+      .from(communities)
+      .leftJoin(users, eq(communities.createdBy, users.id))
+      .leftJoin(userCommunities, eq(communities.id, userCommunities.communityId))
+      .where(eq(communities.isActive, true))
+      .groupBy(communities.id, users.id);
+
+    const results = await query;
+    
+    // Get tags for each community
+    const communityIds = results.map(r => r.community.id);
+    const communityTagsData = await db
+      .select({
+        communityId: communityTags.communityId,
+        tag: tags,
+      })
+      .from(communityTags)
+      .innerJoin(tags, eq(communityTags.tagId, tags.id))
+      .where(inArray(communityTags.communityId, communityIds));
+
+    // Get user memberships if userId provided
+    let userMemberships: { communityId: number }[] = [];
+    if (userId) {
+      userMemberships = await db
+        .select({ communityId: userCommunities.communityId })
+        .from(userCommunities)
+        .where(eq(userCommunities.userId, userId));
+    }
+
+    return results.map(result => ({
+      ...result.community,
+      creator: result.creator,
+      memberCount: result.memberCount,
+      postCount: result.postCount,
+      tags: communityTagsData
+        .filter(ct => ct.communityId === result.community.id)
+        .map(ct => ct.tag),
+      isJoined: userMemberships.some(um => um.communityId === result.community.id),
+    }));
+  }
+
+  async createCommunity(data: InsertCommunity & { tagIds: number[] }, userId: string): Promise<Community> {
+    return await db.transaction(async (tx) => {
+      // Create community
+      const [community] = await tx
+        .insert(communities)
+        .values({ ...data, createdBy: userId })
+        .returning();
+
+      // Add tags
+      if (data.tagIds.length > 0) {
+        await tx.insert(communityTags).values(
+          data.tagIds.map(tagId => ({
+            communityId: community.id,
+            tagId,
+          }))
+        );
+      }
+
+      // Add creator as member
+      await tx.insert(userCommunities).values({
+        userId,
+        communityId: community.id,
+      });
+
+      return community;
+    });
+  }
+
+  async joinCommunity(userId: string, communityId: number): Promise<void> {
+    await db.insert(userCommunities).values({
+      userId,
+      communityId,
+    }).onConflictDoNothing();
+  }
+
+  async leaveCommunity(userId: string, communityId: number): Promise<void> {
+    await db.delete(userCommunities).where(
+      and(
+        eq(userCommunities.userId, userId),
+        eq(userCommunities.communityId, communityId)
+      )
+    );
   }
 }
 
