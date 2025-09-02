@@ -66,38 +66,44 @@ function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Om
             variant: "destructive"
           });
         },
-        callback: async function(response: any) {
-          try {
-            // Confirm payment on backend
-            const confirmResponse = await apiRequest("POST", "/api/subscription/confirm-payment", {
-              paymentIntentId: response.reference
-            });
-            
-            if (confirmResponse.ok) {
-              toast({
-                title: "Payment Successful!",
-                description: `You've successfully subscribed to ${planName}`,
+        callback: function(response: any) {
+          // Handle payment confirmation synchronously to avoid callback validation issues
+          const confirmPayment = async () => {
+            try {
+              // Confirm payment on backend
+              const confirmResponse = await apiRequest("POST", "/api/subscription/confirm-payment", {
+                paymentIntentId: response.reference
               });
-              onClose();
-              // Refresh the page to update subscription status
-              window.location.reload();
-            } else {
+              
+              if (confirmResponse.ok) {
+                toast({
+                  title: "Payment Successful!",
+                  description: `You've successfully subscribed to ${planName}`,
+                });
+                onClose();
+                // Refresh the page to update subscription status
+                window.location.reload();
+              } else {
+                toast({
+                  title: "Payment Confirmation Failed",
+                  description: "Please contact support if this issue persists",
+                  variant: "destructive"
+                });
+              }
+            } catch (error) {
+              console.error("Payment confirmation error:", error);
               toast({
                 title: "Payment Confirmation Failed",
                 description: "Please contact support if this issue persists",
                 variant: "destructive"
               });
+            } finally {
+              setIsProcessing(false);
             }
-          } catch (error) {
-            console.error("Payment confirmation error:", error);
-            toast({
-              title: "Payment Confirmation Failed",
-              description: "Please contact support if this issue persists",
-              variant: "destructive"
-            });
-          } finally {
-            setIsProcessing(false);
-          }
+          };
+          
+          // Call the async function without awaiting it in the callback
+          confirmPayment();
         }
       });
 
