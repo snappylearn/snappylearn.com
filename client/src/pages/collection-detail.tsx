@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import { File, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,15 +21,31 @@ export default function CollectionDetail() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading } = useAuth();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | undefined>();
 
   const collectionId = parseInt(params.id!);
+
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [isAuthenticated, isLoading, toast]);
   
-  const { data: collection } = useCollection(collectionId);
+  const { data: collection, isLoading: collectionLoading, error: collectionError } = useCollection(collectionId);
   const { data: documents = [] } = useQuery({
     queryKey: ["/api/collections", collectionId, "documents"],
     queryFn: () => documentsApi.getByCollection(collectionId),
-    enabled: !!collectionId,
+    enabled: !!collectionId && isAuthenticated,
   });
   
   const { data: conversations = [] } = useConversations();
@@ -91,13 +108,33 @@ export default function CollectionDetail() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  if (!collection) {
+  // Show loading state
+  if (isLoading || collectionLoading) {
     return (
       <TwitterStyleLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Collection not found</h2>
-            <Button onClick={() => setLocation("/my-collections")} variant="outline">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading collection...</p>
+          </div>
+        </div>
+      </TwitterStyleLayout>
+    );
+  }
+
+  // Handle authentication errors or collection not found
+  if (collectionError || !collection) {
+    return (
+      <TwitterStyleLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              {collectionError ? "Access denied" : "Collection not found"}
+            </h2>
+            <p className="text-gray-600 mb-4">
+              {collectionError ? "You don't have permission to view this collection." : "This collection may have been deleted or doesn't exist."}
+            </p>
+            <Button onClick={() => setLocation("/collections")} variant="outline">
               Back to Collections
             </Button>
           </div>
