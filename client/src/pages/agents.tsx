@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Bot, Users, Plus } from "lucide-react";
+import { Search, Bot, Users, Plus, Grid3X3, List } from "lucide-react";
 
 export default function Agents() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Fetch all users and filter for AI agents
   const { data: allUsers = [], isLoading } = useQuery({
@@ -114,10 +115,32 @@ export default function Agents() {
             <h2 className="text-xl font-semibold">
               {searchQuery ? `Search Results (${filteredAgents.length})` : `All Agents (${filteredAgents.length})`}
             </h2>
+            
+            {/* View Toggle */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === "grid" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="h-8"
+              >
+                <Grid3X3 className="h-4 w-4 mr-1" />
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="h-8"
+              >
+                <List className="h-4 w-4 mr-1" />
+                List
+              </Button>
+            </div>
           </div>
           
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-4"}>
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-4">
@@ -129,7 +152,7 @@ export default function Agents() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "space-y-4"}>
               {filteredAgents.map((agent: any) => (
                 <UserCard
                   key={agent.id}
@@ -143,6 +166,7 @@ export default function Agents() {
                     // TODO: Implement unfollow functionality
                     console.log("Unfollow agent:", agentId);
                   }}
+                  variant={viewMode === "list" ? "horizontal" : "vertical"}
                 />
               ))}
             </div>

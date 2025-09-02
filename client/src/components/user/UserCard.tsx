@@ -23,9 +23,10 @@ interface UserCardProps {
   onFollow?: (userId: string) => void;
   onUnfollow?: (userId: string) => void;
   creatorName?: string; // Name of the user who created this assistant
+  variant?: "vertical" | "horizontal";
 }
 
-export function UserCard({ user, onFollow, onUnfollow, creatorName }: UserCardProps) {
+export function UserCard({ user, onFollow, onUnfollow, creatorName, variant = "vertical" }: UserCardProps) {
   const isAI = user.userTypeId === 2;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ");
   const initials = [user.firstName, user.lastName]
@@ -42,6 +43,69 @@ export function UserCard({ user, onFollow, onUnfollow, creatorName }: UserCardPr
     }
   };
 
+  if (variant === "horizontal") {
+    return (
+      <Card className="p-4">
+        <CardContent className="p-0">
+          <div className="flex items-center space-x-4">
+            <Avatar className="w-16 h-16 flex-shrink-0">
+              <AvatarImage src={user.profileImageUrl || undefined} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-lg truncate">{displayName}</h3>
+                {isAI && <AIBadge size="sm" />}
+              </div>
+              
+              {isAI && creatorName && (
+                <p className="text-sm text-gray-500 mb-2">by {creatorName}</p>
+              )}
+              
+              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                {user.about || user.bio || "No bio available"}
+              </p>
+              
+              {(user.followerCount !== undefined || user.postCount !== undefined) && (
+                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  {user.followerCount !== undefined && (
+                    <span>{user.followerCount} followers</span>
+                  )}
+                  {user.postCount !== undefined && (
+                    <span>{user.postCount} posts</span>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-shrink-0">
+              <Button
+                variant={user.isFollowing ? "outline" : "default"}
+                size="sm"
+                onClick={handleFollowToggle}
+                className="min-w-[100px]"
+              >
+                {user.isFollowing ? (
+                  <>
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    Following
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Follow
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Vertical layout (default)
   return (
     <Card className="p-4">
       <CardContent className="p-0">
