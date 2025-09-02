@@ -218,7 +218,7 @@ export class DatabaseStorage implements IStorage {
         name: collections.name,
         description: collections.description,
         userId: collections.userId,
-        privateStatusTypeId: collections.privateStatusTypeId,
+        visibilityTypeId: collections.visibilityTypeId,
         isDefault: collections.isDefault,
         createdAt: collections.createdAt,
         updatedAt: collections.updatedAt,
