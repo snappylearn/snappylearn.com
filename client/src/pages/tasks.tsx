@@ -19,7 +19,10 @@ import {
   Trash2,
   Calendar,
   Zap,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Mail,
+  Search,
+  TestTube
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
@@ -31,7 +34,9 @@ export default function Tasks() {
     description: "",
     prompt: "",
     schedule: "daily",
-    isActive: true
+    isActive: true,
+    emailNotifications: false,
+    useDeepSearch: false
   });
 
   const { data: tasks = [], isLoading } = useQuery({
@@ -47,6 +52,8 @@ export default function Tasks() {
       prompt: "Analyze the latest AI and technology market trends from the past 24 hours. Include key developments, funding news, and breakthrough announcements. Format as a concise summary with bullet points.",
       schedule: "daily",
       isActive: true,
+      emailNotifications: true,
+      useDeepSearch: true,
       lastRun: "2024-01-15T08:00:00Z",
       nextRun: "2024-01-16T08:00:00Z",
       createdAt: "2024-01-10T10:00:00Z"
@@ -58,6 +65,8 @@ export default function Tasks() {
       prompt: "Create a weekly digest of the most important AI research papers published in the last 7 days. Include paper titles, authors, key findings, and potential implications. Focus on breakthrough results.",
       schedule: "weekly",
       isActive: true,
+      emailNotifications: false,
+      useDeepSearch: true,
       lastRun: "2024-01-14T09:00:00Z",
       nextRun: "2024-01-21T09:00:00Z",
       createdAt: "2024-01-01T09:00:00Z"
@@ -69,6 +78,8 @@ export default function Tasks() {
       prompt: "Generate 5 engaging content ideas for social media posts about AI, technology, and innovation. Include suggested hashtags and posting times. Make them educational yet accessible.",
       schedule: "twice-weekly",
       isActive: false,
+      emailNotifications: true,
+      useDeepSearch: false,
       lastRun: "2024-01-12T14:00:00Z",
       nextRun: "2024-01-16T14:00:00Z",
       createdAt: "2024-01-05T14:00:00Z"
@@ -92,7 +103,9 @@ export default function Tasks() {
       description: "",
       prompt: "",
       schedule: "daily",
-      isActive: true
+      isActive: true,
+      emailNotifications: false,
+      useDeepSearch: false
     });
   };
 
@@ -104,6 +117,18 @@ export default function Tasks() {
   const handleRunTask = (taskId: number) => {
     // TODO: API call to manually run task
     console.log("Running task:", taskId);
+  };
+
+  const handleTestTask = (taskId: number) => {
+    // TODO: API call to test task and preview results
+    console.log("Testing task:", taskId);
+  };
+
+  const handleDeleteTask = (taskId: number) => {
+    // TODO: API call to delete task
+    if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
+      console.log("Deleting task:", taskId);
+    }
   };
 
   const formatDateTime = (dateString: string) => {
@@ -143,10 +168,27 @@ export default function Tasks() {
     <TwitterStyleLayout>
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Scheduled Tasks</h1>
-            <p className="text-gray-600">Create and manage AI-powered automated tasks</p>
+            <p className="text-gray-600 mb-4">Automate AI prompts that run on schedule and deliver results via email or in-app notifications</p>
+            
+            {/* Usage Stats */}
+            <div className="flex items-center gap-6 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+              <span className="flex items-center gap-1">
+                <CheckSquare className="h-4 w-4" />
+                <strong>3</strong> active tasks
+              </span>
+              <span className="flex items-center gap-1">
+                <Zap className="h-4 w-4" />
+                <strong>2/3</strong> daily runs used
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <strong>8/10</strong> scheduled slots
+              </span>
+              <Badge variant="outline" className="text-xs">Free Plan</Badge>
+            </div>
           </div>
           
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -211,13 +253,37 @@ export default function Tasks() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="active"
-                    checked={newTask.isActive}
-                    onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, isActive: checked }))}
-                  />
-                  <Label htmlFor="active">Start task immediately</Label>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="active"
+                      checked={newTask.isActive}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, isActive: checked }))}
+                    />
+                    <Label htmlFor="active">Start task immediately</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="emailNotifications"
+                      checked={newTask.emailNotifications}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, emailNotifications: checked }))}
+                    />
+                    <Label htmlFor="emailNotifications" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email notifications
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="useDeepSearch"
+                      checked={newTask.useDeepSearch}
+                      onCheckedChange={(checked) => setNewTask(prev => ({ ...prev, useDeepSearch: checked }))}
+                    />
+                    <Label htmlFor="useDeepSearch" className="flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      Use DeepSearch for enhanced results
+                    </Label>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -248,6 +314,18 @@ export default function Tasks() {
                       <Badge variant={task.isActive ? "default" : "secondary"}>
                         {task.isActive ? "Active" : "Paused"}
                       </Badge>
+                      {task.emailNotifications && (
+                        <Badge variant="outline" className="text-blue-600 border-blue-200">
+                          <Mail className="h-3 w-3 mr-1" />
+                          Email
+                        </Badge>
+                      )}
+                      {task.useDeepSearch && (
+                        <Badge variant="outline" className="text-purple-600 border-purple-200">
+                          <Search className="h-3 w-3 mr-1" />
+                          DeepSearch
+                        </Badge>
+                      )}
                     </div>
                     <CardDescription className="text-base mb-3">
                       {task.description}
@@ -271,6 +349,15 @@ export default function Tasks() {
                   </div>
                   
                   <div className="flex items-center gap-2 ml-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTestTask(task.id)}
+                      className="text-green-600 hover:text-green-700"
+                    >
+                      <TestTube className="h-4 w-4 mr-1" />
+                      Test
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
@@ -299,7 +386,12 @@ export default function Tasks() {
                     <Button variant="outline" size="sm">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
