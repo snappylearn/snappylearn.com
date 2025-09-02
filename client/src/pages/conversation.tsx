@@ -92,7 +92,7 @@ export default function Conversation() {
 
   return (
     <TwitterStyleLayout currentCollectionId={conversation?.collectionId}>
-      <div className={`flex flex-col min-h-screen ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
+      <div className={`flex flex-col h-screen ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
         {/* Header */}
         <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -140,23 +140,25 @@ export default function Conversation() {
           </div>
         </header>
 
-        {/* Messages Area */}
-        <ScrollArea className="flex-1 px-6 py-6">
-          <div className="space-y-6">
-            {messages.map((message) => (
-              <MessageComponent 
-                key={message.id} 
-                message={message} 
-                onViewArtifact={handleViewArtifact}
-              />
-            ))}
-            {sendMessage.isPending && <ChatLoading />}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
+        {/* Messages Area - Scrollable */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full px-6 py-6">
+            <div className="space-y-6 pb-4">
+              {messages.map((message) => (
+                <MessageComponent 
+                  key={message.id} 
+                  message={message} 
+                  onViewArtifact={handleViewArtifact}
+                />
+              ))}
+              {sendMessage.isPending && <ChatLoading />}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+        </div>
 
-        {/* Message Input */}
-        <div className="border-t border-gray-200 px-6 py-4 flex-shrink-0">
+        {/* Message Input - Fixed at bottom */}
+        <div className="border-t border-gray-200 px-6 py-4 flex-shrink-0 bg-white">
           <ChatInput
             onSend={handleSendMessage}
             disabled={sendMessage.isPending}
