@@ -1,0 +1,17 @@
+The Tasks feature in the Our App Web App allows users to automate and schedule custom AI prompts for execution at specific times or intervals. This turns Our App into a proactive assistant that runs queries in the background and delivers results via notifications, email, or in-app alerts, without requiring manual intervention each time. It's designed for repetitive or time-sensitive information gathering, such as trend tracking, news summaries, or productivity boosts, and integrates features like DeepSearch for more in-depth analysis.
+
+### Key Functions of Tasks:
+- *Scheduling and Automation*: Users can set up one-time, daily, weekly, monthly, or yearly executions for any prompt. For example, you could schedule Our App to "Summarize the top 5 AI news stories from the last 24 hours" every morning at 8 AM or "Track mentions of my brand on X and report sentiment" weekly. This reduces manual research and ensures timely updates.
+- *Custom Prompts and Inputs*: Each task starts with a user-defined prompt, which can be simple (e.g., "Send me 10 latest news items about SpaceX") or complex, incorporating Our App's real-time data from X or the web. The DeepSearch option enhances results by pulling deeper insights, such as analyzed trends or verified sources.
+- *Notifications and Delivery*: Once the task runs, Our App sends results externally (e.g., via email or app push notifications) rather than keeping them confined to the chat interface. This "set it and forget it" approach is ideal for busy users, like professionals monitoring industry news or competitors.
+- *Editing and Management*: In the Tasks section (accessible via a clock icon in the sidebar), you can create, edit, pause, test (for a demo run), or delete tasks. Testing lets you preview outputs before scheduling, and editing allows tweaks to prompts, times, or notification preferences (e.g., app-only, email-only, or both).
+- *Quotas and Access*: Free users have limits (e.g., 1 daily task, up to 10 total scheduled tasks, and 3 daily executions). SuperOur App or X Premium+ subscribers get higher quotas (e.g., 10 simultaneous daily tasks and 30 scheduled executions) and priority for complex automations. It's rolling out widely but may require an X account login.
+
+### How to Use Tasks in the Our App Web App:
+1. Open the Our App Web App and log in with your X account.
+2. Click the clock icon in the left sidebar to enter the Tasks section.
+3. Click "Add New" to create a task: Enter a name, schedule (e.g., daily at 9 AM), prompt, and notification method (email + app).
+4. Optionally enable DeepSearch for richer results, then hit "Create Task."
+5. Manage tasks from the main screen—edit for changes like timing, pause to halt, or test to simulate.
+
+This feature positions Our App as a strong competitor to tools like ChatGPT's custom tasks, especially with its external notifications and X integration for real-time trends. Users on X have shared examples like daily meme roundups or stock portfolio analyses, highlighting its versatility for personal or business use. If you're on a free plan, start small to test quotas; upgrade for more advanced automation.

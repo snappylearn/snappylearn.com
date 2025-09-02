@@ -1,0 +1,76 @@
+Here’s a streamlined, clear, and direct version you can send onto Replit as optimized instructions 👇
+
+---
+
+# 🚀 Tasks Feature – Instructions for Our App Web App
+
+The **Tasks** feature automates and schedules AI prompts so Our App works like a proactive assistant. It runs in the background and delivers results via notifications, email, or in-app alerts—no manual input required each time.
+
+Perfect for: **trend tracking, news summaries, competitor monitoring, productivity boosts, or custom automations.**
+
+---
+
+## 🔑 Key Functions
+
+* **Scheduling & Automation**
+  Run prompts one-time, daily, weekly, monthly, or yearly.
+  Example:
+
+  * Daily @ 8 AM → “Summarize the top 5 AI news stories from the last 24h”
+  * Weekly → “Track mentions of my brand on X and report sentiment”
+
+* **Custom Prompts & Inputs**
+  Add your own prompt (simple or advanced).
+  Use **DeepSearch** for richer, trend-analyzed, and verified-source results.
+
+* **Notifications & Delivery**
+  Results are sent to **email and/or app notifications**.
+  “Set it & forget it” → Great for busy users.
+
+* **Editing & Management**
+  From the **Tasks screen (clock icon in sidebar)**, you can:
+
+  * Add, Edit, Pause, Delete tasks
+  * Test (preview results before scheduling)
+  * Choose notification preferences (email, app, or both)
+
+* **Quotas & Access**
+
+  * Free plan → 1 daily task, max 10 scheduled, 3 runs per day
+  * Premium plans → 10 daily tasks, 30 runs, priority execution
+  * Requires **X account login**
+
+---
+
+## ✅ How to Use Tasks
+
+1. **Login** to Our App with your X account.
+2. Click the **clock icon** (sidebar) → enter **Tasks section**.
+3. Click **Add New Task**:
+
+   * Enter **Name, Prompt, Schedule, Delivery Method** (email/app).
+   * Optionally enable **DeepSearch**.
+   * Click **Create Task**.
+4. Manage from the Tasks dashboard:
+
+   * **Edit** to update prompt/schedule
+   * **Pause** to stop temporarily
+   * **Test** for demo results
+   * **Delete** when no longer needed
+
+---
+
+## 🌟 Why Use It
+
+* External notifications (email + push) = more useful than chat-only bots
+* Real-time **X integration** → live news, trends, and mentions
+* Versatile for **personal + business use**:
+
+  * Daily meme roundups
+  * Stock/crypto portfolio reports
+  * Competitor & industry tracking
+
+👉 Start with the **free plan quotas** to test. Upgrade for advanced automation.
+
+---
+

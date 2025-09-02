@@ -202,6 +202,7 @@ export const posts = pgTable("posts", {
   authorId: varchar("author_id").notNull(),
   topicId: integer("topic_id").notNull(),
   collectionId: integer("collection_id"), // Optional association with collection
+  communityId: integer("community_id"), // Optional association with community
   type: varchar("type", { length: 20 }).default("text"), // 'text', 'link', 'highlight', 'question'
   metadata: jsonb("metadata").default(null), // For links, highlights, etc.
   isPublished: boolean("is_published").default(true),
@@ -328,6 +329,7 @@ export const insertUserTopicInterestSchema = createInsertSchema(userTopicInteres
   createdAt: true,
 });
 
+
 // Types for new tables
 export type Topic = typeof topics.$inferSelect;
 export type InsertTopic = z.infer<typeof insertTopicSchema>;
@@ -352,6 +354,81 @@ export type InsertRepost = z.infer<typeof insertRepostSchema>;
 
 export type UserTopicInterest = typeof userTopicInterests.$inferSelect;
 export type InsertUserTopicInterest = z.infer<typeof insertUserTopicInterestSchema>;
+
+
+// Communities table for user-created discussion groups
+export const communities = pgTable("communities", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  bannerImage: varchar("banner_image"),
+  tags: text("tags").array(), // Array of tag strings
+  createdBy: varchar("created_by").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_communities_creator").on(table.createdBy),
+  index("idx_communities_active").on(table.isActive),
+]);
+
+// User communities junction table for membership
+export const userCommunities = pgTable("user_communities", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  communityId: integer("community_id").notNull(),
+  joinDate: timestamp("join_date").defaultNow().notNull(),
+}, (table) => [
+  index("idx_user_communities_user").on(table.userId),
+  index("idx_user_communities_community").on(table.communityId),
+]);
+
+// Tasks table for scheduled AI tasks
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 200 }).notNull(),
+  description: text("description"),
+  prompt: text("prompt").notNull(), // AI prompt to execute
+  schedule: varchar("schedule"), // Cron expression or schedule
+  isActive: boolean("is_active").default(true),
+  lastRun: timestamp("last_run"),
+  nextRun: timestamp("next_run"),
+  userId: varchar("user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_tasks_user").on(table.userId),
+  index("idx_tasks_next_run").on(table.nextRun),
+]);
+
+// Insert schemas for communities and tasks
+export const insertCommunitySchema = createInsertSchema(communities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserCommunitySchema = createInsertSchema(userCommunities).omit({
+  id: true,
+  joinDate: true,
+});
+
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastRun: true,
+});
+
+// Types for communities and tasks
+export type Community = typeof communities.$inferSelect;
+export type InsertCommunity = z.infer<typeof insertCommunitySchema>;
+
+export type UserCommunity = typeof userCommunities.$inferSelect;
+export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
+
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
 
 // Extended types for API responses
 export type CollectionWithStats = Collection & {
@@ -468,4 +545,17 @@ export type FeedItem = {
   };
   action?: string;
   createdAt: string;
+};
+
+// Community types with stats
+export type CommunityWithStats = Community & {
+  memberCount: number;
+  postCount: number;
+  isJoined?: boolean;
+  creator: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    profileImageUrl: string | null;
+  };
 };

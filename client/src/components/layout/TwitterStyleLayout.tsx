@@ -17,7 +17,8 @@ import {
   Plus,
   Users,
   BookOpen,
-  TrendingUp
+  TrendingUp,
+  CheckSquare
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -39,6 +40,8 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Notebooks", href: "/collections", icon: FolderOpen },
+    { name: "Communities", href: "/communities", icon: Users },
+    { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
