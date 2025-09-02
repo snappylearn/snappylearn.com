@@ -45,9 +45,13 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
   // Left sidebar navigation items
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "My Notebooks", href: "/my-collections", icon: FolderOpen },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
+    { name: "Agents", href: "/agents", icon: Bot },
+    { name: "Notebooks", href: "/collections", icon: FolderOpen },
+    { name: "Communities", href: "/communities", icon: Users },
+    { name: "Tasks", href: "/tasks", icon: CheckSquare },
+    { name: "Profile", href: "/profile", icon: User },
     { name: "Subscriptions", href: "/billing", icon: CreditCard },
   ];
 
