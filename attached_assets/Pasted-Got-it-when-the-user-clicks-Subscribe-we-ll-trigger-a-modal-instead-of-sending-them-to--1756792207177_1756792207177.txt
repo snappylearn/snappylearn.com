@@ -1,0 +1,92 @@
+Got it ✅ — when the user clicks **Subscribe**, we’ll trigger a **modal** instead of sending them to a separate page. This modal should be sleek, simple, and focused on conversion. Here’s how I’d structure it:
+
+---
+
+### **Subscribe Modal Layout**
+
+#### 1. **Header**
+
+* Title: *"Choose Your Plan"*
+* Subtitle: *"Unlock more power, flexibility, and perks."*
+
+#### 2. **Plans Display (Grid / Cards inside modal)**
+
+Each plan card should have:
+
+* **Plan Name** (Free, Pro, Premium)
+* **Monthly Price** (and toggle for yearly discount e.g. *Save 20%*)
+* **Key Perks** (bulleted, 3–5 max for quick scan)
+* **Credits Included**
+* **"Select" Button** (CTA inside card)
+
+💡 Recommendation: Highlight **Pro** with a badge (*Most Popular*).
+
+---
+
+### **Example Modal Content**
+
+```plaintext
+[ Modal Title ] Choose Your Plan
+[ Subtitle ] Unlock more power, flexibility, and perks.
+
+-------------------------------------------------
+FREE [Selected by default]
+$0 / month
+✔ 1 Notebook
+✔ 1 Task
+✔ 1 Agent
+✔ 1 Community
+✔ 50 Monthly Credits
+[ Selected / Current ]
+
+-------------------------------------------------
+PRO [Most Popular]
+$9 / month
+✔ 5 Notebooks
+✔ 10 Tasks
+✔ 5 Agents
+✔ 5 Communities
+✔ 1,500 Monthly Credits
+✔ Transfer & Gift Credits
+[ Select ]
+
+-------------------------------------------------
+PREMIUM
+$29 / month
+✔ Unlimited Notebooks
+✔ Unlimited Tasks
+✔ Unlimited Agents
+✔ Unlimited Communities
+✔ 6,000 Monthly Credits
+✔ Transfer & Gift Credits
+✔ Early Access to New Features
+[ Select ]
+-------------------------------------------------
+```
+
+---
+
+#### 3. **Toggle**
+
+* **Monthly / Yearly billing switch** (with yearly showing savings, e.g., “2 months free”).
+
+#### 4. **Credits Note**
+
+* Below plans:
+  *“Need more credits? You can always top up or pay-as-you-go.”*
+
+#### 5. **Footer**
+
+* Small text: *“Credits auto-renew monthly. Unused credits roll over for 1 month.”*
+
+---
+
+### **Next Steps After Selection**
+
+* Once a user clicks **Select**, show **payment options**:
+
+  * Pay with Card
+  * Pay with Credits (if enough balance)
+
+---
+

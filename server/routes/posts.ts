@@ -42,7 +42,7 @@ export function registerPostRoutes(app: Express) {
           excerpt: posts.excerpt,
           authorId: posts.authorId,
           topicId: posts.topicId,
-          collectionId: posts.collectionId,
+          communityId: posts.communityId,
           type: posts.type,
           metadata: posts.metadata,
           isPublished: posts.isPublished,
@@ -189,7 +189,7 @@ export function registerPostRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const { title, content, topicId, collectionId, type = 'text', metadata } = req.body;
+      const { title, content, topicId, communityId, type = 'text', metadata } = req.body;
 
       // Generate excerpt
       const excerpt = await generatePostExcerpt(content);
@@ -230,7 +230,7 @@ export function registerPostRoutes(app: Express) {
           excerpt,
           authorId: userId,
           topicId: finalTopicId,
-          collectionId,
+          communityId,
           type,
           metadata,
         })
