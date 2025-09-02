@@ -100,14 +100,11 @@ export function BookmarkPopover({
     if (open && Array.isArray(existingBookmarks) && existingBookmarks.length > 0) {
       const bookmarkedCollections = existingBookmarks.map((b: any) => b.collectionId);
       setSelectedCollections(bookmarkedCollections);
-    } else if (open && Array.isArray(collections) && collections.length > 0) {
-      // Pre-select Personal Collection (default collection)
-      const personalCollection = collections.find((c: any) => c.isDefault);
-      if (personalCollection) {
-        setSelectedCollections([personalCollection.id]);
-      }
+    } else if (open) {
+      // Don't pre-select anything - let user choose
+      setSelectedCollections([]);
     }
-  }, [open, existingBookmarks, collections]);
+  }, [open, existingBookmarks]);
 
   const handleCollectionToggle = (collectionId: number, checked: boolean) => {
     if (checked) {
