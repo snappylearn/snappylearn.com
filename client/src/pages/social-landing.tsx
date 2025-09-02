@@ -70,13 +70,13 @@ export default function SocialLanding() {
 
             <div className="space-y-4">
               <h1 className="text-5xl font-bold leading-tight">
-                Where Your{" "}
+                Learn Smarter{" "}
                 <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Knowledge Becomes
+                  Share Better
                 </span>
                 <br />
                 <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                  Intelligent Learning
+                  Grow Together
                 </span>
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed">
