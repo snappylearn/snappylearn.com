@@ -11,7 +11,8 @@ import {
   Settings, 
   Plus,
   LogOut,
-  User
+  User,
+  CreditCard
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -30,6 +31,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     { name: "My Notebooks", href: "/my-collections", icon: FolderOpen },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
+    { name: "Billing", href: "/billing", icon: CreditCard },
   ];
 
   const isActiveRoute = (href: string) => {
@@ -115,9 +117,11 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
           
           <div className="flex space-x-1">
-            <Button variant="ghost" size="sm" className="flex-1">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Link href="/profile">
+              <Button variant="ghost" size="sm" className="flex-1">
+                <User className="h-4 w-4" />
+              </Button>
+            </Link>
             <Button variant="ghost" size="sm" className="flex-1" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>

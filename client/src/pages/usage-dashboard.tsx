@@ -13,9 +13,12 @@ import {
   Gift, 
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Crown,
+  Check
 } from "lucide-react";
 import { format } from "date-fns";
+import { SubscribeButton } from "@/components/subscription/SubscribeButton";
 
 export default function UsageDashboard() {
   const [selectedTab, setSelectedTab] = useState("overview");
@@ -59,15 +62,14 @@ export default function UsageDashboard() {
     <TwitterStyleLayout>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Usage Dashboard</h1>
-        <p className="text-gray-600">Track your subscription, credits, and platform usage.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Billing</h1>
+        <p className="text-gray-600">Manage your subscription, credits, and view payment history.</p>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="usage">Usage</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="transactions">Payment History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -184,6 +186,135 @@ export default function UsageDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Subscription Plans Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Subscription Plans</h2>
+              <Button size="sm" variant="outline">
+                Top Up Credits
+              </Button>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Free Plan */}
+              <Card className={subscription?.planId === "free" ? "ring-2 ring-blue-500" : ""}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Free</span>
+                    {subscription?.planId === "free" && (
+                      <Badge className="bg-blue-100 text-blue-800">Current</Badge>
+                    )}
+                  </CardTitle>
+                  <div className="text-2xl font-bold">$0<span className="text-sm font-normal text-gray-600">/month</span></div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      50 credits/month
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      1 Notebook
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      1 Task
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      1 Agent
+                    </div>
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    variant={subscription?.planId === "free" ? "outline" : "default"}
+                    disabled={subscription?.planId === "free"}
+                  >
+                    {subscription?.planId === "free" ? "Current Plan" : "Downgrade"}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Pro Plan */}
+              <Card className={subscription?.planId === "pro" ? "ring-2 ring-purple-500" : ""}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Pro</span>
+                    {subscription?.planId === "pro" && (
+                      <Badge className="bg-purple-100 text-purple-800">Current</Badge>
+                    )}
+                  </CardTitle>
+                  <div className="text-2xl font-bold">$9.99<span className="text-sm font-normal text-gray-600">/month</span></div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      1,500 credits/month
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      10 Notebooks
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      5 Tasks
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      3 Agents
+                    </div>
+                  </div>
+                  <SubscribeButton 
+                    className="w-full"
+                    variant={subscription?.planId === "pro" ? "outline" : "default"}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Premium Plan */}
+              <Card className={subscription?.planId === "premium" ? "ring-2 ring-gold-500" : ""}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Crown className="h-4 w-4 text-yellow-500 mr-1" />
+                      Premium
+                    </span>
+                    {subscription?.planId === "premium" && (
+                      <Badge className="bg-yellow-100 text-yellow-800">Current</Badge>
+                    )}
+                  </CardTitle>
+                  <div className="text-2xl font-bold">$29<span className="text-sm font-normal text-gray-600">/month</span></div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      6,000 credits/month
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      Unlimited Notebooks
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      Unlimited Tasks
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Check className="h-4 w-4 text-green-600 mr-2" />
+                      Unlimited Agents
+                    </div>
+                  </div>
+                  <SubscribeButton 
+                    className="w-full"
+                    variant={subscription?.planId === "premium" ? "outline" : "default"}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 

@@ -1,0 +1,130 @@
+
+
+---
+
+# Subscription Integration Instructions (Optimized for Our Platform)
+
+## Overview
+
+Integrate subscription management and payment functionality to allow users to purchase and manage monthly subscription plans. Subscriptions grant access to more Tasks, Agents, Communities, Notebooks, and credits. Users can pay with **card** or **credits**.
+
+---
+
+## 1. Navigation Updates
+
+* Add **“Subscriptions”** menu item in the sidebar.
+* Place it **before “Profile.”**
+* Route to the new Subscriptions page.
+
+---
+
+## 2. Subscriptions Page Structure
+
+The page has **two tabs**:
+
+### **Tab 1: Overview**
+
+**Billing Overview Section:**
+
+* Display current plan (Free, Pro, Premium).
+* Show credits balance.
+* Show next billing date and plan perks.
+* Add **“Top Up Credits”** button (top-right).
+
+**Subscription Plans Section:**
+
+* Display **three plan cards** (Free, Pro, Premium) side by side.
+* Each card shows:
+
+  * Price (monthly only).
+  * Credit allowance.
+  * Key perks (e.g., notebooks, tasks, agents, communities).
+* Highlight active plan.
+* Each card has a **“Subscribe”** button (opens modal).
+
+---
+
+### **Tab 2: Payment History**
+
+* Chronological list of all transactions:
+
+  * Subscriptions
+  * Credit top-ups
+* Show: Date, Amount, Description, Status.
+
+---
+
+## 3. Payment Flow
+
+**When user clicks Subscribe:**
+
+1. Open **Modal** with plan details.
+2. If user has enough credits:
+
+   * Show option to pay with credits **OR** pay with card.
+   * If credits chosen → deduct and activate plan.
+3. If insufficient credits or user selects card:
+
+   * Process via **Paystack**.
+   * On success → activate subscription.
+4. Record subscription in **Payment History**.
+
+**For Top Up Credits:**
+
+* User enters credit amount.
+* Process via Paystack.
+* Add credits to balance.
+* Record transaction in history.
+
+---
+
+## 4. User Experience Requirements
+
+* Smooth transition between free and paid tiers.
+* Clear explanation of each plan’s limits vs perks.
+* Loading state during payments.
+* Confirmation for successful payments.
+* Friendly error messages on failure.
+
+---
+
+## 5. Subscription Management
+
+* Track **active subscription** and expiration.
+* Restrict access when expired.
+* Notify users before renewal.
+* Allow **upgrades/downgrades mid-cycle** (prorated billing).
+
+---
+
+## 6. Integration Points
+
+* Connect with **user profile system**.
+* Update access limits dynamically (tasks, agents, communities, notebooks).
+* Track credits in **Usage Dashboard**.
+* Expose subscription/credit metrics to **Admin Dashboard**.
+
+---
+
+## Success Criteria
+
+* Users can view and subscribe seamlessly.
+* Payment works via Paystack.
+* Credits can fund subscriptions or top-ups.
+* Payment history shows all transactions.
+* Subscription perks update instantly.
+* UI is clean, mobile-friendly, and follows existing app style.
+
+---
+
+## Notes
+
+* **Plans are monthly-only.**
+* **Paystack is the sole processor.**
+* Credits are central: subscriptions auto-renew with credits if available.
+* Credits can also be gifted/transferred (via Credit Marketplace).
+* Keep design philosophy: *“TikTok Simple, Harvard Smart.”*
+
+---
+
+👉 Do you want me to also **map this into a visual subscription flow diagram** (like user clicks Subscribe → Modal → Pay with Credits/Card → Activation → Payment History update) so it’s super clear for dev handoff?

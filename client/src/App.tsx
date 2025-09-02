@@ -26,7 +26,6 @@ import ArtifactsPage from "@/pages/artifacts";
 import Agents from "@/pages/agents";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Profile from "@/pages/profile";
-import Settings from "@/pages/settings";
 import UsageDashboard from "@/pages/usage-dashboard";
 import NotFound from "@/pages/not-found";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -76,10 +75,9 @@ function Router() {
       <Route path="/conversations" component={Conversations} />
       <Route path="/conversations/:id" component={Conversation} />
       <Route path="/artifacts" component={ArtifactsPage} />
-      <Route path="/usage" component={UsageDashboard} />
+      <Route path="/billing" component={UsageDashboard} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/profile" component={Profile} />
-      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );
