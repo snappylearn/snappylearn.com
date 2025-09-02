@@ -8,12 +8,13 @@ import {
   Compass, 
   FolderOpen, 
   MessageSquare, 
-  Settings, 
+  User, 
   Plus,
   Brain,
   BookOpen,
   Zap,
-  Users
+  Users,
+  CreditCard
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,10 +30,16 @@ export function CommunityLayout({ children }: CommunityLayoutProps) {
 
   const navigationItems = [
     {
-      name: "Community",
-      href: "/community",
+      name: "Home",
+      href: "/",
       icon: Home,
-      active: location === "/community" || location === "/"
+      active: location === "/"
+    },
+    {
+      name: "My Notebooks",
+      href: "/my-collections",
+      icon: FolderOpen,
+      active: location === "/my-collections"
     },
     {
       name: "Discover",
@@ -41,16 +48,16 @@ export function CommunityLayout({ children }: CommunityLayoutProps) {
       active: location === "/discover"
     },
     {
-      name: "Notebooks",
-      href: "/my-collections",
-      icon: FolderOpen,
-      active: location === "/my-collections"
-    },
-    {
       name: "Chat",
       href: "/chat",
       icon: MessageSquare,
       active: location === "/chat"
+    },
+    {
+      name: "Subscriptions",
+      href: "/billing",
+      icon: CreditCard,
+      active: location === "/billing"
     }
   ];
 
@@ -144,14 +151,15 @@ export function CommunityLayout({ children }: CommunityLayoutProps) {
               </div>
               <div className="text-xs text-gray-500">SnappyLearn Member</div>
             </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={signOut}
-              className="h-8 w-8 p-0"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Link href="/profile">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+              >
+                <User className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

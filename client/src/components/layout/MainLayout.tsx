@@ -31,7 +31,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     { name: "My Notebooks", href: "/my-collections", icon: FolderOpen },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Billing", href: "/billing", icon: CreditCard },
+    { name: "Subscriptions", href: "/billing", icon: CreditCard },
   ];
 
   const isActiveRoute = (href: string) => {

@@ -61,9 +61,14 @@ export default function UsageDashboard() {
   return (
     <TwitterStyleLayout>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Billing</h1>
-        <p className="text-gray-600">Manage your subscription, credits, and view payment history.</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Subscriptions</h1>
+          <p className="text-gray-600">Manage your subscription plans and view payment history.</p>
+        </div>
+        <Button className="bg-purple-600 hover:bg-purple-700">
+          Top Up Credits
+        </Button>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
@@ -72,9 +77,11 @@ export default function UsageDashboard() {
           <TabsTrigger value="transactions">Payment History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Subscription Status */}
-          <div className="grid md:grid-cols-2 gap-6">
+        <TabsContent value="overview" className="space-y-8">
+          {/* Billing Overview Section */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Billing Overview</h2>
+            <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -136,6 +143,7 @@ export default function UsageDashboard() {
               </CardContent>
             </Card>
           </div>
+          </div>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -190,12 +198,7 @@ export default function UsageDashboard() {
 
           {/* Subscription Plans Section */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Subscription Plans</h2>
-              <Button size="sm" variant="outline">
-                Top Up Credits
-              </Button>
-            </div>
+            <h2 className="text-xl font-semibold text-gray-900">Subscription Plans</h2>
             
             <div className="grid md:grid-cols-3 gap-6">
               {/* Free Plan */}
