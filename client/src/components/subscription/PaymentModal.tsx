@@ -1,18 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import { CreditCard, Coins } from "lucide-react";
+import { CreditCard, Coins, ExternalLink, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+// Add Paystack script to window if not already loaded
+declare global {
+  interface Window {
+    PaystackPop: any;
+  }
 }
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+if (typeof window !== 'undefined' && !window.PaystackPop) {
+  const script = document.createElement('script');
+  script.src = 'https://js.paystack.co/v1/inline.js';
+  document.head.appendChild(script);
+}
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -25,59 +31,111 @@ interface PaymentModalProps {
 }
 
 function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Omit<PaymentModalProps, "isOpen">) {
-  const stripe = useStripe();
-  const elements = useElements();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "credits">("card");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
+  const handlePaystackPayment = async () => {
     setIsProcessing(true);
 
     try {
-      if (paymentMethod === "card") {
-        const { error } = await stripe.confirmPayment({
-          elements,
-          confirmParams: {
-            return_url: `${window.location.origin}/dashboard?subscription=success`,
-          },
-        });
+      // Create payment intent
+      const response = await apiRequest("POST", "/api/subscription/create-payment-intent", {
+        planId,
+        isYearly
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to create payment intent");
+      }
+      
+      const { authorization_url, reference } = await response.json();
 
-        if (error) {
+      // Initialize Paystack popup
+      const handler = window.PaystackPop.setup({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+        email: 'user@example.com', // This will be set by backend
+        amount: price, // Amount in cents for USD
+        currency: 'USD',
+        ref: reference,
+        onClose: function() {
+          setIsProcessing(false);
           toast({
-            title: "Payment Failed",
-            description: error.message,
-            variant: "destructive",
+            title: "Payment Cancelled",
+            description: "You cancelled the payment process",
+            variant: "destructive"
           });
+        },
+        callback: async function(response: any) {
+          try {
+            // Confirm payment on backend
+            const confirmResponse = await apiRequest("POST", "/api/subscription/confirm-payment", {
+              paymentIntentId: response.reference
+            });
+            
+            if (confirmResponse.ok) {
+              toast({
+                title: "Payment Successful!",
+                description: `You've successfully subscribed to ${planName}`,
+              });
+              onClose();
+              // Refresh the page to update subscription status
+              window.location.reload();
+            } else {
+              toast({
+                title: "Payment Confirmation Failed",
+                description: "Please contact support if this issue persists",
+                variant: "destructive"
+              });
+            }
+          } catch (error) {
+            console.error("Payment confirmation error:", error);
+            toast({
+              title: "Payment Confirmation Failed",
+              description: "Please contact support if this issue persists",
+              variant: "destructive"
+            });
+          } finally {
+            setIsProcessing(false);
+          }
         }
+      });
+
+      handler.openIframe();
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Payment Failed",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCreditPayment = async () => {
+    setIsProcessing(true);
+
+    try {
+      const response = await apiRequest("POST", "/api/subscription/pay-with-credits", {
+        planId,
+        isYearly
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Subscription Updated",
+          description: "Successfully upgraded using credits!",
+        });
+        onClose();
+        window.location.href = "/dashboard?subscription=success";
       } else {
-        // Handle credit payment
-        const response = await apiRequest("POST", "/api/subscription/pay-with-credits", {
-          planId,
-          isYearly
+        const error = await response.json();
+        toast({
+          title: "Payment Failed",
+          description: error.message || "Insufficient credits",
+          variant: "destructive",
         });
-
-        if (response.ok) {
-          toast({
-            title: "Subscription Updated",
-            description: "Successfully upgraded using credits!",
-          });
-          onClose();
-          window.location.href = "/dashboard?subscription=success";
-        } else {
-          const error = await response.json();
-          toast({
-            title: "Payment Failed",
-            description: error.message || "Insufficient credits",
-            variant: "destructive",
-          });
-        }
       }
     } catch (error) {
       toast({
@@ -87,6 +145,16 @@ function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Om
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (paymentMethod === "card") {
+      await handlePaystackPayment();
+    } else {
+      await handleCreditPayment();
     }
   };
 
@@ -122,11 +190,23 @@ function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Om
         </div>
       </div>
 
-      {/* Payment Element (only show for card payments) */}
+      {/* Payment Info */}
       {paymentMethod === "card" && (
         <div className="space-y-3">
-          <h3 className="font-medium">Card Details</h3>
-          <PaymentElement />
+          <div className="p-4 border rounded-lg bg-gray-50">
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <CreditCard className="h-4 w-4" />
+              <span>Pay securely with Paystack</span>
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Supports cards, bank transfers, and mobile money (USD only)
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Lock className="h-4 w-4" />
+            <span>Payments processed securely via Paystack in USD</span>
+          </div>
         </div>
       )}
 
@@ -143,7 +223,7 @@ function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Om
       <div className="bg-gray-50 p-4 rounded-lg space-y-2">
         <div className="flex justify-between items-center">
           <span className="font-medium">{planName} Plan</span>
-          <span className="font-medium">${(price / 100).toFixed(2)}</span>
+          <span className="font-medium">${(price / 100).toFixed(2)} USD</span>
         </div>
         <div className="flex justify-between items-center text-sm text-gray-600">
           <span>Billing {isYearly ? "Yearly" : "Monthly"}</span>
@@ -157,53 +237,54 @@ function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Om
         )}
       </div>
 
-      <Button 
-        type="submit" 
-        className="w-full bg-purple-600 hover:bg-purple-700" 
-        disabled={!stripe || isProcessing}
-      >
-        {isProcessing ? "Processing..." : `Subscribe to ${planName}`}
-      </Button>
+      <div className="flex space-x-3">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onClose}
+          disabled={isProcessing}
+          className="flex-1"
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          className="flex-1 bg-purple-600 hover:bg-purple-700" 
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Processing...</span>
+            </div>
+          ) : paymentMethod === "card" ? (
+            <div className="flex items-center space-x-2">
+              <span>Pay ${(price / 100).toFixed(2)} USD</span>
+              <ExternalLink className="h-4 w-4" />
+            </div>
+          ) : (
+            `Subscribe with Credits`
+          )}
+        </Button>
+      </div>
     </form>
   );
 }
 
 export function PaymentModal(props: PaymentModalProps) {
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPaystackLoaded, setIsPaystackLoaded] = useState(false);
 
-  const initializePayment = async () => {
-    setIsLoading(true);
-    try {
-      const response = await apiRequest("POST", "/api/subscription/create-payment-intent", {
-        planId: props.planId,
-        isYearly: props.isYearly
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
+  useEffect(() => {
+    // Check if Paystack is loaded
+    const checkPaystack = () => {
+      if (window.PaystackPop) {
+        setIsPaystackLoaded(true);
       } else {
-        console.error("Failed to create payment intent");
+        setTimeout(checkPaystack, 100);
       }
-    } catch (error) {
-      console.error("Error initializing payment:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initialize payment when modal opens
-  if (props.isOpen && !clientSecret && !isLoading) {
-    initializePayment();
-  }
-
-  const options = clientSecret ? {
-    clientSecret,
-    appearance: {
-      theme: 'stripe' as const,
-    },
-  } : undefined;
+    };
+    checkPaystack();
+  }, []);
 
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onClose}>
@@ -215,25 +296,15 @@ export function PaymentModal(props: PaymentModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        {isLoading && (
+        {!isPaystackLoaded && (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <span className="ml-2">Loading payment processor...</span>
           </div>
         )}
 
-        {clientSecret && options && (
-          <Elements stripe={stripePromise} options={options}>
-            <PaymentForm {...props} />
-          </Elements>
-        )}
-
-        {!isLoading && !clientSecret && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Failed to initialize payment. Please try again.</p>
-            <Button onClick={initializePayment} className="mt-4">
-              Retry
-            </Button>
-          </div>
+        {isPaystackLoaded && (
+          <PaymentForm {...props} />
         )}
       </DialogContent>
     </Dialog>

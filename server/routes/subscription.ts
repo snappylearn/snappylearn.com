@@ -1,15 +1,32 @@
 import type { Express } from "express";
-import Stripe from "stripe";
 import { jwtAuth, getJwtUserId } from "./auth";
 import { storage } from "../storage";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+if (!process.env.PAYSTACK_SECRET_KEY) {
+  throw new Error('Missing required Paystack secret: PAYSTACK_SECRET_KEY');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-08-27.basil",
-});
+// Use direct API calls instead of the paystack library for better ES6 compatibility
+const PAYSTACK_BASE_URL = "https://api.paystack.co";
+const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+
+async function paystackRequest(endpoint: string, method: string = "GET", data?: any) {
+  const url = `${PAYSTACK_BASE_URL}${endpoint}`;
+  const options: RequestInit = {
+    method,
+    headers: {
+      "Authorization": `Bearer ${PAYSTACK_SECRET_KEY}`,
+      "Content-Type": "application/json",
+    },
+  };
+
+  if (data && method !== "GET") {
+    options.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(url, options);
+  return response.json();
+}
 
 // Subscription plans configuration
 const SUBSCRIPTION_PLANS = {
@@ -84,35 +101,39 @@ export function registerSubscriptionRoutes(app: Express) {
         return res.status(400).json({ error: "Cannot create payment for free plan" });
       }
 
-      // Create Stripe customer if doesn't exist
       const user = await storage.getUser(userId);
-      let stripeCustomerId = await storage.getStripeCustomerId(userId);
-      
-      if (!stripeCustomerId) {
-        const customer = await stripe.customers.create({
-          email: user?.email || undefined,
-          metadata: { userId }
-        });
-        stripeCustomerId = customer.id;
-        await storage.updateStripeCustomerId(userId, stripeCustomerId);
+      if (!user?.email) {
+        return res.status(400).json({ error: "User email required for payment" });
       }
 
-      // Create payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency: "usd",
-        customer: stripeCustomerId,
+      // Initialize Paystack transaction
+      const transaction = await paystackRequest("/transaction/initialize", "POST", {
+        email: user.email,
+        amount: amount, // Paystack expects amount in kobo for NGN, but we'll use cents for USD
+        currency: "USD", // Force USD currency
         metadata: {
           userId,
           planId,
-          isYearly: isYearly.toString()
+          isYearly: isYearly.toString(),
+          custom_fields: [{
+            display_name: "User ID",
+            variable_name: "user_id",
+            value: userId
+          }]
         },
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/subscription/success`,
+        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/subscription/cancel`
       });
 
-      res.json({ clientSecret: paymentIntent.client_secret });
+      if (transaction.status) {
+        res.json({ 
+          authorization_url: transaction.data.authorization_url,
+          access_code: transaction.data.access_code,
+          reference: transaction.data.reference
+        });
+      } else {
+        throw new Error(transaction.message || "Failed to initialize transaction");
+      }
     } catch (error: any) {
       console.error("Error creating payment intent:", error);
       res.status(500).json({ error: "Failed to create payment intent" });
@@ -125,14 +146,14 @@ export function registerSubscriptionRoutes(app: Express) {
       const userId = getJwtUserId(req);
       const { paymentIntentId } = req.body;
 
-      // Retrieve payment intent from Stripe
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      // Verify transaction with Paystack
+      const verification = await paystackRequest(`/transaction/verify/${paymentIntentId}`);
       
-      if (paymentIntent.status !== 'succeeded') {
+      if (verification.data.status !== 'success') {
         return res.status(400).json({ error: "Payment not completed" });
       }
 
-      const { planId, isYearly } = paymentIntent.metadata;
+      const { planId, isYearly } = verification.data.metadata;
       const plan = SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS];
       
       if (!plan) {
@@ -143,7 +164,7 @@ export function registerSubscriptionRoutes(app: Express) {
       const subscription = await storage.createOrUpdateSubscription(userId, {
         planId,
         status: "active",
-        stripeCustomerId: paymentIntent.customer as string,
+        stripeCustomerId: verification.data.customer?.customer_code || null,
         stripePaymentIntentId: paymentIntentId,
         isYearly: isYearly === "true"
       });
@@ -257,37 +278,41 @@ export function registerSubscriptionRoutes(app: Express) {
       const userId = getJwtUserId(req);
       const { amount } = req.body; // Amount in credits
 
-      const priceInCents = amount * 1; // 1 credit = 1 cent for now
+      const priceInCents = amount * 1; // 1 credit = 1 cent USD
       
-      // Create Stripe customer if doesn't exist
       const user = await storage.getUser(userId);
-      let stripeCustomerId = await storage.getStripeCustomerId(userId);
-      
-      if (!stripeCustomerId) {
-        const customer = await stripe.customers.create({
-          email: user?.email || undefined,
-          metadata: { userId }
-        });
-        stripeCustomerId = customer.id;
-        await storage.updateStripeCustomerId(userId, stripeCustomerId);
+      if (!user?.email) {
+        return res.status(400).json({ error: "User email required for payment" });
       }
 
-      // Create payment intent for credit purchase
-      const paymentIntent = await stripe.paymentIntents.create({
+      // Initialize Paystack transaction for credit purchase
+      const transaction = await paystackRequest("/transaction/initialize", "POST", {
+        email: user.email,
         amount: priceInCents,
-        currency: "usd",
-        customer: stripeCustomerId,
+        currency: "USD", // Force USD currency
         metadata: {
           userId,
           type: "credit_purchase",
-          creditAmount: amount.toString()
+          creditAmount: amount.toString(),
+          custom_fields: [{
+            display_name: "Credit Amount",
+            variable_name: "credit_amount",
+            value: amount.toString()
+          }]
         },
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        callback_url: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/credits/success`,
+        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/credits/cancel`
       });
 
-      res.json({ clientSecret: paymentIntent.client_secret });
+      if (transaction.status) {
+        res.json({ 
+          authorization_url: transaction.data.authorization_url,
+          access_code: transaction.data.access_code,
+          reference: transaction.data.reference
+        });
+      } else {
+        throw new Error(transaction.message || "Failed to initialize transaction");
+      }
     } catch (error) {
       console.error("Error creating credit purchase:", error);
       res.status(500).json({ error: "Failed to create credit purchase" });
