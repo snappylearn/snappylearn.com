@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Plus, Search, Grid3X3, List, File, Folder } from "lucide-react";
+import { Plus, Search, Grid3X3, List, File, Folder, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -184,12 +184,14 @@ export default function Collections() {
                             View
                           </Button>
                           <Button
+                            variant="outline"
                             size="sm"
-                            onClick={() => handleStartChat(collection.id)}
-                            disabled={createConversation.isPending}
-                            className="bg-primary hover:bg-primary/90 text-white"
+                            onClick={() => {
+                              // TODO: Implement share functionality
+                              console.log("Share collection:", collection.id);
+                            }}
                           >
-                            Chat
+                            <Share className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>

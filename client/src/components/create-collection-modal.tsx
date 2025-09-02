@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateCollection } from "@/hooks/use-collections";
 
 interface CreateCollectionModalProps {
@@ -14,6 +15,7 @@ interface CreateCollectionModalProps {
 export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [visibilityType, setVisibilityType] = useState("private"); // Default to private
   const createCollection = useCreateCollection();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,11 +26,13 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
       {
         name: name.trim(),
         description: description.trim() || undefined,
+        privateStatusTypeId: visibilityType,
       },
       {
         onSuccess: () => {
           setName("");
           setDescription("");
+          setVisibilityType("private");
           onOpenChange(false);
         },
       }
@@ -38,6 +42,7 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
   const handleClose = () => {
     setName("");
     setDescription("");
+    setVisibilityType("private");
     onOpenChange(false);
   };
 
@@ -71,6 +76,20 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
               className="mt-2 resize-none"
               rows={3}
             />
+          </div>
+          
+          <div>
+            <Label htmlFor="visibility">Visibility</Label>
+            <Select value={visibilityType} onValueChange={setVisibilityType}>
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">Private - Only you can see this</SelectItem>
+                <SelectItem value="shared">Shared - Invited users can access</SelectItem>
+                <SelectItem value="public">Public - Anyone can discover and view</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="flex space-x-3 pt-4">

@@ -182,6 +182,10 @@ export default function Communities() {
             <Button
               size="sm"
               variant={community.isJoined ? "secondary" : "default"}
+              onClick={() => {
+                // TODO: Implement join/leave community functionality
+                console.log(community.isJoined ? "Leave community:" : "Join community:", community.id);
+              }}
             >
               {community.isJoined ? "Joined" : "Join"}
             </Button>
@@ -238,6 +242,10 @@ export default function Communities() {
             <Button
               size="sm"
               variant={community.isJoined ? "secondary" : "default"}
+              onClick={() => {
+                // TODO: Implement join/leave community functionality
+                console.log(community.isJoined ? "Leave community:" : "Join community:", community.id);
+              }}
             >
               {community.isJoined ? "Joined" : "Join"}
             </Button>

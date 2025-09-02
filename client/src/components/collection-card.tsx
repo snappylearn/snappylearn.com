@@ -1,4 +1,4 @@
-import { Folder, MoreHorizontal } from "lucide-react";
+import { Folder, MoreHorizontal, Share, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -68,7 +68,17 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
         </div>
         
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{collection.name}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{collection.description || "No description provided"}</p>
+        <p className="text-gray-600 text-sm mb-2 line-clamp-2">{collection.description || "No description provided"}</p>
+        
+        {/* Owner Details */}
+        <div className="flex items-center space-x-2 mb-2">
+          <User className="w-3 h-3 text-gray-400" />
+          <span className="text-xs text-gray-500">
+            {collection.privateStatusTypeId === 'private' ? 'Private' : 
+             collection.privateStatusTypeId === 'shared' ? 'Shared' :
+             'Public'} • Created by you
+          </span>
+        </div>
         
         <div className="flex items-center justify-between text-sm mb-4">
           <span className="text-gray-500">{collection.documentCount} documents</span>
@@ -84,11 +94,14 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
         </div>
         
         <div className="flex space-x-2 pt-4 border-t border-gray-100">
-          <Button onClick={handleStartChat} className="flex-1 bg-primary hover:bg-primary/90 text-white">
-            Open Chat
-          </Button>
-          <Button onClick={handleViewCollection} variant="outline" className="px-3">
+          <Button onClick={handleViewCollection} variant="outline" className="flex-1">
             View
+          </Button>
+          <Button onClick={() => {
+            // TODO: Implement share functionality
+            console.log("Share collection:", collection.id);
+          }} variant="outline" className="px-3">
+            <Share className="w-4 h-4" />
           </Button>
         </div>
       </CardContent>

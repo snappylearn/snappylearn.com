@@ -148,6 +148,14 @@ export const agentCategories = pgTable("agent_categories", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Visibility types table for collection privacy settings
+export const visibilityTypes = pgTable("visibility_types", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(), // 'private', 'shared', 'public'
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserTypeSchema = createInsertSchema(userTypes).omit({
   id: true,
@@ -197,6 +205,11 @@ export const insertAgentCategorySchema = createInsertSchema(agentCategories).omi
   createdAt: true,
 });
 
+export const insertVisibilityTypeSchema = createInsertSchema(visibilityTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTenantSchema = createInsertSchema(tenants).omit({
   createdAt: true,
   updatedAt: true,
@@ -241,6 +254,9 @@ export type InsertArtifact = z.infer<typeof insertArtifactSchema>;
 
 export type AgentCategory = typeof agentCategories.$inferSelect;
 export type InsertAgentCategory = z.infer<typeof insertAgentCategorySchema>;
+
+export type VisibilityType = typeof visibilityTypes.$inferSelect;
+export type InsertVisibilityType = z.infer<typeof insertVisibilityTypeSchema>;
 
 // Topics table for categorizing posts and content
 export const topics = pgTable("topics", {

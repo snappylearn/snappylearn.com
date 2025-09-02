@@ -247,13 +247,20 @@ export default function Discover() {
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => {
+              // TODO: Navigate to community page
+              console.log("View community:", community.id);
+            }}>
               <Eye className="h-4 w-4 mr-1" />
               View
             </Button>
             <Button
               size="sm"
               variant={community.isJoined ? "secondary" : "default"}
+              onClick={() => {
+                // TODO: Implement join/leave community functionality
+                console.log(community.isJoined ? "Leave community:" : "Join community:", community.id);
+              }}
             >
               {community.isJoined ? "Joined" : "Join"}
             </Button>
@@ -400,13 +407,20 @@ export default function Discover() {
 
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => {
+                          // TODO: Navigate to notebook page
+                          console.log("View notebook:", collection.id);
+                        }}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
                         <Button
                           size="sm"
                           variant={collection.isFollowing ? "secondary" : "default"}
+                          onClick={() => {
+                            // TODO: Implement follow/unfollow notebook functionality
+                            console.log(collection.isFollowing ? "Unfollow notebook:" : "Follow notebook:", collection.id);
+                          }}
                         >
                           {collection.isFollowing ? "Following" : "Follow"}
                         </Button>
