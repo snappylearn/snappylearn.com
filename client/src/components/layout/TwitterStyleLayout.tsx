@@ -12,7 +12,7 @@ import {
   MessageSquare, 
   Sparkles,
   User,
-  Settings,
+  CreditCard,
   LogOut,
   Plus,
   Users,
@@ -45,14 +45,10 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
   // Left sidebar navigation items
   const navigation = [
     { name: "Home", href: "/", icon: Home },
+    { name: "My Notebooks", href: "/my-collections", icon: FolderOpen },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Agents", href: "/agents", icon: Bot },
-    { name: "Notebooks", href: "/collections", icon: FolderOpen },
-    { name: "Communities", href: "/communities", icon: Users },
-    { name: "Tasks", href: "/tasks", icon: CheckSquare },
-    { name: "Profile", href: "/profile", icon: User },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Subscriptions", href: "/billing", icon: CreditCard },
   ];
 
   const isActiveRoute = (href: string) => {
@@ -128,8 +124,8 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
 
           {/* User Profile Section */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center space-x-3 mb-3">
-              <Avatar className="h-10 w-10">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.profileImageUrl || undefined} />
                 <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white">
                   {user?.firstName?.[0] || user?.email?.[0] || 'U'}
@@ -141,19 +137,18 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                     ? `${user.firstName} ${user.lastName}`
                     : user?.email}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {user?.email}
-                </p>
+                <p className="text-xs text-gray-500">SnappyLearn Member</p>
               </div>
+              <Link href="/profile">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                >
+                  <User className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="w-full text-sm"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
           </div>
         </div>
 
