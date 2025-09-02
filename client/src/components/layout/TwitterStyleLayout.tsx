@@ -191,6 +191,41 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </Card>
               )}
 
+              {/* Trending Posts */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold">Trending Posts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {posts.slice(0, 3).map((post: any, index: number) => (
+                    <div key={post.id || index} className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                      <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                        {post.title || "Interesting discussion about the future of AI"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {post.stats?.likeCount || Math.floor(Math.random() * 100)} likes • {post.stats?.commentCount || Math.floor(Math.random() * 20)} comments
+                      </p>
+                    </div>
+                  ))}
+                  {posts.length === 0 && (
+                    <>
+                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                          The Future of AI in Education
+                        </p>
+                        <p className="text-xs text-gray-500">42 likes • 8 comments</p>
+                      </div>
+                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                          Building Better Learning Experiences
+                        </p>
+                        <p className="text-xs text-gray-500">28 likes • 5 comments</p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Who to Follow */}
               <Card>
                 <CardHeader className="pb-3">
@@ -345,41 +380,6 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                     <span className="text-sm text-gray-500">Active Today</span>
                     <span className="font-semibold">1</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Trending Posts */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold">Trending Posts</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {posts.slice(0, 3).map((post: any, index: number) => (
-                    <div key={post.id || index} className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                      <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                        {post.title || "Interesting discussion about the future of AI"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {post.stats?.likeCount || Math.floor(Math.random() * 100)} likes • {post.stats?.commentCount || Math.floor(Math.random() * 20)} comments
-                      </p>
-                    </div>
-                  ))}
-                  {posts.length === 0 && (
-                    <>
-                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          The Future of AI in Education
-                        </p>
-                        <p className="text-xs text-gray-500">42 likes • 8 comments</p>
-                      </div>
-                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          Building Better Learning Experiences
-                        </p>
-                        <p className="text-xs text-gray-500">28 likes • 5 comments</p>
-                      </div>
-                    </>
-                  )}
                 </CardContent>
               </Card>
 
