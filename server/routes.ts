@@ -705,6 +705,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile endpoints
+  app.patch("/api/users/profile", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const { firstName, lastName, email } = req.body;
+      
+      const updatedUser = await storage.updateUser(userId, {
+        firstName,
+        lastName,
+        email,
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        profileImageUrl: updatedUser.profileImageUrl,
+        role: updatedUser.role,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt,
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  app.patch("/api/users/settings", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const settings = req.body;
+      
+      // For now, we'll just return success since we don't have a settings table
+      // In a real app, you'd store these in a user_settings table
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  app.get("/api/users/export", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      
+      // Get all user data
+      const user = await storage.getUser(userId);
+      const collections = await storage.getCollections(userId);
+      const conversations = await storage.getConversations(userId);
+      const artifacts = await storage.getArtifacts(userId);
+      
+      const exportData = {
+        user: {
+          id: user?.id,
+          email: user?.email,
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          role: user?.role,
+          createdAt: user?.createdAt,
+        },
+        collections,
+        conversations,
+        artifacts,
+        exportedAt: new Date().toISOString(),
+      };
+      
+      res.json(exportData);
+    } catch (error) {
+      console.error("Error exporting user data:", error);
+      res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+
+  app.delete("/api/users/account", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      
+      // Delete user and all related data
+      // Note: In production, you might want to soft delete or archive data
+      const deleted = await storage.deleteUser(userId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json({ success: true, message: "Account deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      res.status(500).json({ error: "Failed to delete account" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -14,6 +14,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: { message: string } | null }>
   signUp: (email: string, password: string) => Promise<{ error: { message: string } | null }>
   signOut: () => Promise<void>
+  updateUser: (updatedUser: User) => void
   loading: boolean
   isAdmin: boolean
 }
@@ -146,8 +147,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut, loading, isAdmin }}>
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, updateUser, loading, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

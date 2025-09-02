@@ -161,7 +161,7 @@ export function AddDocumentDropdown({ collectionId, onComplete }: AddDocumentDro
       // Create a text file from the form data
       const textContent = data.content;
       const blob = new Blob([textContent], { type: 'text/plain' });
-      const file = new File([blob], `${data.title}.txt`, { type: 'text/plain' });
+      const file = new File([blob], `${data.title}.txt`, { type: 'text/plain' }) as File;
       
       await documentsApi.upload(collectionId, file);
       
