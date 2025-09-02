@@ -321,12 +321,27 @@ export function registerPostRoutes(app: Express) {
           ));
         res.json({ bookmarked: false });
       } else {
-        // Add bookmark
+        // Get user's Personal Notebook (default collection)
+        const [personalCollection] = await db
+          .select({ id: collections.id })
+          .from(collections)
+          .where(and(
+            eq(collections.userId, userId),
+            eq(collections.isDefault, true)
+          ))
+          .limit(1);
+
+        if (!personalCollection) {
+          return res.status(400).json({ error: "No default notebook found" });
+        }
+
+        // Add bookmark to Personal Notebook
         await db
           .insert(bookmarks)
           .values({
             userId,
             postId,
+            collectionId: personalCollection.id,
           });
         res.json({ bookmarked: true });
       }
@@ -374,6 +389,46 @@ export function registerPostRoutes(app: Express) {
         return res.status(404).json({ error: "Post not found" });
       }
 
+      // Remove existing bookmarks for this post/user to avoid duplicates
+      await db
+        .delete(bookmarks)
+        .where(and(
+          eq(bookmarks.userId, userId),
+          eq(bookmarks.postId, postId)
+        ));
+
+      // Remove existing documents for this bookmarked post to avoid duplicates
+      const existingDocuments = await db
+        .select({ id: documents.id })
+        .from(documents)
+        .where(and(
+          eq(documents.sourcePostId, postId),
+          eq(documents.userId, userId),
+          eq(documents.type, "bookmark")
+        ));
+
+      if (existingDocuments.length > 0) {
+        const documentIds = existingDocuments.map(d => d.id);
+        await db
+          .delete(collectionDocuments)
+          .where(inArray(collectionDocuments.documentId, documentIds));
+        
+        await db
+          .delete(documents)
+          .where(inArray(documents.id, documentIds));
+      }
+
+      // Create bookmark entries for each collection (for stats)
+      const bookmarkEntries = collectionIds.map(collectionId => ({
+        userId,
+        postId,
+        collectionId,
+      }));
+
+      await db
+        .insert(bookmarks)
+        .values(bookmarkEntries);
+
       // Create a document from the bookmarked post
       const [document] = await db
         .insert(documents)
@@ -415,18 +470,17 @@ export function registerPostRoutes(app: Express) {
       const userId = getJwtUserId(req);
       const postId = parseInt(req.params.postId);
 
+      // Get collections from bookmarks table for accurate stats
       const savedCollections = await db
         .select({
-          collectionId: collectionDocuments.collectionId,
+          collectionId: bookmarks.collectionId,
           collectionName: collections.name,
         })
-        .from(collectionDocuments)
-        .innerJoin(documents, eq(collectionDocuments.documentId, documents.id))
-        .innerJoin(collections, eq(collectionDocuments.collectionId, collections.id))
+        .from(bookmarks)
+        .innerJoin(collections, eq(bookmarks.collectionId, collections.id))
         .where(and(
-          eq(documents.sourcePostId, postId),
-          eq(documents.userId, userId),
-          eq(documents.type, "bookmark")
+          eq(bookmarks.postId, postId),
+          eq(bookmarks.userId, userId)
         ));
 
       res.json(savedCollections);

@@ -223,7 +223,6 @@ export const posts = pgTable("posts", {
   excerpt: text("excerpt"), // Auto-generated or manual excerpt
   authorId: varchar("author_id").notNull(),
   topicId: integer("topic_id").notNull(),
-  collectionId: integer("collection_id"), // Optional association with collection
   communityId: integer("community_id"), // Optional association with community
   type: varchar("type", { length: 20 }).default("text"), // 'text', 'link', 'highlight', 'question'
   metadata: jsonb("metadata").default(null), // For links, highlights, etc.
@@ -277,7 +276,7 @@ export const bookmarks = pgTable("bookmarks", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull(),
   postId: integer("post_id").notNull(),
-  collectionId: integer("collection_id"), // Optional grouping in collections
+  collectionId: integer("collection_id").notNull(), // Required: which notebook this bookmark is saved to
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_bookmarks_user").on(table.userId),
