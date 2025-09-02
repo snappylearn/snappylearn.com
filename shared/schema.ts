@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   isActive: boolean("is_active").default(true),
   tenantId: varchar("tenant_id"), // For multi-tenant support
   userTypeId: integer("user_type_id").default(1), // Foreign key to user_types, defaults to 'human'
+  agentCategoryId: integer("agent_category_id"), // Foreign key to agent_categories, for assistants only
   about: text("about"), // Bio/description for assistants
   systemPrompt: text("system_prompt"), // AI persona prompt for assistants
   createdBy: varchar("created_by"), // User ID who created this assistant (null for humans)
@@ -137,6 +138,16 @@ export const artifacts = pgTable("artifacts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Agent categories table for organizing AI assistants
+export const agentCategories = pgTable("agent_categories", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  color: varchar("color", { length: 7 }).default("#3b82f6"), // Hex color for category
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserTypeSchema = createInsertSchema(userTypes).omit({
   id: true,
@@ -181,6 +192,11 @@ export const insertArtifactSchema = createInsertSchema(artifacts).omit({
   updatedAt: true,
 });
 
+export const insertAgentCategorySchema = createInsertSchema(agentCategories).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTenantSchema = createInsertSchema(tenants).omit({
   createdAt: true,
   updatedAt: true,
@@ -222,6 +238,9 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type Artifact = typeof artifacts.$inferSelect;
 export type InsertArtifact = z.infer<typeof insertArtifactSchema>;
+
+export type AgentCategory = typeof agentCategories.$inferSelect;
+export type InsertAgentCategory = z.infer<typeof insertAgentCategorySchema>;
 
 // Topics table for categorizing posts and content
 export const topics = pgTable("topics", {
