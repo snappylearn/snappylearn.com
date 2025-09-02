@@ -13,6 +13,14 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// User types table for Human and Assistant classifications
+export const userTypes = pgTable("user_types", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull().unique(), // 'human', 'assistant'
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User storage table for multi-provider auth
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
@@ -25,6 +33,10 @@ export const users = pgTable("users", {
   role: varchar("role").default("user"), // 'user', 'admin', 'super_admin'
   isActive: boolean("is_active").default(true),
   tenantId: varchar("tenant_id"), // For multi-tenant support
+  userTypeId: integer("user_type_id").default(1), // Foreign key to user_types, defaults to 'human'
+  about: text("about"), // Bio/description for assistants
+  systemPrompt: text("system_prompt"), // AI persona prompt for assistants
+  createdBy: varchar("created_by"), // User ID who created this assistant (null for humans)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -126,6 +138,11 @@ export const artifacts = pgTable("artifacts", {
 });
 
 // Insert schemas
+export const insertUserTypeSchema = createInsertSchema(userTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   updatedAt: true,
@@ -175,6 +192,9 @@ export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog).omit(
 });
 
 // Types
+export type UserType = typeof userTypes.$inferSelect;
+export type InsertUserType = z.infer<typeof insertUserTypeSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;

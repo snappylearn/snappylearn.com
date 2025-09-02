@@ -18,6 +18,7 @@ import {
   List
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
+import { UserCard } from "@/components/user/UserCard";
 
 export default function Discover() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +35,10 @@ export default function Discover() {
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['/api/users/suggested'],
+  });
+  
+  const { data: allUsers = [], isLoading: allUsersLoading } = useQuery({
+    queryKey: ['/api/users'],
   });
 
   // Sample community data for demo
@@ -73,7 +78,7 @@ export default function Discover() {
     }
   ];
 
-  // Sample users data for Who To Follow
+  // Sample users data for People
   const sampleUsers = [
     {
       id: "1",
@@ -180,9 +185,11 @@ export default function Discover() {
     collection.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredUsers = sampleUsers.filter(user =>
-    `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.bio.toLowerCase().includes(searchQuery.toLowerCase())
+  // Combine real users with sample users for display
+  const displayUsers = allUsers.length > 0 ? allUsers : sampleUsers;
+  const filteredUsers = displayUsers.filter((user: any) =>
+    `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.bio || user.about || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderCommunityCard = (community: any) => (
@@ -289,7 +296,7 @@ export default function Discover() {
             </TabsTrigger>
             <TabsTrigger value="people" className="flex items-center gap-2">
               <UserPlus className="h-4 w-4" />
-              Who To Follow
+              People
             </TabsTrigger>
           </TabsList>
 
@@ -422,48 +429,24 @@ export default function Discover() {
             )}
           </TabsContent>
 
-          {/* Who To Follow Tab */}
+          {/* People Tab */}
           <TabsContent value="people" className="mt-6">
-            <h2 className="text-xl font-semibold mb-4">Who To Follow</h2>
+            <h2 className="text-xl font-semibold mb-4">People</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredUsers.map((user) => (
-                <Card key={user.id} className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="text-center pb-3">
-                    <Avatar className="h-16 w-16 mx-auto mb-3">
-                      <AvatarImage src={user.profileImageUrl} />
-                      <AvatarFallback className="text-lg">
-                        {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <CardTitle className="text-lg">
-                      {user.firstName} {user.lastName}
-                    </CardTitle>
-                    <CardDescription className="text-sm line-clamp-2">
-                      {user.bio}
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="pt-0">
-                    <div className="grid grid-cols-2 gap-4 text-center text-sm text-gray-600 mb-4">
-                      <div>
-                        <div className="font-semibold text-gray-900">{user.followerCount}</div>
-                        <div>Followers</div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">{user.postCount}</div>
-                        <div>Posts</div>
-                      </div>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      variant={user.isFollowing ? "secondary" : "default"}
-                      className="w-full"
-                    >
-                      {user.isFollowing ? "Following" : "Follow"}
-                    </Button>
-                  </CardContent>
-                </Card>
+              {filteredUsers.map((user: any) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  creatorName={user.createdBy ? "Admin" : undefined}
+                  onFollow={(userId) => {
+                    // TODO: Implement follow functionality
+                    console.log("Follow user:", userId);
+                  }}
+                  onUnfollow={(userId) => {
+                    // TODO: Implement unfollow functionality
+                    console.log("Unfollow user:", userId);
+                  }}
+                />
               ))}
             </div>
 

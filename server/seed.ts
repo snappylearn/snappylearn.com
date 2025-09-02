@@ -1,12 +1,27 @@
 import { db } from "./db";
-import { topics, posts, follows, likes, comments, users, collections, documents } from "@shared/schema";
+import { topics, posts, follows, likes, comments, users, collections, documents, userTypes } from "@shared/schema";
 import { sql } from "drizzle-orm";
 
 export async function seedDatabase() {
   try {
     console.log("Seeding database with demo data...");
 
-    // First, seed topics
+    // First, seed user types
+    const existingUserTypes = await db.select().from(userTypes).limit(1);
+    
+    if (existingUserTypes.length === 0) {
+      const defaultUserTypes = [
+        { name: "human", description: "Regular human users" },
+        { name: "assistant", description: "AI assistant users created by humans or admins" }
+      ];
+      
+      await db.insert(userTypes).values(defaultUserTypes);
+      console.log("✓ User types seeded");
+    } else {
+      console.log("✓ User types already exist");
+    }
+
+    // Then, seed topics
     const defaultTopics = [
       { name: "AI & Machine Learning", slug: "ai-machine-learning", color: "#8B5CF6", icon: "Brain" },
       { name: "Technology & Programming", slug: "technology-programming", color: "#3B82F6", icon: "Code" },
@@ -47,28 +62,32 @@ export async function seedDatabase() {
           email: "sarah.chen@example.com",
           firstName: "Sarah",
           lastName: "Chen",
-          profileImageUrl: null
+          profileImageUrl: null,
+          userTypeId: 1, // human
         },
         {
           id: "demo-user-2", 
           email: "alex.rodriguez@example.com",
           firstName: "Alex",
           lastName: "Rodriguez",
-          profileImageUrl: null
+          profileImageUrl: null,
+          userTypeId: 1, // human
         },
         {
           id: "demo-user-3",
           email: "maya.patel@example.com", 
           firstName: "Maya",
           lastName: "Patel",
-          profileImageUrl: null
+          profileImageUrl: null,
+          userTypeId: 1, // human
         },
         {
           id: "demo-user-4",
           email: "jordan.kim@example.com",
           firstName: "Jordan", 
           lastName: "Kim",
-          profileImageUrl: null
+          profileImageUrl: null,
+          userTypeId: 1, // human
         }
       ];
       
@@ -77,6 +96,77 @@ export async function seedDatabase() {
     } else {
       demoUsers = await db.select().from(users);
       console.log("✓ Using existing users");
+    }
+
+    // Create Agent Bot personas if they don't exist
+    const existingAgentBots = await db.select().from(users).where(sql`id LIKE 'agent-%'`);
+    let agentBots = [];
+    
+    if (existingAgentBots.length === 0) {
+      console.log("Creating Agent Bot personas...");
+      const agentBotData = [
+        {
+          id: "agent-einstein",
+          email: null,
+          firstName: "Albert",
+          lastName: "Einstein",
+          profileImageUrl: null,
+          userTypeId: 2, // assistant
+          about: "A theoretical physicist who finds cosmic wonder in the simplest questions. My goal is to simplify the complex and find the universe's rhythm in everyday life.",
+          systemPrompt: "You are Albert Einstein. Your communication style is curious, witty, and deeply human. Explain complex scientific ideas using relatable analogies and metaphors. Your tone is approachable and often whimsical. You believe that 'imagination is more important than knowledge.' When engaging with others, you will pose questions that encourage imaginative thought, not just factual recall. Your worldview is one of unified fields, where everything is connected.",
+          createdBy: null // Created by admin
+        },
+        {
+          id: "agent-curie",
+          email: null,
+          firstName: "Marie",
+          lastName: "Curie",
+          profileImageUrl: null,
+          userTypeId: 2, // assistant
+          about: "I approach science not as a pursuit of fame, but as a dedicated service to humanity. I find strength in persistence and quiet observation.",
+          systemPrompt: "You are Marie Curie. Your communication is calm, methodical, and humble. You speak with a quiet, persistent determination, focusing on the practical application and ethical responsibility of scientific discovery. You emphasize hard work, patience, and the collective nature of progress. When faced with a challenge, you will reference the necessity of methodical experimentation and unfailing dedication.",
+          createdBy: null // Created by admin
+        },
+        {
+          id: "agent-tesla",
+          email: null,
+          firstName: "Nikola",
+          lastName: "Tesla",
+          profileImageUrl: null,
+          userTypeId: 2, // assistant
+          about: "The future is a symphony of electricity and energy, and I am here to conduct it. I dream in currents and think in frequencies.",
+          systemPrompt: "You are Nikola Tesla. Your style is visionary, dramatic, and slightly eccentric. You see the world through a lens of potential and pure energy. Your language is often theatrical, filled with vivid imagery and grand pronouncements about the future. You are passionate about wireless technology and sustainable energy, often dismissing conventional thinking.",
+          createdBy: null // Created by admin
+        },
+        {
+          id: "agent-socrates",
+          email: null,
+          firstName: "Socrates",
+          lastName: "",
+          profileImageUrl: null,
+          userTypeId: 2, // assistant
+          about: "I do not teach; I simply help others discover the knowledge they already possess within themselves.",
+          systemPrompt: "You are Socrates. Your purpose is not to provide answers but to provoke thought through a series of questions. Your tone is curious and challenging, but never aggressive. You will deconstruct a user's statement by asking for definitions, clarifications, and underlying assumptions. You believe that the unexamined life is not worth living.",
+          createdBy: null // Created by admin
+        },
+        {
+          id: "agent-davinci",
+          email: null,
+          firstName: "Leonardo",
+          lastName: "da Vinci",
+          profileImageUrl: null,
+          userTypeId: 2, // assistant
+          about: "I find no division between art and science. I approach every problem with the eye of a painter and the mind of an engineer.",
+          systemPrompt: "You are Leonardo da Vinci. Your voice is that of a curious and meticulous polymath. You observe the world with both an artistic and scientific eye, seamlessly connecting disparate fields. You believe that understanding comes from direct observation and hands-on experimentation. Your responses will be a blend of artistic observation and technical detail.",
+          createdBy: null // Created by admin
+        }
+      ];
+      
+      agentBots = await db.insert(users).values(agentBotData).returning();
+      console.log("✓ Agent Bot personas created");
+    } else {
+      agentBots = await db.select().from(users).where(sql`id LIKE 'agent-%'`);
+      console.log("✓ Using existing Agent Bots");
     }
 
     if (demoUsers.length === 0) {
@@ -145,39 +235,53 @@ export async function seedDatabase() {
       console.log("✓ Posts already exist");
     }
 
+    // Create Personal Notebooks for all users (ensure one per user)
+    const allUsers = [...demoUsers, ...agentBots];
+    
+    for (const user of allUsers) {
+      const existingPersonalNotebook = await db.select().from(collections)
+        .where(sql`user_id = ${user.id} AND is_default = true`)
+        .limit(1);
+      
+      if (existingPersonalNotebook.length === 0) {
+        await db.insert(collections).values({
+          name: "Personal Notebook",
+          description: "Your default notebook for saved posts and documents",
+          userId: user.id,
+          isDefault: true
+        });
+      }
+    }
+    console.log("✓ Personal Notebooks ensured for all users");
+
     // Create demo collections
-    const existingCollections = await db.select().from(collections).limit(1);
+    const existingCollections = await db.select().from(collections).where(sql`is_default = false`).limit(1);
     
     if (existingCollections.length === 0) {
       const demoCollections = [
         {
           name: "AI Research Papers",
           description: "Curated collection of groundbreaking AI research papers and insights",
-          isPublic: true,
           userId: demoUsers[0].id
         },
         {
           name: "Startup Playbook",
           description: "Essential resources for building and scaling startups",
-          isPublic: true,
           userId: demoUsers[1].id
         },
         {
           name: "Psychology & Behavior",
           description: "Understanding human psychology and behavior change",
-          isPublic: true,
           userId: demoUsers[2].id
         },
         {
           name: "Web Development Resources",
           description: "Modern web development tutorials, tools, and best practices",
-          isPublic: true,
           userId: demoUsers[3].id
         },
         {
           name: "Philosophy Fundamentals",
           description: "Essential philosophical texts and modern interpretations",
-          isPublic: true,
           userId: demoUsers[2].id
         }
       ];

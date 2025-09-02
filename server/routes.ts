@@ -74,6 +74,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth routes are handled by setupSupabaseAuth
 
+  // Public users endpoint for discover page
+  app.get("/api/users", jwtAuth, async (req: any, res) => {
+    try {
+      // Get all users with their user type info for discover page
+      const users = await storage.getPublicUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
   // Collections endpoints
   app.get("/api/collections", jwtAuth, async (req: any, res) => {
     try {
@@ -247,21 +259,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = getJwtUserId(req);
       
-      // Get document to verify ownership through collection
-      const document = await storage.getDocument(id);
-      if (!document) {
-        return res.status(404).json({ error: "Document not found" });
-      }
-      
-      // Verify user owns the collection
-      const collection = await storage.getCollection(document.collectionId, userId);
-      if (!collection) {
-        return res.status(404).json({ error: "Collection not found" });
-      }
-      
       const success = await storage.deleteDocument(id, userId);
       if (!success) {
-        return res.status(404).json({ error: "Document not found" });
+        return res.status(404).json({ error: "Document not found or access denied" });
       }
       
       res.status(204).send();

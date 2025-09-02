@@ -2,6 +2,7 @@ import {
   users,
   collections,
   documents,
+  collectionDocuments,
   conversations,
   messages,
   artifacts,
@@ -41,6 +42,7 @@ export interface IStorage {
   createUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User | undefined>;
   deleteUser(id: string): Promise<boolean>;
+  getPublicUsers(): Promise<User[]>;
 
   // Collection methods
   getCollections(userId: string): Promise<CollectionWithStats[]>;
@@ -170,6 +172,15 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
+  async getPublicUsers(): Promise<User[]> {
+    const publicUsers = await db
+      .select()
+      .from(users)
+      .where(eq(users.isActive, true))
+      .orderBy(desc(users.createdAt));
+    return publicUsers;
+  }
+
   // Collection methods
   async getCollections(userId: string): Promise<CollectionWithStats[]> {
     const collectionsWithStats = await db
@@ -179,12 +190,13 @@ export class DatabaseStorage implements IStorage {
         description: collections.description,
         userId: collections.userId,
         privateStatusTypeId: collections.privateStatusTypeId,
+        isDefault: collections.isDefault,
         createdAt: collections.createdAt,
         updatedAt: collections.updatedAt,
-        documentCount: count(documents.id),
+        documentCount: count(collectionDocuments.documentId),
       })
       .from(collections)
-      .leftJoin(documents, eq(collections.id, documents.collectionId))
+      .leftJoin(collectionDocuments, eq(collections.id, collectionDocuments.collectionId))
       .where(eq(collections.userId, userId))
       .groupBy(collections.id)
       .orderBy(desc(collections.updatedAt));
@@ -238,9 +250,20 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await db
-      .select()
+      .select({
+        id: documents.id,
+        name: documents.name,
+        content: documents.content,
+        mimeType: documents.mimeType,
+        size: documents.size,
+        type: documents.type,
+        sourcePostId: documents.sourcePostId,
+        userId: documents.userId,
+        uploadedAt: documents.uploadedAt,
+      })
       .from(documents)
-      .where(eq(documents.collectionId, collectionId))
+      .innerJoin(collectionDocuments, eq(documents.id, collectionDocuments.documentId))
+      .where(eq(collectionDocuments.collectionId, collectionId))
       .orderBy(desc(documents.uploadedAt));
   }
 
@@ -258,15 +281,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDocument(id: number, userId?: string): Promise<boolean> {
-    // If userId is provided, validate document ownership through collection
+    // If userId is provided, validate document ownership
     if (userId) {
       const document = await this.getDocument(id);
-      if (!document) return false;
-      
-      const collection = await this.getCollection(document.collectionId, userId);
-      if (!collection) return false; // User doesn't own the collection
+      if (!document || document.userId !== userId) {
+        return false; // Document doesn't exist or user doesn't own it
+      }
     }
     
+    // Delete from junction table first
+    await db.delete(collectionDocuments).where(eq(collectionDocuments.documentId, id));
+    
+    // Then delete the document
     const result = await db.delete(documents).where(eq(documents.id, id));
     return (result.rowCount ?? 0) > 0;
   }
