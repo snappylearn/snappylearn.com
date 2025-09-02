@@ -591,7 +591,7 @@ export function registerPostRoutes(app: Express) {
         const likeExists = await db
           .select()
           .from(likes)
-          .where(and(eq(likes.userId, userId), eq(likes.postId, postId)))
+          .where(and(eq(likes.userId, userId), eq(likes.targetId, postId), eq(likes.targetType, 'post')))
           .limit(1);
 
         // Check if user bookmarked this post
@@ -622,7 +622,7 @@ export function registerPostRoutes(app: Express) {
           repostCount: sql<number>`count(distinct ${reposts.id})`,
         })
         .from(posts)
-        .leftJoin(likes, eq(posts.id, likes.postId))
+        .leftJoin(likes, and(eq(posts.id, likes.targetId), eq(likes.targetType, 'post')))
         .leftJoin(comments, eq(posts.id, comments.postId))
         .leftJoin(bookmarks, eq(posts.id, bookmarks.postId))
         .leftJoin(reposts, eq(posts.id, reposts.postId))

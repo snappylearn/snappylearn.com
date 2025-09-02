@@ -94,22 +94,16 @@ export function MainLayout({ children }: MainLayoutProps) {
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center space-x-3 mb-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user && 'user_metadata' in user ? user.user_metadata?.avatar_url : (user as any)?.profileImageUrl} />
+              <AvatarImage src={(user as any)?.profileImageUrl} />
               <AvatarFallback>
-                {user && 'user_metadata' in user 
-                  ? (user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U')
-                  : ((user as any)?.firstName?.[0] || (user as any)?.lastName?.[0] || user?.email?.[0] || 'U')
-                }
+                {((user as any)?.firstName?.[0] || (user as any)?.lastName?.[0] || user?.email?.[0] || 'U')}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user && 'user_metadata' in user 
-                  ? (user.user_metadata?.full_name || user.email)
-                  : ((user as any)?.firstName && (user as any)?.lastName 
-                    ? `${(user as any)?.firstName} ${(user as any)?.lastName}`
-                    : user?.email
-                  )
+                {(user as any)?.firstName && (user as any)?.lastName 
+                  ? `${(user as any)?.firstName} ${(user as any)?.lastName}`
+                  : user?.email
                 }
               </p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>

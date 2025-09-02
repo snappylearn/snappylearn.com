@@ -49,15 +49,9 @@ export function BookmarkPopover({
   // Create new collection mutation
   const createCollectionMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
-      const response = await fetch('/api/collections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create collection');
-      return response.json();
+      return await apiRequest('/api/collections', 'POST', data);
     },
-    onSuccess: (newCollection) => {
+    onSuccess: (newCollection: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
       setSelectedCollections(prev => [...prev, newCollection.id]);
       setNewCollectionName("");
@@ -79,13 +73,7 @@ export function BookmarkPopover({
   // Bookmark post mutation
   const bookmarkMutation = useMutation({
     mutationFn: async (data: { postId: number; collectionIds: number[] }) => {
-      const response = await fetch('/api/bookmarks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to bookmark post');
-      return response.json();
+      return await apiRequest('/api/bookmarks', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
