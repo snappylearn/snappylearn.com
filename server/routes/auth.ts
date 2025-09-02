@@ -1,6 +1,7 @@
 import { type Express, type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { storage } from "../storage";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
@@ -43,6 +44,21 @@ export function setupAuthRoutes(app: Express) {
         role: "user",
         isActive: true,
       });
+
+      // Create default Personal Collection for new user
+      try {
+        await storage.createCollection({
+          name: "Personal Notebook",
+          description: "Your default notebook for saved posts and documents",
+          userId: newUser.id,
+          privateStatusTypeId: "private",
+          isDefault: true,
+        });
+        console.log("Personal Notebook created for user:", newUser.email);
+      } catch (collectionError) {
+        console.error("Failed to create Personal Notebook:", collectionError);
+        // Don't fail the signup if collection creation fails
+      }
 
       console.log("User created successfully:", newUser.email);
 

@@ -1,0 +1,289 @@
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Bookmark, Plus, Folder } from "lucide-react";
+import type { Collection } from "@shared/schema";
+
+interface BookmarkPopoverProps {
+  postId: number;
+  postTitle: string;
+  postContent: string;
+  isBookmarked?: boolean;
+  children?: React.ReactNode;
+}
+
+export function BookmarkPopover({ 
+  postId, 
+  postTitle, 
+  postContent, 
+  isBookmarked = false,
+  children 
+}: BookmarkPopoverProps) {
+  const [open, setOpen] = useState(false);
+  const [selectedCollections, setSelectedCollections] = useState<number[]>([]);
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch user's collections
+  const { data: collections = [], isLoading } = useQuery({
+    queryKey: ['/api/collections'],
+    enabled: open,
+  });
+
+  // Fetch collections this post is already saved to
+  const { data: existingBookmarks = [] } = useQuery({
+    queryKey: ['/api/bookmarks', postId],
+    enabled: open,
+  });
+
+  // Create new collection mutation
+  const createCollectionMutation = useMutation({
+    mutationFn: async (data: { name: string; description?: string }) => {
+      const response = await fetch('/api/collections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create collection');
+      return response.json();
+    },
+    onSuccess: (newCollection) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
+      setSelectedCollections(prev => [...prev, newCollection.id]);
+      setNewCollectionName("");
+      setIsCreatingCollection(false);
+      toast({
+        title: "Notebook created",
+        description: `"${newCollection.name}" has been created successfully.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create notebook. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Bookmark post mutation
+  const bookmarkMutation = useMutation({
+    mutationFn: async (data: { postId: number; collectionIds: number[] }) => {
+      const response = await fetch('/api/bookmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to bookmark post');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
+      setOpen(false);
+      setSelectedCollections([]);
+      toast({
+        title: "Post saved",
+        description: `"${postTitle}" has been saved to your selected notebooks.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save post. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Initialize selected collections when popover opens
+  React.useEffect(() => {
+    if (open && Array.isArray(existingBookmarks) && existingBookmarks.length > 0) {
+      const bookmarkedCollections = existingBookmarks.map((b: any) => b.collectionId);
+      setSelectedCollections(bookmarkedCollections);
+    } else if (open && Array.isArray(collections) && collections.length > 0) {
+      // Pre-select Personal Collection (default collection)
+      const personalCollection = collections.find((c: any) => c.isDefault);
+      if (personalCollection) {
+        setSelectedCollections([personalCollection.id]);
+      }
+    }
+  }, [open, existingBookmarks, collections]);
+
+  const handleCollectionToggle = (collectionId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedCollections(prev => [...prev, collectionId]);
+    } else {
+      setSelectedCollections(prev => prev.filter(id => id !== collectionId));
+    }
+  };
+
+  const handleCreateCollection = () => {
+    if (!newCollectionName.trim()) return;
+    
+    createCollectionMutation.mutate({
+      name: newCollectionName.trim(),
+      description: `Notebook created while saving "${postTitle}"`,
+    });
+  };
+
+  const handleSaveBookmark = () => {
+    if (selectedCollections.length === 0) {
+      toast({
+        title: "No notebooks selected",
+        description: "Please select at least one notebook to save this post.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    bookmarkMutation.mutate({
+      postId,
+      collectionIds: selectedCollections,
+    });
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        {children || (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`${isBookmarked ? 'text-blue-600' : 'text-gray-500'} hover:text-blue-600`}
+          >
+            <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
+          </Button>
+        )}
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Bookmark className="h-4 w-4" />
+            <h3 className="font-semibold">Save to Notebook</h3>
+          </div>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+            "{postTitle}"
+          </p>
+
+          {isLoading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <>
+              <ScrollArea className="max-h-48 mb-4">
+                <div className="space-y-2">
+                  {Array.isArray(collections) && collections.map((collection: any) => (
+                    <div key={collection.id} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
+                      <Checkbox
+                        id={`collection-${collection.id}`}
+                        checked={selectedCollections.includes(collection.id)}
+                        onCheckedChange={(checked) => 
+                          handleCollectionToggle(collection.id, checked as boolean)
+                        }
+                      />
+                      <Label 
+                        htmlFor={`collection-${collection.id}`}
+                        className="flex-1 cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Folder className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm font-medium">{collection.name}</span>
+                          {collection.isDefault && (
+                            <span className="text-xs text-gray-500">(Personal)</span>
+                          )}
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+
+                  {(!Array.isArray(collections) || collections.length === 0) && (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No notebooks yet. Create your first one below!
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+
+              <Separator className="my-4" />
+
+              {/* Create new notebook */}
+              {isCreatingCollection ? (
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Notebook name"
+                    value={newCollectionName}
+                    onChange={(e) => setNewCollectionName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCreateCollection();
+                      } else if (e.key === 'Escape') {
+                        setIsCreatingCollection(false);
+                        setNewCollectionName("");
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={handleCreateCollection}
+                      disabled={!newCollectionName.trim() || createCollectionMutation.isPending}
+                    >
+                      Create
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsCreatingCollection(false);
+                        setNewCollectionName("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setIsCreatingCollection(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create new notebook
+                </Button>
+              )}
+
+              <Separator className="my-4" />
+
+              {/* Save button */}
+              <Button 
+                className="w-full bg-purple-600 hover:bg-purple-700"
+                onClick={handleSaveBookmark}
+                disabled={selectedCollections.length === 0 || bookmarkMutation.isPending}
+              >
+                {bookmarkMutation.isPending ? "Saving..." : `Save to ${selectedCollections.length} notebook(s)`}
+              </Button>
+            </>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { PostWithDetails } from "@shared/schema";
+import { BookmarkPopover } from "@/components/BookmarkPopover";
 
 interface PostCardProps {
   post: PostWithDetails;
@@ -49,21 +50,7 @@ export function PostCard({ post }: PostCardProps) {
     },
   });
 
-  const bookmarkPostMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest(`/api/posts/${post.id}/bookmark`, "POST");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to bookmark post",
-        variant: "destructive",
-      });
-    },
-  });
+  // Remove the old bookmark mutation since we're using the popover now
 
   const repostMutation = useMutation({
     mutationFn: async () => {
@@ -219,15 +206,20 @@ export function PostCard({ post }: PostCardProps) {
             </Button>
           </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`${post.userActions?.isBookmarked ? 'text-blue-500 hover:text-blue-600' : ''}`}
-            onClick={() => bookmarkPostMutation.mutate()}
-            disabled={bookmarkPostMutation.isPending}
+          <BookmarkPopover
+            postId={post.id}
+            postTitle={post.title || 'Untitled Post'}
+            postContent={post.content}
+            isBookmarked={post.userActions?.isBookmarked}
           >
-            <Bookmark className={`w-4 h-4 ${post.userActions?.isBookmarked ? 'fill-current' : ''}`} />
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`${post.userActions?.isBookmarked ? 'text-blue-500 hover:text-blue-600' : ''}`}
+            >
+              <Bookmark className={`w-4 h-4 ${post.userActions?.isBookmarked ? 'fill-current' : ''}`} />
+            </Button>
+          </BookmarkPopover>
         </div>
       </CardContent>
     </Card>

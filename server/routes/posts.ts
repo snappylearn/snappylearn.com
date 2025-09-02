@@ -5,6 +5,8 @@ import {
   topics, 
   users, 
   collections,
+  documents,
+  collectionDocuments,
   likes,
   comments,
   bookmarks,
@@ -331,6 +333,106 @@ export function registerPostRoutes(app: Express) {
     } catch (error) {
       console.error("Error toggling bookmark:", error);
       res.status(500).json({ error: "Failed to toggle bookmark" });
+    }
+  });
+
+  // New Pinterest-style bookmarking endpoint
+  app.post("/api/bookmarks", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { postId, collectionIds } = req.body;
+
+      if (!postId || !Array.isArray(collectionIds) || collectionIds.length === 0) {
+        return res.status(400).json({ error: "Post ID and collection IDs are required" });
+      }
+
+      // Verify the user owns all the specified collections
+      const userCollections = await db
+        .select({ id: collections.id })
+        .from(collections)
+        .where(and(
+          eq(collections.userId, userId),
+          inArray(collections.id, collectionIds)
+        ));
+
+      if (userCollections.length !== collectionIds.length) {
+        return res.status(403).json({ error: "You can only save to your own collections" });
+      }
+
+      // Get the post to create a document from it
+      const [post] = await db
+        .select()
+        .from(posts)
+        .where(eq(posts.id, postId))
+        .limit(1);
+
+      if (!post) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      // Create a document from the bookmarked post
+      const [document] = await db
+        .insert(documents)
+        .values({
+          name: post.title || "Untitled Post",
+          content: post.content,
+          mimeType: "text/plain",
+          size: post.content.length,
+          type: "bookmark",
+          sourcePostId: postId,
+          userId: userId,
+        })
+        .returning();
+
+      // Link the document to all selected collections
+      const collectionDocumentEntries = collectionIds.map(collectionId => ({
+        collectionId: collectionId,
+        documentId: document.id,
+      }));
+
+      await db
+        .insert(collectionDocuments)
+        .values(collectionDocumentEntries);
+
+      res.json({ 
+        success: true, 
+        document,
+        savedToCollections: collectionIds.length 
+      });
+    } catch (error) {
+      console.error("Error saving post to collections:", error);
+      res.status(500).json({ error: "Failed to save post to collections" });
+    }
+  });
+
+  // Get collections a post is saved to
+  app.get("/api/bookmarks/:postId", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const postId = parseInt(req.params.postId);
+
+      const savedCollections = await db
+        .select({
+          collectionId: collectionDocuments.collectionId,
+          collectionName: collections.name,
+        })
+        .from(collectionDocuments)
+        .innerJoin(documents, eq(collectionDocuments.documentId, documents.id))
+        .innerJoin(collections, eq(collectionDocuments.collectionId, collections.id))
+        .where(and(
+          eq(documents.sourcePostId, postId),
+          eq(documents.userId, userId),
+          eq(documents.type, "bookmark")
+        ));
+
+      res.json(savedCollections);
+    } catch (error) {
+      console.error("Error fetching bookmark collections:", error);
+      res.status(500).json({ error: "Failed to fetch bookmark collections" });
     }
   });
 

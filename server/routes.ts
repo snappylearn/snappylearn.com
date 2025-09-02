@@ -78,7 +78,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/collections", jwtAuth, async (req: any, res) => {
     try {
       const userId = getJwtUserId(req);
-      const collections = await storage.getCollections(userId);
+      let collections = await storage.getCollections(userId);
+      
+      // Ensure user has a Personal Collection (default collection)
+      const hasPersonalCollection = collections.some((c: any) => c.isDefault);
+      if (!hasPersonalCollection) {
+        try {
+          await storage.createCollection({
+            name: "Personal Notebook",
+            description: "Your default notebook for saved posts and documents",
+            userId: userId,
+            privateStatusTypeId: "private",
+            isDefault: true,
+          });
+          // Refetch collections to include the newly created Personal Collection
+          collections = await storage.getCollections(userId);
+        } catch (collectionError) {
+          console.error("Failed to create Personal Collection:", collectionError);
+          // Don't fail the request if collection creation fails
+        }
+      }
+      
       res.json(collections);
     } catch (error) {
       console.error("Error fetching collections:", error);

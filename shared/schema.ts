@@ -60,6 +60,7 @@ export const collections = pgTable("collections", {
   description: text("description"),
   userId: varchar("user_id").notNull(),
   privateStatusTypeId: varchar("private_status_type_id").default("private"), // 'private', 'public'
+  isDefault: boolean("is_default").default(false), // For Personal Collection
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -70,9 +71,22 @@ export const documents = pgTable("documents", {
   content: text("content").notNull(),
   mimeType: text("mime_type").notNull(),
   size: integer("size").notNull(),
-  collectionId: integer("collection_id").notNull(),
+  type: varchar("type", { length: 20 }).default("upload"), // 'upload', 'bookmark'
+  sourcePostId: integer("source_post_id"), // For bookmarked posts
+  userId: varchar("user_id").notNull(), // Owner of the document
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
 });
+
+// Junction table for many-to-many relationship between collections and documents
+export const collectionDocuments = pgTable("collection_documents", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull(),
+  documentId: integer("document_id").notNull(),
+  addedAt: timestamp("added_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_collection_documents_collection").on(table.collectionId),
+  index("idx_collection_documents_document").on(table.documentId),
+]);
 
 export const conversations = pgTable("conversations", {
   id: serial("id").primaryKey(),
@@ -128,6 +142,11 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
   uploadedAt: true,
 });
 
+export const insertCollectionDocumentSchema = createInsertSchema(collectionDocuments).omit({
+  id: true,
+  addedAt: true,
+});
+
 export const insertConversationSchema = createInsertSchema(conversations).omit({
   id: true,
   createdAt: true,
@@ -171,6 +190,9 @@ export type InsertCollection = z.infer<typeof insertCollectionSchema>;
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+
+export type CollectionDocument = typeof collectionDocuments.$inferSelect;
+export type InsertCollectionDocument = z.infer<typeof insertCollectionDocumentSchema>;
 
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;

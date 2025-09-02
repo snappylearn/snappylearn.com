@@ -47,8 +47,8 @@ export default function MyCollections() {
     <TwitterStyleLayout>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">My Collections</h1>
-        <p className="text-gray-600">Organize and manage your document collections</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">My Notebooks</h1>
+        <p className="text-gray-600">Organize and manage your document notebooks</p>
       </div>
 
       {/* Actions */}
@@ -57,7 +57,7 @@ export default function MyCollections() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder="Search collections..."
+            placeholder="Search notebooks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -65,11 +65,11 @@ export default function MyCollections() {
         </div>
         <Button onClick={() => setLocation("/collections")} className="flex items-center">
           <Plus className="h-4 w-4 mr-2" />
-          New Collection
+          New Notebook
         </Button>
       </div>
 
-      {/* Collections Grid */}
+      {/* Notebooks Grid */}
       {filteredCollections.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredCollections.map(collection => (
@@ -140,18 +140,18 @@ export default function MyCollections() {
         <div className="text-center py-12">
           <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-medium text-gray-900 mb-2">
-            {searchQuery ? "No collections found" : "No collections yet"}
+            {searchQuery ? "No notebooks found" : "No notebooks yet"}
           </h3>
           <p className="text-gray-600 mb-6">
             {searchQuery 
               ? "Try adjusting your search terms"
-              : "Create your first collection to organize your documents and knowledge"
+              : "Create your first notebook to organize your documents and knowledge"
             }
           </p>
           {!searchQuery && (
             <Button onClick={() => setLocation("/collections")} className="flex items-center">
               <Plus className="h-4 w-4 mr-2" />
-              Create Collection
+              Create Notebook
             </Button>
           )}
         </div>

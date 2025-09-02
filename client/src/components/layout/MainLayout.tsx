@@ -27,7 +27,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "My Collections", href: "/my-collections", icon: FolderOpen },
+    { name: "My Notebooks", href: "/my-collections", icon: FolderOpen },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
   ];
@@ -82,7 +82,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <Link href="/collections">
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                 <Plus className="h-4 w-4 mr-2" />
-                New Collection
+                New Notebook
               </Button>
             </Link>
           </div>

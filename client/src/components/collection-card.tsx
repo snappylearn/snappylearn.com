@@ -38,7 +38,7 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this collection? This will also delete all associated documents and conversations.")) {
+    if (confirm("Are you sure you want to delete this notebook? This will also delete all associated documents and conversations.")) {
       deleteCollection.mutate(collection.id);
     }
   };
@@ -61,7 +61,7 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
                 View Details
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                Delete Collection
+                Delete Notebook
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

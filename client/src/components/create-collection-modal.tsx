@@ -45,17 +45,17 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Collection</DialogTitle>
+          <DialogTitle>Create New Notebook</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name">Collection Name</Label>
+            <Label htmlFor="name">Notebook Name</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter collection name"
+              placeholder="Enter notebook name"
               required
               className="mt-2"
             />
@@ -67,7 +67,7 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what this collection will contain"
+              placeholder="Describe what this notebook will contain"
               className="mt-2 resize-none"
               rows={3}
             />
