@@ -74,8 +74,8 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
         <div className="flex items-center space-x-2 mb-2">
           <User className="w-3 h-3 text-gray-400" />
           <span className="text-xs text-gray-500">
-            {collection.privateStatusTypeId === 'private' ? 'Private' : 
-             collection.privateStatusTypeId === 'shared' ? 'Shared' :
+            {collection.visibilityTypeId === 1 ? 'Private' : 
+             collection.visibilityTypeId === 2 ? 'Shared' :
              'Public'} • Created by you
           </span>
         </div>

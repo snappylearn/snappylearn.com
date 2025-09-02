@@ -72,7 +72,7 @@ export const collections = pgTable("collections", {
   name: text("name").notNull(),
   description: text("description"),
   userId: varchar("user_id").notNull(),
-  privateStatusTypeId: varchar("private_status_type_id").default("private"), // 'private', 'public'
+  visibilityTypeId: integer("visibility_type_id").default(1), // Foreign key to visibility_types, defaults to Private
   isDefault: boolean("is_default").default(false), // For Personal Collection
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

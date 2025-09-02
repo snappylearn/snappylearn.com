@@ -15,7 +15,7 @@ interface CreateCollectionModalProps {
 export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [visibilityType, setVisibilityType] = useState("private"); // Default to private
+  const [visibilityType, setVisibilityType] = useState("1"); // Default to private (id: 1)
   const createCollection = useCreateCollection();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,13 +26,13 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
       {
         name: name.trim(),
         description: description.trim() || undefined,
-        privateStatusTypeId: visibilityType,
+        visibilityTypeId: parseInt(visibilityType),
       },
       {
         onSuccess: () => {
           setName("");
           setDescription("");
-          setVisibilityType("private");
+          setVisibilityType("1");
           onOpenChange(false);
         },
       }
@@ -42,7 +42,7 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
   const handleClose = () => {
     setName("");
     setDescription("");
-    setVisibilityType("private");
+    setVisibilityType("1");
     onOpenChange(false);
   };
 
@@ -85,9 +85,9 @@ export function CreateCollectionModal({ open, onOpenChange }: CreateCollectionMo
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="private">Private - Only you can see this</SelectItem>
-                <SelectItem value="shared">Shared - Invited users can access</SelectItem>
-                <SelectItem value="public">Public - Anyone can discover and view</SelectItem>
+                <SelectItem value="1">Private - Only you can see this</SelectItem>
+                <SelectItem value="2">Shared - Invited users can access</SelectItem>
+                <SelectItem value="3">Public - Anyone can discover and view</SelectItem>
               </SelectContent>
             </Select>
           </div>
