@@ -16,6 +16,7 @@ import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 export default function Chat() {
   const [location, setLocation] = useLocation();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | undefined>();
+  const [inputValue, setInputValue] = useState("");
   
   // Check for collectionId in URL parameters
   useEffect(() => {
@@ -108,8 +109,8 @@ export default function Chat() {
   ];
 
   const handlePromptClick = (prompt: string) => {
-    // This will set the prompt in the chat input - we'll need to modify ChatInput to support this
-    handleSendMessage(prompt);
+    // Set the prompt in the chat input for user to review and edit before sending
+    setInputValue(prompt);
   };
 
   // Always show example prompts on the main chat page since this is the starting point
@@ -169,6 +170,8 @@ export default function Chat() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
             <ChatInput 
               onSend={handleSendMessage}
+              value={inputValue}
+              onChange={setInputValue}
               placeholder={
                 selectedCollection 
                   ? `Ask a question about ${selectedCollection.name}...`

@@ -8,19 +8,31 @@ interface ChatInputProps {
   onSend: (message: string, attachments?: File[]) => void;
   disabled?: boolean;
   placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
-export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anything..." }: ChatInputProps) {
+export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anything...", value, onChange }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  
+  // Use controlled value if provided, otherwise use local state
+  const inputValue = value !== undefined ? value : message;
+  const handleInputChange = (newValue: string) => {
+    if (onChange) {
+      onChange(newValue);
+    } else {
+      setMessage(newValue);
+    }
+  };
   const [attachments, setAttachments] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleSubmit = () => {
-    if ((message.trim() || attachments.length > 0) && !disabled) {
-      onSend(message.trim(), attachments);
-      setMessage("");
+    if ((inputValue.trim() || attachments.length > 0) && !disabled) {
+      onSend(inputValue.trim(), attachments);
+      handleInputChange("");
       setAttachments([]);
     }
   };
@@ -91,7 +103,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [message]);
+  }, [inputValue]);
 
   return (
     <div className="w-full max-w-2xl">
@@ -128,8 +140,8 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
 
         <Textarea
           ref={textareaRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          value={inputValue}
+          onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
@@ -151,7 +163,7 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
         {/* Send Button - Inside chatbox, right side */}
         <Button
           onClick={handleSubmit}
-          disabled={(!message.trim() && attachments.length === 0) || disabled}
+          disabled={(!inputValue.trim() && attachments.length === 0) || disabled}
           size="sm"
           className="absolute right-3 bottom-3 h-8 w-8 p-0 bg-primary hover:bg-primary/90"
         >
