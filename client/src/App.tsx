@@ -23,6 +23,7 @@ import Tasks from "@/pages/tasks";
 import Conversations from "@/pages/conversations";
 import Conversation from "@/pages/conversation";
 import ArtifactsPage from "@/pages/artifacts";
+import Agents from "@/pages/agents";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Profile from "@/pages/profile";
 import Settings from "@/pages/settings";
@@ -65,6 +66,7 @@ function Router() {
       <Route path="/chat" component={Chat} />
       <Route path="/my-collections" component={MyCollections} />
       <Route path="/discover" component={Discover} />
+      <Route path="/agents" component={Agents} />
       <Route path="/collections" component={Collections} />
       <Route path="/collections/:id" component={CollectionDetail} />
       <Route path="/communities" component={Communities} />
