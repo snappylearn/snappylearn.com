@@ -90,7 +90,20 @@ export function PostCard({ post }: PostCardProps) {
     : post.content;
 
   return (
-    <Card className="mb-4 hover:shadow-md transition-shadow">
+    <Card 
+      className="mb-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={(e) => {
+        // Don't navigate if clicking on interactive elements
+        if (
+          (e.target as HTMLElement).closest('button') ||
+          (e.target as HTMLElement).closest('a') ||
+          (e.target as HTMLElement).closest('[data-radix-popper-content-wrapper]')
+        ) {
+          return;
+        }
+        setLocation(`/posts/${post.id}`);
+      }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">

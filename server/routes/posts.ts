@@ -152,7 +152,7 @@ export function registerPostRoutes(app: Express) {
       }
 
       // Combine data
-      const postsWithDetails: PostWithDetails[] = postsData.map(post => {
+      const postsWithDetails: PostWithDetails[] = postsData.filter(post => post.author).map(post => {
         const stats = {
           likeCount: likeCounts.find(l => l.postId === post.id)?.count || 0,
           commentCount: commentCounts.find(c => c.postId === post.id)?.count || 0,
@@ -574,7 +574,7 @@ export function registerPostRoutes(app: Express) {
         .where(and(eq(posts.id, postId), eq(posts.isPublished, true)))
         .limit(1);
 
-      if (!postData) {
+      if (!postData || !postData.author) {
         return res.status(404).json({ error: "Post not found" });
       }
 
