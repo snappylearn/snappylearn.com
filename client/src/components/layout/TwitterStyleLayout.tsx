@@ -226,6 +226,51 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </CardContent>
               </Card>
 
+              {/* Recent Notebooks */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <FolderOpen className="w-5 h-5" />
+                    Recent Notebooks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {collections.length > 0 ? (
+                    collections.slice(0, 3).map((collection: any) => (
+                      <div key={collection.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <FolderOpen className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                              {collection.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {collection.documentCount || 0} documents
+                            </p>
+                          </div>
+                        </div>
+                        <Link href={`/collections/${collection.id}`}>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No notebooks yet. Create your first notebook!
+                    </p>
+                  )}
+                  <Link href="/collections">
+                    <Button variant="link" className="w-full text-purple-600 text-sm">
+                      View All Collections
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
               {/* Who to Follow */}
               <Card>
                 <CardHeader className="pb-3">
@@ -320,45 +365,6 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                       Explore more topics
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Trending Topics */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    Trending Topics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {topics.length === 0 ? (
-                    <p className="text-sm text-gray-500">
-                      Topics will appear here as content is created.
-                    </p>
-                  ) : (
-                    topics.slice(0, 6).map((topic: any) => (
-                      <div key={topic.id} className="flex items-center justify-between">
-                        <Badge 
-                          variant="outline" 
-                          className="flex items-center gap-2 cursor-pointer hover:bg-purple-50"
-                          style={{ 
-                            borderColor: topic.color || '#6366f1',
-                            color: topic.color || '#6366f1'
-                          }}
-                        >
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: topic.color || '#6366f1' }}
-                          />
-                          {topic.name}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          New
-                        </span>
-                      </div>
-                    ))
-                  )}
                 </CardContent>
               </Card>
 
