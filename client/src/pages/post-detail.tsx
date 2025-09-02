@@ -184,7 +184,7 @@ export default function PostDetail() {
                 onClick={() => likePostMutation.mutate()}
                 disabled={likePostMutation.isPending}
               >
-                <Heart className={`w-4 h-4 ${post.userActions?.hasLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                <Heart className={`w-4 h-4 ${post.userActions?.isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                 {post.stats.likeCount > 0 && (
                   <span className="text-sm">{post.stats.likeCount}</span>
                 )}
@@ -197,7 +197,12 @@ export default function PostDetail() {
                 )}
               </Button>
               
-              <BookmarkPopover postId={post.id} />
+              <BookmarkPopover 
+                postId={post.id}
+                postTitle={post.title || 'Untitled Post'}
+                postContent={post.content}
+                isBookmarked={post.userActions?.isBookmarked}
+              />
               
               <Button variant="ghost" size="sm" className="gap-2">
                 <Share className="w-4 h-4" />

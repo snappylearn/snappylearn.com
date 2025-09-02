@@ -240,7 +240,7 @@ export class DatabaseStorage implements IStorage {
     const [collection] = await db
       .select()
       .from(collections)
-      .where(eq(collections.id, id) && eq(collections.userId, userId));
+      .where(and(eq(collections.id, id), eq(collections.userId, userId)));
     return collection || undefined;
   }
 

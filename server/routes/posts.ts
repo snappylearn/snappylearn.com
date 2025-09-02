@@ -151,8 +151,10 @@ export function registerPostRoutes(app: Express) {
         ]);
       }
 
-      // Combine data
-      const postsWithDetails: PostWithDetails[] = postsData.filter(post => post.author).map(post => {
+      // Combine data - filter out posts without authors and ensure proper type structure
+      const postsWithDetails = postsData
+        .filter(post => post.author) // Filter out posts without authors
+        .map(post => {
         const stats = {
           likeCount: likeCounts.find(l => l.postId === post.id)?.count || 0,
           commentCount: commentCounts.find(c => c.postId === post.id)?.count || 0,
@@ -169,6 +171,7 @@ export function registerPostRoutes(app: Express) {
 
         return {
           ...post,
+          author: post.author!, // Type assertion since we've filtered out null authors
           stats,
           userActions
         };

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Heart, 
@@ -24,6 +26,8 @@ export default function Discover() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("communities");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const { data: collections = [], isLoading: collectionsLoading } = useQuery({
     queryKey: ['/api/collections'],
@@ -248,8 +252,8 @@ export default function Discover() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" onClick={() => {
-              // TODO: Navigate to community page
-              console.log("View community:", community.id);
+              // Navigate to community detail page
+              setLocation(`/communities/${community.id}`);
             }}>
               <Eye className="h-4 w-4 mr-1" />
               View
@@ -258,8 +262,14 @@ export default function Discover() {
               size="sm"
               variant={community.isJoined ? "secondary" : "default"}
               onClick={() => {
-                // TODO: Implement join/leave community functionality
+                // TODO: Implement join/leave community functionality with real API
                 console.log(community.isJoined ? "Leave community:" : "Join community:", community.id);
+                toast({
+                  title: community.isJoined ? "Left Community" : "Joined Community",
+                  description: community.isJoined 
+                    ? `You have left ${community.name}`
+                    : `You have joined ${community.name}`,
+                });
               }}
             >
               {community.isJoined ? "Joined" : "Join"}
@@ -350,8 +360,8 @@ export default function Discover() {
             <h2 className="text-xl font-semibold mb-4">Notebooks</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredCollections.map((collection) => (
-                <Card key={collection.id} className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="pb-3">
+                <Card key={collection.id} className="hover:shadow-md transition-shadow duration-200 flex flex-col min-h-64">
+                  <CardHeader className="pb-3 flex-1">
                     <CardTitle className="text-lg font-semibold line-clamp-2">
                       {collection.title}
                     </CardTitle>
@@ -380,7 +390,7 @@ export default function Discover() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="pt-0">
+                  <CardContent className="pt-0 flex-1 flex flex-col justify-between">
                     <div className="grid grid-cols-3 gap-4 text-center text-sm text-gray-600 mb-4">
                       <div>
                         <div className="font-semibold text-gray-900">{collection.stats.documents}</div>
@@ -405,11 +415,11 @@ export default function Discover() {
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 justify-center">
                         <Button size="sm" variant="outline" onClick={() => {
-                          // TODO: Navigate to notebook page
-                          console.log("View notebook:", collection.id);
+                          // Navigate to notebook detail page
+                          setLocation(`/collections/${collection.id}`);
                         }}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
@@ -418,16 +428,26 @@ export default function Discover() {
                           size="sm"
                           variant={collection.isFollowing ? "secondary" : "default"}
                           onClick={() => {
-                            // TODO: Implement follow/unfollow notebook functionality
+                            // TODO: Implement follow/unfollow notebook functionality with API
                             console.log(collection.isFollowing ? "Unfollow notebook:" : "Follow notebook:", collection.id);
+                            toast({
+                              title: collection.isFollowing ? "Unfollowed" : "Following",
+                              description: collection.isFollowing 
+                                ? `You have unfollowed ${collection.title}`
+                                : `You are now following ${collection.title}`,
+                            });
                           }}
                         >
                           {collection.isFollowing ? "Following" : "Follow"}
                         </Button>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        Updated {collection.updated}
-                      </span>
+                      
+                      {/* Timestamp moved to bottom */}
+                      <div className="text-center pt-2 border-t border-gray-100">
+                        <span className="text-xs text-gray-500">
+                          Updated {collection.updated}
+                        </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -446,19 +466,27 @@ export default function Discover() {
           {/* People Tab */}
           <TabsContent value="people" className="mt-6">
             <h2 className="text-xl font-semibold mb-4">People</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {filteredUsers.map((user: any) => (
                 <UserCard
                   key={user.id}
                   user={user}
                   creatorName={user.createdBy ? "Admin" : undefined}
                   onFollow={(userId) => {
-                    // TODO: Implement follow functionality
+                    // TODO: Implement follow functionality with real API
                     console.log("Follow user:", userId);
+                    toast({
+                      title: "Following",
+                      description: `You are now following ${user.firstName} ${user.lastName}`,
+                    });
                   }}
                   onUnfollow={(userId) => {
-                    // TODO: Implement unfollow functionality
+                    // TODO: Implement unfollow functionality with real API
                     console.log("Unfollow user:", userId);
+                    toast({
+                      title: "Unfollowed",
+                      description: `You have unfollowed ${user.firstName} ${user.lastName}`,
+                    });
                   }}
                 />
               ))}

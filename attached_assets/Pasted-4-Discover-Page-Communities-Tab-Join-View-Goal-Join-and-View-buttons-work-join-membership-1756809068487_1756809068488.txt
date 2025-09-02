@@ -1,0 +1,83 @@
+4 — Discover Page — Communities Tab (Join & View)
+
+Goal: Join and View buttons work (join membership and open community detail).
+
+Steps
+
+Locate buttons in CommunityCard component.
+
+Ensure onClick handlers call:
+
+Join: POST /communities/:id/join and update UI to Joined state.
+
+View: navigate to /communities/:id (CommunityDetail).
+
+Add loading state and error handling.
+
+Tests
+
+Click Join → button toggles to Joined (or Join -> Joined) and server membership created.
+
+Click View → navigates to community detail page.
+
+Acceptance
+
+✅ Join and View function and persist membership.
+
+5 — Discover Page — Notebooks Tab (layout + tags)
+
+Goal: Move “Updated X days ago” to bottom of card; confirm tags and add multi-select on create notebook.
+
+Steps
+
+NotebookCard component: rearrange DOM so tags and description are in the body and Updated timestamp is placed in the footer (bottom) — use flex column with justify-between.
+
+Inspect CSS to prevent timestamp squeezing: ensure card has min-height or use flex-col + space-between.
+
+Confirm tags displayed on notebook cards are coming from tags relation (not hardcoded).
+
+If tags come from DB, ensure Notebook creation UI includes a multi-select field that writes an array of tag_ids to the backend.
+
+Tests
+
+Notebook cards show timestamp at bottom consistently (desktop + mobile).
+
+Creating a notebook: multi-select tags, submit → tags appear on card and stored in DB.
+
+Acceptance
+
+✅ Timestamp anchored bottom.
+
+✅ Tags are dynamic from DB and the create form supports multi-select.
+
+6 — Discover Page — People Tab (layout + follow)
+
+Goal: Show two user cards per row; Follow buttons work.
+
+Steps
+
+Change layout grid to grid grid-cols-1 sm:grid-cols-2 gap-4 (or equivalent) to show two cards per row on wider screens.
+
+Inspect Follow button handler:
+
+Ensure it calls POST /users/:id/follow (or toggle endpoint).
+
+Ensure state updates to “Following”.
+
+Add optimistic UI update + rollback on failure.
+
+Handle unauthenticated user (show login prompt).
+
+Tests
+
+Page displays two cards per row on desktop, one on mobile.
+
+Click Follow → button changes to Following; check DB follows entry.
+
+Click again (unfollow) → toggles off.
+
+Acceptance
+
+✅ Two cards per row layout.
+
+✅ Follow/unfollow works and persists.
