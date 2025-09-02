@@ -112,8 +112,8 @@ export default function Chat() {
     handleSendMessage(prompt);
   };
 
-  // Check if this is a new chat (no recent conversations)
-  const isNewChat = conversations.length === 0;
+  // Always show example prompts on the main chat page since this is the starting point
+  const isNewChat = true;
 
   return (
     <TwitterStyleLayout>
