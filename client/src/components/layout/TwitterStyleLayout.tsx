@@ -89,9 +89,9 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Full-width Header */}
-      <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50">
+    <>
+      {/* Full-width Header - placed outside any container */}
+      <header className="fixed top-0 left-0 right-0 w-screen bg-white border-b border-gray-200 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
@@ -164,10 +164,11 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
         </div>
       </header>
 
-      {/* Main Layout Container */}
-      <div className="max-w-6xl mx-auto flex">
-        {/* Left Sidebar - Navigation */}
-        <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
+      {/* Main Layout Container with top padding for fixed header */}
+      <div className="min-h-screen bg-gray-50 pt-16">
+        <div className="max-w-6xl mx-auto flex">
+          {/* Left Sidebar - Navigation */}
+          <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-16">
           {/* Logo */}
           <div className="p-4 border-b border-gray-200">
             <Link href="/" className="flex items-center space-x-2">
@@ -486,7 +487,8 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
             </div>
           </ScrollArea>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
