@@ -54,6 +54,20 @@ export default function TopicDetail() {
   };
 
   const currentTopic = topic || defaultTopic;
+  
+  // Show loading state while data loads
+  if (!topic && !currentTopic) {
+    return (
+      <TwitterStyleLayout>
+        <div className="max-w-3xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+            <div className="h-32 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </TwitterStyleLayout>
+    );
+  }
 
   const handleFollowTopic = () => {
     setIsFollowing(!isFollowing);
@@ -82,8 +96,8 @@ export default function TopicDetail() {
                   </div>
                   <div>
                     <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                      {currentTopic.name}
-                      {currentTopic.trending && (
+                      {currentTopic.name || 'Topic'}
+                      {currentTopic.trending && currentTopic.trending && (
                         <Badge variant="secondary" className="bg-orange-100 text-orange-700">
                           <TrendingUp className="w-3 h-3 mr-1" />
                           Trending
@@ -91,17 +105,17 @@ export default function TopicDetail() {
                       )}
                     </CardTitle>
                     <p className="text-sm text-gray-500">
-                      {currentTopic.category} • Created {currentTopic.createdAt}
+                      {currentTopic.category || 'General'} • Created {currentTopic.createdAt || 'Recently'}
                     </p>
                   </div>
                 </div>
                 
                 <CardDescription className="text-base mb-4">
-                  {currentTopic.description}
+                  {currentTopic.description || 'No description available'}
                 </CardDescription>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {currentTopic.tags.map((tag: string) => (
+                  {(currentTopic.tags || []).map((tag: string) => (
                     <Badge key={tag} variant="outline" className="text-xs">
                       {tag}
                     </Badge>
@@ -111,22 +125,22 @@ export default function TopicDetail() {
                 <div className="flex items-center gap-6 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <FileText className="w-4 h-4" />
-                    {formatStats(currentTopic.postCount)} posts
+                    {formatStats(currentTopic.postCount || 0)} posts
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
-                    {formatStats(currentTopic.followerCount)} followers
+                    {formatStats(currentTopic.followerCount || 0)} followers
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2 ml-4">
                 <Button
-                  variant={currentTopic.isFollowing ? "secondary" : "default"}
+                  variant={(currentTopic.isFollowing || false) ? "secondary" : "default"}
                   onClick={handleFollowTopic}
-                  className={currentTopic.isFollowing ? "" : "bg-purple-600 hover:bg-purple-700"}
+                  className={(currentTopic.isFollowing || false) ? "" : "bg-purple-600 hover:bg-purple-700"}
                 >
-                  {currentTopic.isFollowing ? "Following" : "Follow Topic"}
+                  {(currentTopic.isFollowing || false) ? "Following" : "Follow Topic"}
                 </Button>
               </div>
             </div>
@@ -138,8 +152,8 @@ export default function TopicDetail() {
           isModal={false}
           context={{ 
             type: 'topic', 
-            id: currentTopic.id, 
-            name: currentTopic.name 
+            id: currentTopic.id || 1, 
+            name: currentTopic.name || 'Topic' 
           }} 
         />
 
@@ -155,7 +169,7 @@ export default function TopicDetail() {
                 <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-medium mb-2">No posts yet</h3>
                 <p className="text-gray-500 mb-4">
-                  Be the first to start a discussion about {currentTopic.name}!
+                  Be the first to start a discussion about {currentTopic.name || 'this topic'}!
                 </p>
                 <Button 
                   onClick={() => document.querySelector('textarea')?.focus()}

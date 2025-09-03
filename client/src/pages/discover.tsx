@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useFollowUser } from "@/hooks/use-collections";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Search, 
   Heart, 
@@ -29,6 +30,7 @@ export default function Discover() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   const followUser = useFollowUser();
 
   const { data: collections = [], isLoading: collectionsLoading } = useQuery({
@@ -444,9 +446,25 @@ export default function Discover() {
                   user={user}
                   creatorName={user.createdBy ? "Admin" : undefined}
                   onFollow={(userId) => {
+                    if (!isAuthenticated) {
+                      toast({
+                        title: "Authentication Required",
+                        description: "Please sign in to follow users",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
                     followUser.mutate(userId);
                   }}
                   onUnfollow={(userId) => {
+                    if (!isAuthenticated) {
+                      toast({
+                        title: "Authentication Required",
+                        description: "Please sign in to unfollow users",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
                     followUser.mutate(userId);
                   }}
                 />
