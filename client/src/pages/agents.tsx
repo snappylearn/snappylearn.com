@@ -50,7 +50,7 @@ export default function Agents() {
 
   return (
     <TwitterStyleLayout>
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div>
         {/* Header - Clean and balanced like Communities */}
         <div className="flex justify-between items-center mb-6">
           <div>
