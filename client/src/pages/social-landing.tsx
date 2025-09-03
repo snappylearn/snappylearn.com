@@ -32,7 +32,7 @@ export default function SocialLanding() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -43,6 +43,10 @@ export default function SocialLanding() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+        }
         window.location.href = '/';
       } else {
         toast({
@@ -67,7 +71,7 @@ export default function SocialLanding() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -75,12 +79,22 @@ export default function SocialLanding() {
       });
 
       if (response.ok) {
-        window.location.href = '/';
+        const data = await response.json();
+        toast({
+          title: "Account Created!",
+          description: "Please sign in with your new account.",
+          variant: "default",
+        });
+        // Switch to sign in tab after successful registration
+        const signInTab = document.querySelector('[data-value="signin"]') as HTMLElement;
+        if (signInTab) {
+          signInTab.click();
+        }
       } else {
         const data = await response.json();
         toast({
           title: "Registration Failed",
-          description: data.message || "Something went wrong",
+          description: data.error || "Something went wrong",
           variant: "destructive",
         });
       }
