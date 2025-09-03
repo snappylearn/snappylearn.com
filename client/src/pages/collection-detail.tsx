@@ -26,20 +26,36 @@ export default function CollectionDetail() {
 
   const collectionId = parseInt(params.id!);
 
-  // Redirect to home if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to view this collection.",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        setLocation("/");
-      }, 1000);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast, setLocation]);
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <TwitterStyleLayout>
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-500">Loading...</p>
+          </div>
+        </div>
+      </TwitterStyleLayout>
+    );
+  }
+
+  // Only redirect if we're definitely not authenticated after loading
+  if (!isLoading && !isAuthenticated) {
+    return (
+      <TwitterStyleLayout>
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="text-center">
+            <p className="text-lg font-medium mb-2">Authentication Required</p>
+            <p className="text-sm text-gray-500 mb-4">Please sign in to view this collection.</p>
+            <Button onClick={() => setLocation("/")} className="bg-purple-600 hover:bg-purple-700">
+              Go to Home
+            </Button>
+          </div>
+        </div>
+      </TwitterStyleLayout>
+    );
+  }
   
   const { data: collection, isLoading: collectionLoading, error: collectionError } = useCollection(collectionId);
   const { data: documents = [] } = useQuery({
