@@ -168,7 +168,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
       <div className="min-h-screen bg-gray-50 pt-16">
         <div className="max-w-6xl mx-auto flex">
           {/* Left Sidebar - Navigation */}
-          <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-16">
+          <div className="w-64 min-w-[16rem] bg-white border-r border-gray-200 flex flex-col h-screen sticky top-16">
           {/* Navigation */}
           <ScrollArea className="flex-1">
             <nav className="p-4 space-y-1">
@@ -241,7 +241,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
         </div>
 
         {/* Right Sidebar - Social Features */}
-        <div className="w-80 bg-white border-l border-gray-200 h-screen sticky top-0">
+        <div className="w-80 min-w-[20rem] bg-white border-l border-gray-200 h-screen sticky top-0">
           <ScrollArea className="h-full">
             <div className="p-4 space-y-6">
               
