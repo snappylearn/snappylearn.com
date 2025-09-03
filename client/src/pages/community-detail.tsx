@@ -22,88 +22,50 @@ export default function CommunityDetail() {
   const { id } = useParams();
   const [isJoined, setIsJoined] = useState(false);
 
-  // Sample community data
-  const community = {
-    id: parseInt(id || "1"),
-    name: "AI Researchers",
-    description: "Discussion group for AI researchers and enthusiasts sharing latest papers, insights, and breakthroughs in artificial intelligence. Connect with fellow researchers, share your work, and stay updated on the cutting edge of AI development.",
-    memberCount: 2400,
-    postCount: 156,
-    bannerImage: "/community-banners/ai.jpg",
-    tags: ["AI", "Research", "Machine Learning", "Deep Learning", "Neural Networks"],
-    isJoined: isJoined,
-    creator: { 
-      firstName: "Dr. Sarah", 
-      lastName: "Chen", 
-      profileImageUrl: "/avatars/sarah.jpg",
-      bio: "AI Research Scientist at Stanford University"
-    },
-    createdAt: "March 2024",
-    rules: [
-      "Keep discussions relevant to AI and machine learning",
-      "Share original research and insights",
-      "Be respectful and constructive in all interactions",
-      "No spam or self-promotion without context"
-    ]
-  };
+  // Fetch real community data from API
+  const { data: community, isLoading: communityLoading } = useQuery({
+    queryKey: [`/api/communities/${id}`],
+    enabled: !!id,
+  });
 
-  // Sample posts for this community
-  const communityPosts = [
-    {
-      id: 1,
-      content: "Just published our latest paper on transformer efficiency! We achieved 40% faster training with minimal accuracy loss. The key insight was optimizing attention computation patterns. Link to paper in comments. #AI #Research",
-      author: {
-        id: "1",
-        firstName: "Dr. Sarah",
-        lastName: "Chen",
-        profileImageUrl: "/avatars/sarah.jpg"
-      },
-      createdAt: "2 hours ago",
-      stats: {
-        likes: 24,
-        comments: 8,
-        shares: 5
-      },
-      isLiked: false,
-      communityId: 1
-    },
-    {
-      id: 2,
-      content: "Has anyone experimented with the new GPT-4 Vision capabilities for medical imaging? I'm curious about performance compared to specialized models. Working on a project and would love to hear experiences.",
-      author: {
-        id: "2",
-        firstName: "Marcus",
-        lastName: "Johnson",
-        profileImageUrl: "/avatars/marcus.jpg"
-      },
-      createdAt: "4 hours ago",
-      stats: {
-        likes: 18,
-        comments: 12,
-        shares: 3
-      },
-      isLiked: true,
-      communityId: 1
-    },
-    {
-      id: 3,
-      content: "Breakthrough in our lab! We've developed a new architecture that reduces hallucinations in language models by 60%. The approach combines retrieval-augmented generation with confidence scoring. Excited to share more details soon!",
-      author: {
-        id: "3",
-        firstName: "Elena",
-        lastName: "Vasquez",
-        profileImageUrl: "/avatars/elena.jpg"
-      },
-      createdAt: "1 day ago",
-      stats: {
-        likes: 67,
-        comments: 23,
-        shares: 15
-      },
-      isLiked: false,
-      communityId: 1
-    }
-  ];
+  // Fetch real posts for this community
+  const { data: communityPosts = [], isLoading: postsLoading } = useQuery({
+    queryKey: [`/api/posts?communityId=${id}`],
+    enabled: !!id,
+  });
+
+  // Fetch suggested users for "Who to follow"
+  const { data: suggestedUsers = [] } = useQuery({
+    queryKey: ["/api/users/suggested"],
+  });
+
+  // Show loading state while data loads
+  if (communityLoading) {
+    return (
+      <TwitterStyleLayout>
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+            <div className="h-32 bg-gray-200 rounded-lg"></div>
+            <div className="h-64 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </TwitterStyleLayout>
+    );
+  }
+
+  // Show error state if community not found
+  if (!community) {
+    return (
+      <TwitterStyleLayout>
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <h2 className="text-2xl font-bold mb-4">Community Not Found</h2>
+          <p className="text-gray-600">The community you're looking for doesn't exist.</p>
+        </div>
+      </TwitterStyleLayout>
+    );
+  }
+
 
   const handleJoinCommunity = () => {
     setIsJoined(!isJoined);
@@ -132,13 +94,13 @@ export default function CommunityDetail() {
                     <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {community.memberCount.toLocaleString()} members
+                        {community.memberCount?.toLocaleString() || 0} members
                       </span>
                       <span className="flex items-center gap-1">
                         <FileText className="h-4 w-4" />
-                        {community.postCount} posts
+                        {community.postCount || 0} posts
                       </span>
-                      <span>Created {community.createdAt}</span>
+                      <span>Created {new Date(community.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -170,28 +132,32 @@ export default function CommunityDetail() {
                 </CardDescription>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {community.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
+                  {community.tags?.map((tag: any) => (
+                    <Badge key={tag.id || tag.name || tag} variant="secondary">
+                      {tag.name || tag}
                     </Badge>
                   ))}
                 </div>
 
                 {/* Creator Info */}
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={community.creator.profileImageUrl} />
-                    <AvatarFallback>
-                      {community.creator.firstName.charAt(0)}{community.creator.lastName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">
-                      Created by {community.creator.firstName} {community.creator.lastName}
-                    </p>
-                    <p className="text-xs text-gray-600">{community.creator.bio}</p>
+                {community.creator && (
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={community.creator.profileImageUrl} />
+                      <AvatarFallback>
+                        {community.creator.firstName?.charAt(0)}{community.creator.lastName?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-sm">
+                        Created by {community.creator.firstName} {community.creator.lastName}
+                      </p>
+                      {community.creator.bio && (
+                        <p className="text-xs text-gray-600">{community.creator.bio}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -208,66 +174,121 @@ export default function CommunityDetail() {
           isJoined={isJoined}
         />
 
-        {/* Posts Feed */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Community Posts</h2>
-          
-          {communityPosts.map((post) => (
-            <Card key={post.id} className="hover:shadow-sm transition-shadow duration-200">
-              <CardContent className="p-6">
-                {/* Post Header */}
-                <div className="flex items-start space-x-3 mb-4">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={post.author.profileImageUrl} />
-                    <AvatarFallback>
-                      {post.author.firstName.charAt(0)}{post.author.lastName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <p className="font-semibold text-sm">
-                        {post.author.firstName} {post.author.lastName}
-                      </p>
-                      <span className="text-gray-500 text-sm">•</span>
-                      <span className="text-gray-500 text-sm">{post.createdAt}</span>
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content - Posts Feed */}
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-xl font-semibold">Community Posts</h2>
+            
+            {postsLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-32 bg-gray-200 rounded-lg"></div>
+                  </div>
+                ))}
+              </div>
+            ) : communityPosts.length > 0 ? (
+              communityPosts.map((post: any) => (
+                <Card key={post.id} className="hover:shadow-sm transition-shadow duration-200">
+                  <CardContent className="p-6">
+                    {/* Post Header */}
+                    <div className="flex items-start space-x-3 mb-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={post.author?.profileImageUrl} />
+                        <AvatarFallback>
+                          {post.author?.firstName?.charAt(0)}{post.author?.lastName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <p className="font-semibold text-sm">
+                            {post.author?.firstName} {post.author?.lastName}
+                          </p>
+                          <span className="text-gray-500 text-sm">•</span>
+                          <span className="text-gray-500 text-sm">
+                            {new Date(post.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </div>
 
-                {/* Post Content */}
-                <div className="mb-4">
-                  <p className="text-gray-900 leading-relaxed">
-                    {post.content}
-                  </p>
-                </div>
+                    {/* Post Title and Content */}
+                    {post.title && (
+                      <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+                    )}
+                    <div className="mb-4">
+                      <p className="text-gray-900 leading-relaxed">
+                        {post.content}
+                      </p>
+                    </div>
 
-                {/* Post Actions */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <div className="flex items-center space-x-6">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`text-gray-500 hover:text-red-500 ${post.isLiked ? 'text-red-500' : ''}`}
-                    >
-                      <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? 'fill-current' : ''}`} />
-                      {formatStats(post.stats.likes)}
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-500">
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      {formatStats(post.stats.comments)}
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-green-500">
-                      <Share className="h-4 w-4 mr-1" />
-                      {formatStats(post.stats.shares)}
+                    {/* Post Actions */}
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="flex items-center space-x-6">
+                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500">
+                          <Heart className="h-4 w-4 mr-1" />
+                          {post.likesCount || 0}
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-500">
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          {post.commentsCount || 0}
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-green-500">
+                          <Share className="h-4 w-4 mr-1" />
+                          Share
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+                <h3 className="text-lg font-medium mb-2">No posts yet</h3>
+                <p className="text-gray-500">Be the first to share something in this community!</p>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Who to Follow */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Who to follow</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {suggestedUsers.slice(0, 3).map((user: any) => (
+                  <div key={user.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.profileImageUrl} />
+                        <AvatarFallback>
+                          {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          @{user.email?.split('@')[0]}
+                        </p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      Follow
                     </Button>
                   </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
-          ))}
+          </div>
         </div>
 
         {/* Empty State for Non-Members */}
