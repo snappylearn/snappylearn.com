@@ -25,6 +25,7 @@ export const userTypes = pgTable("user_types", {
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
   email: varchar("email").unique(),
+  username: varchar("username").unique(), // Unique username for @mentions and user references
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
