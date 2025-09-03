@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
+import { ShareThoughtsBox } from "@/components/ShareThoughtsBox";
 import { 
   Users, 
   FileText,
@@ -13,7 +13,6 @@ import {
   Heart,
   Share,
   MoreHorizontal,
-  Send,
   UserCheck,
   Settings as SettingsIcon
 } from "lucide-react";
@@ -21,7 +20,6 @@ import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 
 export default function CommunityDetail() {
   const { id } = useParams();
-  const [newPost, setNewPost] = useState("");
   const [isJoined, setIsJoined] = useState(false);
 
   // Sample community data
@@ -112,13 +110,6 @@ export default function CommunityDetail() {
     // TODO: API call to join/leave community
   };
 
-  const handlePostSubmit = () => {
-    if (newPost.trim()) {
-      // TODO: API call to create post
-      console.log("Creating post:", newPost);
-      setNewPost("");
-    }
-  };
 
   const formatStats = (num: number) => {
     if (num >= 1000) {
@@ -206,37 +197,15 @@ export default function CommunityDetail() {
           </CardHeader>
         </Card>
 
-        {/* Post Creation */}
+        {/* Share Your Thoughts */}
         {isJoined && (
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Add Post to Community</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Textarea
-                  placeholder="Share your thoughts, research, or questions with the community..."
-                  value={newPost}
-                  onChange={(e) => setNewPost(e.target.value)}
-                  rows={3}
-                  className="resize-none"
-                />
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">
-                    {newPost.length}/280 characters
-                  </span>
-                  <Button 
-                    onClick={handlePostSubmit}
-                    disabled={!newPost.trim() || newPost.length > 280}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Post
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ShareThoughtsBox 
+            context={{ 
+              type: 'community', 
+              id: community.id, 
+              name: community.name 
+            }} 
+          />
         )}
 
         {/* Posts Feed */}

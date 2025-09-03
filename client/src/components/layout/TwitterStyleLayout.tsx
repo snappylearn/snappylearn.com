@@ -83,6 +83,11 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     queryKey: ['/api/posts'],
   });
 
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: !!user,
+  });
+
   const { data: conversations = [] } = useQuery({
     queryKey: ['/api/conversations'],
     enabled: location === '/chat' || location.startsWith('/conversations/'),
@@ -286,14 +291,16 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {posts.slice(0, 3).map((post: any, index: number) => (
-                    <div key={post.id || index} className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                      <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                        {post.title || "Interesting discussion about the future of AI"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {post.stats?.likeCount || Math.floor(Math.random() * 100)} likes • {post.stats?.commentCount || Math.floor(Math.random() * 20)} comments
-                      </p>
-                    </div>
+                    <Link key={post.id || index} href={`/posts/${post.id}`}>
+                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                          {post.title || "Interesting discussion about the future of AI"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {post.viewCount || 0} views • {post.stats?.commentCount || 0} comments
+                        </p>
+                      </div>
+                    </Link>
                   ))}
                   {posts.length === 0 && (
                     <>
@@ -431,23 +438,21 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {/* Mock user topics - replace with real data */}
-                    {[
-                      { name: "AI Research", posts: 15, icon: TrendingUp },
-                      { name: "Product Design", posts: 8, icon: BookOpen },
-                      { name: "Leadership", posts: 12, icon: Users }
-                    ].map((topic, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <topic.icon className="w-4 h-4 text-purple-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{topic.name}</p>
-                            <p className="text-xs text-gray-500">{topic.posts} posts</p>
+                    {/* Real user topics from database */}
+                    {topics.slice(0, 3).map((topic: any) => (
+                      <Link key={topic.id} href={`/topics/${topic.id}`}>
+                        <div className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                              <BookOpen className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{topic.name}</p>
+                              <p className="text-xs text-gray-500">{topic.postCount || 0} posts</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                     <Button variant="link" className="w-full text-purple-600 text-sm">
                       Explore more topics

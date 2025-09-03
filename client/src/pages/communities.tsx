@@ -89,78 +89,8 @@ export default function Communities() {
     },
   });
 
-  // Sample communities data for demo
-  const sampleCommunities = [
-    {
-      id: 1,
-      name: "AI Researchers",
-      description: "Discussion group for AI researchers and enthusiasts sharing latest papers, insights, and breakthroughs in artificial intelligence",
-      memberCount: 2400,
-      postCount: 156,
-      bannerImage: "/community-banners/ai.jpg",
-      tags: ["AI", "Research", "Machine Learning"],
-      isJoined: false,
-      creator: { firstName: "Dr. Sarah", lastName: "Chen", profileImageUrl: "/avatars/sarah.jpg" }
-    },
-    {
-      id: 2,
-      name: "Startup Founders",
-      description: "Network of startup founders sharing experiences, advice, and strategies for building successful companies",
-      memberCount: 1800,
-      postCount: 342,
-      bannerImage: "/community-banners/startups.jpg", 
-      tags: ["Startups", "Entrepreneurship", "Business"],
-      isJoined: true,
-      creator: { firstName: "Mark", lastName: "Rodriguez", profileImageUrl: "/avatars/mark.jpg" }
-    },
-    {
-      id: 3,
-      name: "Design Systems",
-      description: "Community for designers working on design systems, component libraries, and design operations",
-      memberCount: 950,
-      postCount: 89,
-      bannerImage: "/community-banners/design.jpg",
-      tags: ["Design", "UI/UX", "Systems"],
-      isJoined: false,
-      creator: { firstName: "Alex", lastName: "Thompson", profileImageUrl: "/avatars/alex.jpg" }
-    },
-    {
-      id: 4,
-      name: "Web3 Developers",
-      description: "Developers building decentralized applications, smart contracts, and blockchain solutions",
-      memberCount: 1650,
-      postCount: 234,
-      bannerImage: "/community-banners/web3.jpg",
-      tags: ["Web3", "Blockchain", "DApps"],
-      isJoined: false,
-      creator: { firstName: "Elena", lastName: "Vasquez", profileImageUrl: "/avatars/elena.jpg" }
-    },
-    {
-      id: 5,
-      name: "Data Science",
-      description: "Data scientists, analysts, and ML engineers sharing insights, techniques, and career advice",
-      memberCount: 3200,
-      postCount: 567,
-      bannerImage: "/community-banners/data.jpg",
-      tags: ["Data Science", "Analytics", "Python"],
-      isJoined: true,
-      creator: { firstName: "Michael", lastName: "Zhang", profileImageUrl: "/avatars/michael.jpg" }
-    },
-    {
-      id: 6,
-      name: "Remote Workers",
-      description: "Community for remote workers sharing tips, tools, and experiences about distributed work",
-      memberCount: 2100,
-      postCount: 445,
-      bannerImage: "/community-banners/remote.jpg",
-      tags: ["Remote Work", "Productivity", "Lifestyle"],
-      isJoined: false,
-      creator: { firstName: "Lisa", lastName: "Park", profileImageUrl: "/avatars/lisa.jpg" }
-    }
-  ];
-
-  // Use real communities data instead of sample data
-  const communitiesData: CommunityWithStats[] = communities.length > 0 ? communities : sampleCommunities;
+  // Use only real communities data from database
+  const communitiesData: CommunityWithStats[] = communities;
   
   const filteredCommunities = communitiesData.filter((community: CommunityWithStats) =>
     community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

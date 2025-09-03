@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
-import { CreatePostForm } from "@/components/posts/CreatePostForm";
+import { ShareThoughtsBox } from "@/components/ShareThoughtsBox";
 import { PostCard } from "@/components/posts/PostCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,7 +52,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Main Feed */}
         <div>
-            <CreatePostForm />
+            <ShareThoughtsBox context={{ type: 'home' }} />
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
               <TabsList className="grid w-full grid-cols-3">

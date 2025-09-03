@@ -13,6 +13,11 @@ import {
   creditTransactions,
   userCredits,
   creditGifts,
+  posts,
+  communities,
+  communityTags,
+  userCommunities,
+  tags,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -1037,11 +1042,12 @@ export class DatabaseStorage implements IStorage {
           profileImageUrl: users.profileImageUrl,
         },
         memberCount: sql<number>`COALESCE(COUNT(DISTINCT ${userCommunities.id}), 0)`,
-        postCount: sql<number>`0`, // TODO: Implement posts for communities
+        postCount: sql<number>`COALESCE(COUNT(DISTINCT ${posts.id}), 0)`,
       })
       .from(communities)
       .leftJoin(users, eq(communities.createdBy, users.id))
       .leftJoin(userCommunities, eq(communities.id, userCommunities.communityId))
+      .leftJoin(posts, and(eq(posts.communityId, communities.id), eq(posts.isPublished, true)))
       .where(eq(communities.isActive, true))
       .groupBy(communities.id, users.id);
 
