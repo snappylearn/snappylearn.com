@@ -169,13 +169,6 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
         <div className="max-w-6xl mx-auto flex">
           {/* Left Sidebar - Navigation */}
           <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-16">
-          {/* Logo */}
-          <div className="p-4 border-b border-gray-200">
-            <Link href="/" className="flex items-center space-x-2">
-              <img src={snappyLearnLogo} alt="SnappyLearn" className="h-8 w-auto" />
-            </Link>
-          </div>
-
           {/* Navigation */}
           <ScrollArea className="flex-1">
             <nav className="p-4 space-y-1">
