@@ -19,21 +19,26 @@ import {
   BookOpen,
   TrendingUp,
   CheckSquare,
-  Bot
+  Bot,
+  Search,
+  Bell
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 interface TwitterStyleLayoutProps {
   children: ReactNode;
   currentCollectionId?: number;
 }
 
-const snappyLearnLogo = "/snappylearn-transparent-logo.png";
+const snappyLearnLogo = "/snappylearn-new-logo.png";
 
 export function TwitterStyleLayout({ children, currentCollectionId }: TwitterStyleLayoutProps) {
   const [location] = useLocation();
   const { user, signOut } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch collections data for the sidebar
   const { data: collections = [] } = useQuery({
@@ -158,6 +163,46 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
 
         {/* Main Content Area */}
         <div className="flex-1 max-w-2xl">
+          {/* SnipIn-style Header */}
+          <header className="bg-white border-b border-gray-200 sticky top-0 z-40 px-4 py-3">
+            <div className="flex items-center justify-between">
+              {/* Logo */}
+              <Link href="/" className="flex items-center space-x-2">
+                <img src={snappyLearnLogo} alt="SnappyLearn" className="h-8 w-auto" />
+              </Link>
+              
+              {/* Search Bar */}
+              <div className="flex-1 max-w-md mx-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search SnappyLearn"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 w-full bg-gray-100 border-none rounded-full focus:bg-white focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+              
+              {/* User Actions */}
+              <div className="flex items-center space-x-3">
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-purple-600 rounded-full text-xs text-white flex items-center justify-center">
+                    1
+                  </span>
+                </Button>
+                
+                <Avatar className="h-8 w-8 ring-2 ring-gray-200 hover:ring-purple-400 transition-all cursor-pointer">
+                  <AvatarImage src={user?.profileImageUrl || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white">
+                    {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
+          </header>
+          
           <main className="py-6 px-4">
             {children}
           </main>

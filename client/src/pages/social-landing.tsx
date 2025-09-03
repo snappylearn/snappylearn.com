@@ -8,7 +8,7 @@ import { Brain, Users, Share, Zap, ArrowRight, BookOpen, MessageSquare, Network 
 import { AuthPage } from "@/components/auth/AuthPage";
 import { useState } from "react";
 
-const snappyLearnLogo = "/snappylearn-transparent-logo.png";
+const snappyLearnLogo = "/snappylearn-new-logo.png";
 const snappyLearnIcon = "/snappylearn-icon.png";
 
 export default function SocialLanding() {

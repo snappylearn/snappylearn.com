@@ -20,7 +20,7 @@ interface UnifiedLayoutProps {
   showRightSidebar?: boolean;
 }
 
-const snappyLearnLogo = "/snappylearn-transparent-logo.png";
+const snappyLearnLogo = "/snappylearn-new-logo.png";
 
 export function UnifiedLayout({ children, showRightSidebar = false }: UnifiedLayoutProps) {
   const [location] = useLocation();
