@@ -12,29 +12,29 @@ import type {
 // Collections API
 export const collectionsApi = {
   getAll: async (): Promise<CollectionWithStats[]> => {
-    const res = await apiRequest("GET", "/api/collections");
+    const res = await apiRequest("/api/collections", "GET");
     return res.json();
   },
 
   getById: async (id: number): Promise<Collection> => {
-    const res = await apiRequest("GET", `/api/collections/${id}`);
+    const res = await apiRequest(`/api/collections/${id}`, "GET");
     return res.json();
   },
 
   create: async (data: Omit<InsertCollection, "userId">): Promise<Collection> => {
-    const res = await apiRequest("POST", "/api/collections", data);
+    const res = await apiRequest("/api/collections", "POST", data);
     return res.json();
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiRequest("DELETE", `/api/collections/${id}`);
+    await apiRequest(`/api/collections/${id}`, "DELETE");
   },
 };
 
 // Documents API
 export const documentsApi = {
   getByCollection: async (collectionId: number): Promise<Document[]> => {
-    const res = await apiRequest("GET", `/api/collections/${collectionId}/documents`);
+    const res = await apiRequest(`/api/collections/${collectionId}/documents`, "GET");
     return res.json();
   },
 
@@ -57,19 +57,19 @@ export const documentsApi = {
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiRequest("DELETE", `/api/documents/${id}`);
+    await apiRequest(`/api/documents/${id}`, "DELETE");
   },
 };
 
 // Conversations API
 export const conversationsApi = {
   getAll: async (): Promise<ConversationWithPreview[]> => {
-    const res = await apiRequest("GET", "/api/conversations");
+    const res = await apiRequest("/api/conversations", "GET");
     return res.json();
   },
 
   getById: async (id: number): Promise<Conversation> => {
-    const res = await apiRequest("GET", `/api/conversations/${id}`);
+    const res = await apiRequest(`/api/conversations/${id}`, "GET");
     return res.json();
   },
 
@@ -101,7 +101,7 @@ export const conversationsApi = {
       return res.json();
     } else {
       // Use regular JSON for text-only messages
-      const res = await apiRequest("POST", "/api/conversations", data);
+      const res = await apiRequest("/api/conversations", "POST", data);
       return res.json();
     }
   },
@@ -110,12 +110,12 @@ export const conversationsApi = {
 // Messages API
 export const messagesApi = {
   getByConversation: async (conversationId: number): Promise<Message[]> => {
-    const res = await apiRequest("GET", `/api/conversations/${conversationId}/messages`);
+    const res = await apiRequest(`/api/conversations/${conversationId}/messages`, "GET");
     return res.json();
   },
 
   send: async (conversationId: number, content: string): Promise<Message[]> => {
-    const res = await apiRequest("POST", `/api/conversations/${conversationId}/messages`, { content });
+    const res = await apiRequest(`/api/conversations/${conversationId}/messages`, "POST", { content });
     return res.json();
   },
 };
@@ -123,10 +123,10 @@ export const messagesApi = {
 // Communities API
 export const communitiesApi = {
   join: async (communityId: number): Promise<void> => {
-    await apiRequest("POST", `/api/communities/${communityId}/join`);
+    await apiRequest(`/api/communities/${communityId}/join`, "POST");
   },
 
   leave: async (communityId: number): Promise<void> => {
-    await apiRequest("DELETE", `/api/communities/${communityId}/leave`);
+    await apiRequest(`/api/communities/${communityId}/leave`, "DELETE");
   },
 };
