@@ -24,7 +24,6 @@ import {
   Settings as SettingsIcon,
   Mail,
   Search,
-  TestTube
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
 import type { Task } from "@shared/schema";
@@ -243,14 +242,6 @@ export default function Tasks() {
     });
   };
 
-  const handleTestTask = (taskId: number) => {
-    // TODO: API call to test task and preview results
-    console.log("Testing task:", taskId);
-    toast({
-      title: "Test Complete",
-      description: "Task test completed. Check console for results.",
-    });
-  };
 
   const handleDeleteTask = (taskId: number) => {
     if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
@@ -557,15 +548,6 @@ export default function Tasks() {
                   </div>
                   
                   <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTestTask(task.id)}
-                      className="text-green-600 hover:text-green-700"
-                    >
-                      <TestTube className="h-4 w-4 mr-1" />
-                      Test
-                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
