@@ -17,6 +17,7 @@ import {
   Timer
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
+import { tasksApi } from "@/lib/api";
 import type { Task, TaskRun } from "@shared/schema";
 
 export default function TaskDetail() {
@@ -25,12 +26,14 @@ export default function TaskDetail() {
   // Fetch task details
   const { data: task, isLoading: taskLoading } = useQuery<Task>({
     queryKey: ['/api/tasks', id],
+    queryFn: () => tasksApi.getById(parseInt(id!)),
     enabled: !!id,
   });
 
   // Fetch task runs
   const { data: taskRuns = [], isLoading: runsLoading } = useQuery<TaskRun[]>({
     queryKey: ['/api/tasks', id, 'runs'],
+    queryFn: () => tasksApi.getRuns(parseInt(id!)),
     enabled: !!id,
   });
 

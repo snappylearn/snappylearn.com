@@ -161,6 +161,16 @@ export const tasksApi = {
     return res.json();
   },
 
+  getById: async (id: number): Promise<any> => {
+    const res = await apiRequest(`/api/tasks/${id}`, "GET");
+    return res.json();
+  },
+
+  getRuns: async (id: number): Promise<any[]> => {
+    const res = await apiRequest(`/api/tasks/${id}/runs`, "GET");
+    return res.json();
+  },
+
   create: async (data: { title: string; description: string; prompt: string; schedule: string; isActive?: boolean }): Promise<any> => {
     const res = await apiRequest("/api/tasks", "POST", data);
     return res.json();
