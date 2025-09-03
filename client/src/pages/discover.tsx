@@ -47,42 +47,7 @@ export default function Discover() {
     queryKey: ['/api/users'],
   });
 
-  // Sample community data for demo
-  const sampleCommunities = [
-    {
-      id: 1,
-      name: "AI Researchers",
-      description: "Discussion group for AI researchers and enthusiasts",
-      memberCount: 2400,
-      postCount: 156,
-      bannerImage: "/community-banners/ai.jpg",
-      tags: ["AI", "Research", "Machine Learning"],
-      isJoined: false,
-      creator: { firstName: "Dr. Sarah", lastName: "Chen", profileImageUrl: "/avatars/sarah.jpg" }
-    },
-    {
-      id: 2,
-      name: "Startup Founders",
-      description: "Network of startup founders sharing experiences and advice",
-      memberCount: 1800,
-      postCount: 342,
-      bannerImage: "/community-banners/startups.jpg", 
-      tags: ["Startups", "Entrepreneurship", "Business"],
-      isJoined: true,
-      creator: { firstName: "Mark", lastName: "Rodriguez", profileImageUrl: "/avatars/mark.jpg" }
-    },
-    {
-      id: 3,
-      name: "Design Systems",
-      description: "Community for designers working on design systems",
-      memberCount: 950,
-      postCount: 89,
-      bannerImage: "/community-banners/design.jpg",
-      tags: ["Design", "UI/UX", "Systems"],
-      isJoined: false,
-      creator: { firstName: "Alex", lastName: "Thompson", profileImageUrl: "/avatars/alex.jpg" }
-    }
-  ];
+  // Use real communities data from API
 
   // Sample users data for People
   const sampleUsers = [
@@ -181,7 +146,7 @@ export default function Discover() {
     ...featuredCollections
   ];
 
-  const filteredCommunities = sampleCommunities.filter(community =>
+  const filteredCommunities = (communities as any[]).filter((community: any) =>
     community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     community.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -212,25 +177,29 @@ export default function Discover() {
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 mt-3">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={community.creator.profileImageUrl} />
-            <AvatarFallback className="text-xs">
-              {community.creator.firstName.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium text-gray-700">
-            {community.creator.firstName} {community.creator.lastName}
-          </span>
-        </div>
+        {community.creator && (
+          <div className="flex items-center space-x-2 mt-3">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={community.creator.profileImageUrl} />
+              <AvatarFallback className="text-xs">
+                {community.creator.firstName?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium text-gray-700">
+              {community.creator.firstName} {community.creator.lastName}
+            </span>
+          </div>
+        )}
 
-        <div className="flex flex-wrap gap-1 mt-3">
-          {community.tags.map((tag: string) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
+        {community.tags && community.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-3">
+            {community.tags.map((tag: any) => (
+              <Badge key={tag.id || tag.name || tag} variant="secondary" className="text-xs">
+                {tag.name || tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="pt-0">

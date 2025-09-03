@@ -147,58 +147,7 @@ export default function TopicDetail() {
         <div className="space-y-4">
           {topicPosts.length > 0 ? (
             topicPosts.map((post: any) => (
-              <Card key={post.id} className="hover:shadow-sm transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex space-x-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={post.author?.profileImageUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                        {post.author?.firstName?.charAt(0)}{post.author?.lastName?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">
-                          {post.author?.firstName} {post.author?.lastName}
-                        </span>
-                        <span className="text-gray-500 text-sm">@{post.author?.username}</span>
-                        <span className="text-gray-400">•</span>
-                        <span className="text-gray-500 text-sm">{post.createdAt}</span>
-                      </div>
-                      
-                      <p className="text-gray-900 leading-relaxed">{post.content}</p>
-                      
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center space-x-6">
-                          <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-600 transition-colors">
-                            <MessageSquare className="w-5 h-5" />
-                            <span className="text-sm">{post.stats?.comments || 0}</span>
-                          </button>
-                          
-                          <button 
-                            className={`flex items-center space-x-2 transition-colors ${
-                              post.isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
-                            }`}
-                          >
-                            <Heart className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
-                            <span className="text-sm">{post.stats?.likes || 0}</span>
-                          </button>
-                          
-                          <button className="flex items-center space-x-2 text-gray-500 hover:text-green-600 transition-colors">
-                            <Share className="w-5 h-5" />
-                            <span className="text-sm">{post.stats?.shares || 0}</span>
-                          </button>
-                        </div>
-                        
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <PostCard key={post.id} post={post} />
             ))
           ) : (
             <Card>
