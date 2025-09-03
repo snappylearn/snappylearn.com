@@ -171,11 +171,26 @@ export default function Tasks() {
     toggleTaskMutation.mutate(taskId);
   };
 
+  const runTaskMutation = useMutation({
+    mutationFn: tasksApi.run,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Success",
+        description: "Task executed successfully! Check the task details to see the results.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to run task",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleRunTask = (taskId: number) => {
-    toast({
-      title: "Task Running",
-      description: "Task has been queued for execution.",
-    });
+    runTaskMutation.mutate(taskId);
   };
 
   const formatDateTime = (date: string | Date | null) => {
@@ -402,6 +417,7 @@ export default function Tasks() {
                           e.stopPropagation();
                           handleRunTask(task.id);
                         }}
+                        disabled={runTaskMutation.isPending}
                         className="text-green-600 border-green-200 hover:bg-green-50"
                       >
                         <Play className="h-4 w-4" />

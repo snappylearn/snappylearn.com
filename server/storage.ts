@@ -50,12 +50,15 @@ import {
   communityTags,
   userCommunities,
   tasks,
+  taskRuns,
   type Tag,
   type Community,
   type InsertCommunity,
   type CommunityWithStats,
   type Task,
   type InsertTask,
+  type TaskRun,
+  type InsertTaskRun,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, sql, and, ilike, inArray } from "drizzle-orm";
@@ -136,6 +139,8 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, updates: Partial<InsertTask>, userId: string): Promise<Task | undefined>;
   deleteTask(id: number, userId: string): Promise<boolean>;
+  getTaskRuns(taskId: number): Promise<TaskRun[]>;
+  createTaskRun(taskRun: InsertTaskRun): Promise<TaskRun>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1160,6 +1165,22 @@ export class DatabaseStorage implements IStorage {
       .delete(tasks)
       .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
     return result.rowCount > 0;
+  }
+
+  async getTaskRuns(taskId: number): Promise<TaskRun[]> {
+    return await db
+      .select()
+      .from(taskRuns)
+      .where(eq(taskRuns.taskId, taskId))
+      .orderBy(desc(taskRuns.startTime));
+  }
+
+  async createTaskRun(taskRun: InsertTaskRun): Promise<TaskRun> {
+    const [newTaskRun] = await db
+      .insert(taskRuns)
+      .values(taskRun)
+      .returning();
+    return newTaskRun;
   }
 }
 

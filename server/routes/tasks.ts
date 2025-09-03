@@ -164,4 +164,86 @@ export function registerTaskRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch task runs" });
     }
   });
+
+  // Execute a task manually
+  app.post("/api/tasks/:id/run", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const taskId = parseInt(req.params.id);
+      
+      if (isNaN(taskId)) {
+        return res.status(400).json({ error: "Invalid task ID" });
+      }
+
+      // First verify the task belongs to the user
+      const task = await storage.getTask(taskId, userId);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      // Execute the task
+      const startTime = new Date();
+      let status = 'completed';
+      let output = '';
+      let errorMessage = null;
+      let duration = 0;
+
+      try {
+        // Call OpenAI API
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              {
+                role: 'user',
+                content: task.prompt
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+          }),
+        });
+
+        const endTime = new Date();
+        duration = endTime.getTime() - startTime.getTime();
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        output = data.choices[0]?.message?.content || 'No response generated';
+
+      } catch (error) {
+        const endTime = new Date();
+        duration = endTime.getTime() - startTime.getTime();
+        status = 'failed';
+        errorMessage = error.message || 'Unknown error occurred';
+        console.error('Task execution failed:', error);
+      }
+
+      // Save the task run
+      const taskRun = await storage.createTaskRun({
+        taskId,
+        status,
+        startTime,
+        duration,
+        output: output || null,
+        errorMessage,
+      });
+
+      // Update task's lastRun timestamp
+      await storage.updateTask(taskId, { lastRun: startTime }, userId);
+
+      res.json(taskRun);
+    } catch (error) {
+      console.error("Error executing task:", error);
+      res.status(500).json({ error: "Failed to execute task" });
+    }
+  });
 }

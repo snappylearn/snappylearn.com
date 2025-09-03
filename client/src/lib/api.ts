@@ -189,6 +189,11 @@ export const tasksApi = {
     const res = await apiRequest(`/api/tasks/${id}/toggle`, "PATCH");
     return res.json();
   },
+
+  run: async (id: number): Promise<any> => {
+    const res = await apiRequest(`/api/tasks/${id}/run`, "POST");
+    return res.json();
+  },
 };
 
 // Users/Follow API
