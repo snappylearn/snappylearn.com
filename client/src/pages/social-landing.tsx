@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Users, Share, Zap, ArrowRight, BookOpen, MessageSquare, Network } from "lucide-react";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const snappyLearnLogo = "/snappylearn-new-logo.png";
 const snappyLearnIcon = "/snappylearn-icon.png";
@@ -18,13 +20,52 @@ export default function SocialLanding() {
     firstName: '',
     lastName: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleOAuthLogin = (provider: string) => {
     window.location.href = `/api/auth/${provider}`;
   };
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        window.location.href = '/';
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Invalid email or password",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Login Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -36,10 +77,21 @@ export default function SocialLanding() {
       if (response.ok) {
         window.location.href = '/';
       } else {
-        console.error('Registration failed');
+        const data = await response.json();
+        toast({
+          title: "Registration Failed",
+          description: data.message || "Something went wrong",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      toast({
+        title: "Registration Failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -203,42 +255,115 @@ export default function SocialLanding() {
                   Continue with Replit
                 </Button>
                 
-                <div className="text-center text-sm text-gray-500">OR SIGN UP WITH EMAIL</div>
+                <div className="text-center text-sm text-gray-500">OR USE EMAIL</div>
                 
-                <form onSubmit={handleEmailRegister} className="space-y-4">
-                  <div>
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="mt-1"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      className="mt-1"
-                      required
-                      minLength={8}
-                    />
-                  </div>
-                  <Button 
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                    size="lg"
-                  >
-                    Create Account →
-                  </Button>
-                </form>
+                <Tabs defaultValue="login" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="login">Sign In</TabsTrigger>
+                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="login" className="mt-4">
+                    <form onSubmit={handleEmailLogin} className="space-y-4">
+                      <div>
+                        <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">Email address</Label>
+                        <Input
+                          id="login-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">Password</Label>
+                        <Input
+                          id="login-password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                      <Button 
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                        size="lg"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Signing In...' : 'Sign In →'}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                  
+                  <TabsContent value="signup" className="mt-4">
+                    <form onSubmit={handleEmailRegister} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
+                          <Input
+                            id="firstName"
+                            type="text"
+                            placeholder="First name"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                            className="mt-1"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            type="text"
+                            placeholder="Last name"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                            className="mt-1"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-email" className="text-sm font-medium text-gray-700">Email address</Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          className="mt-1"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-password" className="text-sm font-medium text-gray-700">Password</Label>
+                        <Input
+                          id="signup-password"
+                          type="password"
+                          placeholder="Create a password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          className="mt-1"
+                          required
+                          minLength={8}
+                        />
+                      </div>
+                      <Button 
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                        size="lg"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Creating Account...' : 'Create Account →'}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
               </div>
 
               <p className="text-xs text-gray-500 text-center">
