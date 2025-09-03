@@ -300,7 +300,7 @@ export default function Tasks() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -339,16 +339,6 @@ export default function Tasks() {
                   <p className="text-2xl font-semibold text-gray-900">{scheduledSlots}/10</p>
                   <p className="text-sm text-gray-600">scheduled slots</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="px-3 py-1 text-sm font-medium">
-                  Free Plan
-                </Badge>
               </div>
             </CardContent>
           </Card>
