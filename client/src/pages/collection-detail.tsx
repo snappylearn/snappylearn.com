@@ -30,16 +30,16 @@ export default function CollectionDetail() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Authentication Required",
+        description: "Please sign in to view this collection.",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
+        setLocation("/");
+      }, 1000);
       return;
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isAuthenticated, isLoading, toast, setLocation]);
   
   const { data: collection, isLoading: collectionLoading, error: collectionError } = useCollection(collectionId);
   const { data: documents = [] } = useQuery({

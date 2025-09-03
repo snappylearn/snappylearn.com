@@ -17,6 +17,7 @@ interface AuthContextType {
   updateUser: (updatedUser: User) => void
   loading: boolean
   isAdmin: boolean
+  isAuthenticated: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -39,6 +40,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Check if user is admin
   const isAdmin = user && (user.role === 'admin' || user.role === 'super_admin')
+  
+  // Check if user is authenticated
+  const isAuthenticated = !!user
 
   useEffect(() => {
     // Check for stored JWT token
@@ -152,7 +156,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signUp, signOut, updateUser, loading, isAdmin }}>
+    <AuthContext.Provider value={{ user, signIn, signUp, signOut, updateUser, loading, isAdmin, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   )
