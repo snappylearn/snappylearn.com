@@ -8,8 +8,9 @@ export function useMessages(conversationId: number) {
     queryKey: ["/api/conversations", conversationId, "messages"],
     queryFn: () => messagesApi.getByConversation(conversationId),
     enabled: !!conversationId,
-    refetchInterval: 3000, // Refetch every 3 seconds to pick up AI responses
+    refetchInterval: 1000, // Refetch every 1 second for faster AI response updates
     refetchIntervalInBackground: false, // Only refetch when tab is active
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
   });
 }
 
@@ -20,11 +21,16 @@ export function useSendMessage() {
     mutationFn: ({ conversationId, content }: { conversationId: number; content: string }) =>
       messagesApi.send(conversationId, content),
     onSuccess: (_, { conversationId }) => {
+      // Force immediate refetch by invalidating and refetching
       queryClient.invalidateQueries({ 
         queryKey: ["/api/conversations", conversationId, "messages"] 
       });
       queryClient.invalidateQueries({ 
         queryKey: ["/api/conversations"] 
+      });
+      // Force an immediate refetch to get the updated messages
+      queryClient.refetchQueries({ 
+        queryKey: ["/api/conversations", conversationId, "messages"] 
       });
     },
     onError: (error) => {
