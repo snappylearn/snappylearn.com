@@ -427,24 +427,58 @@ export default function Communities() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Tags</Label>
-                  <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[40px]">
-                    {availableTags.length === 0 ? (
-                      <span className="text-sm text-gray-500">No tags available</span>
-                    ) : (
-                      availableTags.map((tag: any) => (
-                        <div
-                          key={tag.id}
-                          className={`flex items-center space-x-1 px-2 py-1 rounded text-sm cursor-pointer border ${
-                            newCommunity.selectedTags.includes(tag.id)
-                              ? 'bg-purple-100 border-purple-300 text-purple-700'
-                              : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                          }`}
-                          onClick={() => toggleTag(tag.id)}
-                        >
-                          <span>{tag.name}</span>
-                        </div>
-                      ))
+                  <div className="space-y-2">
+                    {/* Selected tags as pills */}
+                    {newCommunity.selectedTags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {newCommunity.selectedTags.map((tagId) => {
+                          const tag = availableTags.find((t: any) => t.id === tagId);
+                          return tag ? (
+                            <div
+                              key={tag.id}
+                              className="flex items-center gap-1 px-3 py-1 bg-purple-100 border border-purple-300 text-purple-700 rounded-full text-sm"
+                            >
+                              <span>{tag.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => toggleTag(tag.id)}
+                                className="ml-1 hover:bg-purple-200 rounded-full p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
                     )}
+                    
+                    {/* Dropdown for selecting tags */}
+                    <Select
+                      value=""
+                      onValueChange={(value) => {
+                        const tagId = parseInt(value);
+                        if (!newCommunity.selectedTags.includes(tagId)) {
+                          toggleTag(tagId);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select tags..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTags.length === 0 ? (
+                          <SelectItem value="" disabled>No tags available</SelectItem>
+                        ) : (
+                          availableTags
+                            .filter((tag: any) => !newCommunity.selectedTags.includes(tag.id))
+                            .map((tag: any) => (
+                              <SelectItem key={tag.id} value={tag.id.toString()}>
+                                {tag.name}
+                              </SelectItem>
+                            ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="grid gap-2">
