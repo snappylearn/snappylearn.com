@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useFollowUser } from "@/hooks/use-collections";
 import { 
   Search, 
   Heart, 
@@ -28,6 +29,7 @@ export default function Discover() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const followUser = useFollowUser();
 
   const { data: collections = [], isLoading: collectionsLoading } = useQuery({
     queryKey: ['/api/collections'],
@@ -473,20 +475,10 @@ export default function Discover() {
                   user={user}
                   creatorName={user.createdBy ? "Admin" : undefined}
                   onFollow={(userId) => {
-                    // TODO: Implement follow functionality with real API
-                    console.log("Follow user:", userId);
-                    toast({
-                      title: "Following",
-                      description: `You are now following ${user.firstName} ${user.lastName}`,
-                    });
+                    followUser.mutate(userId);
                   }}
                   onUnfollow={(userId) => {
-                    // TODO: Implement unfollow functionality with real API
-                    console.log("Unfollow user:", userId);
-                    toast({
-                      title: "Unfollowed",
-                      description: `You have unfollowed ${user.firstName} ${user.lastName}`,
-                    });
+                    followUser.mutate(userId);
                   }}
                 />
               ))}
