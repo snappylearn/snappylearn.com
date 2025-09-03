@@ -140,4 +140,28 @@ export function registerTaskRoutes(app: Express) {
       res.status(500).json({ error: "Failed to toggle task" });
     }
   });
+
+  // Get task runs for a specific task
+  app.get("/api/tasks/:id/runs", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const taskId = parseInt(req.params.id);
+      
+      if (isNaN(taskId)) {
+        return res.status(400).json({ error: "Invalid task ID" });
+      }
+
+      // First verify the task belongs to the user
+      const task = await storage.getTask(taskId, userId);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      const runs = await storage.getTaskRuns(taskId);
+      res.json(runs);
+    } catch (error) {
+      console.error("Error fetching task runs:", error);
+      res.status(500).json({ error: "Failed to fetch task runs" });
+    }
+  });
 }

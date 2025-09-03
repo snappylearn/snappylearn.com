@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -500,7 +501,8 @@ export default function Tasks() {
         {/* Tasks List */}
         <div className="space-y-4">
           {tasks.map((task) => (
-            <Card key={task.id} className="hover:shadow-md transition-shadow duration-200">
+            <Card key={task.id} className="hover:shadow-md transition-shadow duration-200 cursor-pointer">
+              <Link href={`/tasks/${task.id}`} className="block">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -547,11 +549,15 @@ export default function Tasks() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleRunTask(task.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRunTask(task.id);
+                      }}
                     >
                       <Play className="h-4 w-4 mr-1" />
                       Run Now
@@ -559,7 +565,11 @@ export default function Tasks() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleToggleTask(task.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleToggleTask(task.id);
+                      }}
                     >
                       {task.isActive ? (
                         <>
@@ -573,20 +583,33 @@ export default function Tasks() {
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setEditingTask(task)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingTask(task);
+                      }}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => handleDeleteTask(task.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeleteTask(task.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
+              </Link>
             </Card>
           ))}
         </div>

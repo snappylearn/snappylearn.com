@@ -20,6 +20,7 @@ import CollectionDetail from "@/pages/collection-detail";
 import Communities from "@/pages/communities";
 import CommunityDetail from "@/pages/community-detail";
 import Tasks from "@/pages/tasks";
+import TaskDetail from "@/pages/task-detail";
 import Conversations from "@/pages/conversations";
 import Conversation from "@/pages/conversation";
 import ArtifactsPage from "@/pages/artifacts";
@@ -73,6 +74,7 @@ function Router() {
       <Route path="/communities" component={Communities} />
       <Route path="/communities/:id" component={CommunityDetail} />
       <Route path="/tasks" component={Tasks} />
+      <Route path="/tasks/:id" component={TaskDetail} />
       <Route path="/conversations" component={Conversations} />
       <Route path="/conversations/:id" component={Conversation} />
       <Route path="/posts/:id" component={PostDetail} />

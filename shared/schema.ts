@@ -501,6 +501,22 @@ export const tasks = pgTable("tasks", {
   index("idx_tasks_next_run").on(table.nextRun),
 ]);
 
+// Task runs table for tracking execution history
+export const taskRuns = pgTable("task_runs", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id").notNull(),
+  status: varchar("status", { length: 20 }).notNull(), // 'running', 'completed', 'failed'
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+  output: text("output"), // AI response/result
+  errorMessage: text("error_message"), // Error details if failed
+  duration: integer("duration"), // Execution time in milliseconds
+}, (table) => [
+  index("idx_task_runs_task").on(table.taskId),
+  index("idx_task_runs_status").on(table.status),
+  index("idx_task_runs_start_time").on(table.startTime),
+]);
+
 // Insert schemas for tags, communities and tasks  
 export const insertTagSchema = createInsertSchema(tags).omit({
   id: true,
@@ -530,6 +546,11 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   lastRun: true,
 });
 
+export const insertTaskRunSchema = createInsertSchema(taskRuns).omit({
+  id: true,
+  startTime: true,
+});
+
 // Types for tags, communities and tasks
 export type Tag = typeof tags.$inferSelect;
 export type InsertTag = z.infer<typeof insertTagSchema>;
@@ -545,6 +566,9 @@ export type InsertUserCommunity = z.infer<typeof insertUserCommunitySchema>;
 
 export type Task = typeof tasks.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
+
+export type TaskRun = typeof taskRuns.$inferSelect;
+export type InsertTaskRun = z.infer<typeof insertTaskRunSchema>;
 
 // Extended types for API responses
 export type CollectionWithStats = Collection & {
