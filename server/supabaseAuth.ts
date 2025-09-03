@@ -73,30 +73,30 @@ export const isAuthenticated: RequestHandler = async (req: Request, res: Respons
 export async function setupSupabaseAuth(app: Express) {
   // Configure Supabase for development
   await configureSupabaseForDevelopment();
-  // Get current user
-  app.get("/api/auth/user", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      const userId = getUserId(req as AuthenticatedRequest);
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      res.json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profileImageUrl: user.profileImageUrl,
-        role: user.role,
-        isActive: user.isActive,
-      });
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ error: "Failed to fetch user" });
-    }
-  });
+  // Get current user - DISABLED: Conflicts with custom auth
+  // app.get("/api/auth/user", isAuthenticated, async (req: Request, res: Response) => {
+  //   try {
+  //     const userId = getUserId(req as AuthenticatedRequest);
+  //     const user = await storage.getUser(userId);
+  //     
+  //     if (!user) {
+  //       return res.status(404).json({ error: "User not found" });
+  //     }
+  //     
+  //     res.json({
+  //       id: user.id,
+  //       email: user.email,
+  //       firstName: user.firstName,
+  //       lastName: user.lastName,
+  //       profileImageUrl: user.profileImageUrl,
+  //       role: user.role,
+  //       isActive: user.isActive,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching user:", error);
+  //     res.status(500).json({ error: "Failed to fetch user" });
+  //   }
+  // });
 
   // Sign out (client-side handled, but we can add server cleanup if needed)
   app.post("/api/auth/signout", (req: Request, res: Response) => {
