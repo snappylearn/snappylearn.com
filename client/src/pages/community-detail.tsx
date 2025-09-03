@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ShareThoughtsBox } from "@/components/ShareThoughtsBox";
+import { CreatePostForm } from "@/components/posts/CreatePostForm";
 import { 
   Users, 
   FileText,
@@ -198,7 +198,8 @@ export default function CommunityDetail() {
         </Card>
 
         {/* Share Your Thoughts */}
-        <ShareThoughtsBox 
+        <CreatePostForm 
+          isModal={false}
           context={{ 
             type: 'community', 
             id: community.id, 

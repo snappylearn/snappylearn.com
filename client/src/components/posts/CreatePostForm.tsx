@@ -15,9 +15,15 @@ interface CreatePostFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   isModal?: boolean;
+  context?: {
+    type: 'community' | 'topic' | 'home';
+    id?: number;
+    name?: string;
+  };
+  isJoined?: boolean; // For community membership status
 }
 
-export function CreatePostForm({ onSuccess, onCancel, isModal = true }: CreatePostFormProps) {
+export function CreatePostForm({ onSuccess, onCancel, isModal = true, context, isJoined = true }: CreatePostFormProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [topicId, setTopicId] = useState<string>("");
@@ -63,6 +69,16 @@ export function CreatePostForm({ onSuccess, onCancel, isModal = true }: CreatePo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check if user is trying to post to a community without being joined
+    if (context?.type === 'community' && !isJoined) {
+      toast({
+        title: "Join Community First",
+        description: `You need to join ${context.name} before you can post.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!content.trim()) {
       toast({
         title: "Error",
@@ -72,10 +88,16 @@ export function CreatePostForm({ onSuccess, onCancel, isModal = true }: CreatePo
       return;
     }
 
+    // Automatically set topic if posting from topic detail page
+    let finalTopicId = topicId ? parseInt(topicId) : undefined;
+    if (context?.type === 'topic' && context.id) {
+      finalTopicId = context.id;
+    }
+
     createPostMutation.mutate({
       title: title.trim() || undefined,
       content: content.trim(),
-      topicId: topicId ? parseInt(topicId) : undefined,
+      topicId: finalTopicId,
     });
   };
 
@@ -137,24 +159,34 @@ export function CreatePostForm({ onSuccess, onCancel, isModal = true }: CreatePo
           />
           
           <div className="flex flex-col sm:flex-row gap-3">
-            <Select value={topicId} onValueChange={setTopicId}>
-              <SelectTrigger className="sm:w-[200px]">
-                <SelectValue placeholder="Select topic (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {topics.map((topic) => (
-                  <SelectItem key={topic.id} value={topic.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: topic.color || '#6366f1' }}
-                      />
-                      {topic.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Only show topic selector on home page */}
+            {(!context || context.type === 'home') && (
+              <Select value={topicId} onValueChange={setTopicId}>
+                <SelectTrigger className="sm:w-[200px]">
+                  <SelectValue placeholder="Select topic (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {topics.map((topic) => (
+                    <SelectItem key={topic.id} value={topic.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: topic.color || '#6366f1' }}
+                        />
+                        {topic.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {/* Show context info for topic/community pages */}
+            {context && context.type !== 'home' && (
+              <div className="text-sm text-gray-500 sm:w-[200px] flex items-center">
+                Posting to: <span className="font-medium ml-1">{context.name}</span>
+              </div>
+            )}
             
             <div className="flex gap-2 sm:ml-auto">
               {isModal && (
