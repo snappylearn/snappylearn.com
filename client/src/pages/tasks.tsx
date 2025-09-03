@@ -276,7 +276,7 @@ export default function Tasks() {
   if (isLoading) {
     return (
       <TwitterStyleLayout>
-        <div>
+        <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
             <div className="h-4 bg-gray-200 rounded w-2/3"></div>
@@ -293,7 +293,7 @@ export default function Tasks() {
 
   return (
     <TwitterStyleLayout>
-      <div>
+      <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex-1">
