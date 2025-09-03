@@ -6,13 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CreatePostForm } from "@/components/posts/CreatePostForm";
+import { PostCard } from "@/components/posts/PostCard";
 import { 
   Users, 
   FileText,
   MessageSquare,
-  Heart,
-  Share,
-  MoreHorizontal,
   UserCheck,
   Settings as SettingsIcon
 } from "lucide-react";
@@ -189,63 +187,11 @@ export default function CommunityDetail() {
                 ))}
               </div>
             ) : communityPosts.length > 0 ? (
-              communityPosts.map((post: any) => (
-                <Card key={post.id} className="hover:shadow-sm transition-shadow duration-200">
-                  <CardContent className="p-6">
-                    {/* Post Header */}
-                    <div className="flex items-start space-x-3 mb-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={post.author?.profileImageUrl} />
-                        <AvatarFallback>
-                          {post.author?.firstName?.charAt(0)}{post.author?.lastName?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <p className="font-semibold text-sm">
-                            {post.author?.firstName} {post.author?.lastName}
-                          </p>
-                          <span className="text-gray-500 text-sm">•</span>
-                          <span className="text-gray-500 text-sm">
-                            {new Date(post.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Post Title and Content */}
-                    {post.title && (
-                      <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
-                    )}
-                    <div className="mb-4">
-                      <p className="text-gray-900 leading-relaxed">
-                        {post.content}
-                      </p>
-                    </div>
-
-                    {/* Post Actions */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="flex items-center space-x-6">
-                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500">
-                          <Heart className="h-4 w-4 mr-1" />
-                          {post.likesCount || 0}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-500">
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          {post.commentsCount || 0}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-green-500">
-                          <Share className="h-4 w-4 mr-1" />
-                          Share
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              <div className="space-y-4">
+                {communityPosts.map((post: any) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
             ) : (
               <div className="text-center py-12">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />

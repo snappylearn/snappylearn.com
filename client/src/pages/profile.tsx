@@ -71,10 +71,7 @@ export default function Profile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      return apiRequest(`/api/users/profile`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return apiRequest(`/api/users/profile`, "PATCH", data);
     },
     onSuccess: (updatedUser) => {
       updateUser(updatedUser);

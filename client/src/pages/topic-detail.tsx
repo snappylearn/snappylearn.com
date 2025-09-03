@@ -6,13 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CreatePostForm } from "@/components/posts/CreatePostForm";
+import { PostCard } from "@/components/posts/PostCard";
 import { 
   Users, 
   FileText,
-  MessageSquare,
-  Heart,
-  Share,
-  MoreHorizontal,
   TrendingUp,
   BookOpen
 } from "lucide-react";
