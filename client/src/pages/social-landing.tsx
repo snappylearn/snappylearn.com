@@ -113,9 +113,8 @@ export default function SocialLanding() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="px-6 py-6 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center">
           <img src={snappyLearnLogo} alt="SnappyLearn" className="h-10 w-auto" />
-          <span className="text-xl font-bold text-gray-900">SnappyLearn</span>
         </div>
         <div className="text-sm text-gray-600">
           Already have an account?{" "}
