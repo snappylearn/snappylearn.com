@@ -25,6 +25,11 @@ export default function Conversation() {
 
   const { data: conversation } = useConversation(conversationId);
   const { data: messages = [] } = useMessages(conversationId);
+  
+  // Check if we're waiting for AI response (only user messages exist)
+  const isWaitingForAI = messages.length > 0 && 
+    messages[messages.length - 1]?.role === 'user' && 
+    !messages.some(m => m.role === 'assistant');
   const { data: collection } = useCollection(conversation?.collectionId || 0);
   const sendMessage = useSendMessage();
 
@@ -151,7 +156,7 @@ export default function Conversation() {
                   onViewArtifact={handleViewArtifact}
                 />
               ))}
-              {sendMessage.isPending && <ChatLoading />}
+              {(sendMessage.isPending || isWaitingForAI) && <ChatLoading />}
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>

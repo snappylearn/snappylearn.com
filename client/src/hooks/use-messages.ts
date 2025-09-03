@@ -8,6 +8,8 @@ export function useMessages(conversationId: number) {
     queryKey: ["/api/conversations", conversationId, "messages"],
     queryFn: () => messagesApi.getByConversation(conversationId),
     enabled: !!conversationId,
+    refetchInterval: 3000, // Refetch every 3 seconds to pick up AI responses
+    refetchIntervalInBackground: false, // Only refetch when tab is active
   });
 }
 

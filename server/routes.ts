@@ -403,75 +403,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversation.id,
       });
 
-      // Generate AI response
-      let aiResponse;
-      if (type === "collection" && parsedCollectionId) {
-        const documents = await storage.getDocuments(parsedCollectionId, userId);
-        const collection = await storage.getCollection(parsedCollectionId, userId);
-        const collectionName = collection?.name || "Collection";
-        aiResponse = await generateCollectionResponse(fullMessage, documents, collectionName);
-      } else {
-        const content = await generateIndependentResponse(fullMessage);
-        aiResponse = { content, sources: null };
-      }
-
-      // Ensure aiResponse has content
-      if (!aiResponse || !aiResponse.content) {
-        aiResponse = { content: "I'm sorry, I couldn't generate a response. Please try again.", sources: null };
-      }
-
-      // Check if response contains artifact
-      const artifactMatch = aiResponse.content.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
-      let artifactData = null;
-      
-      if (artifactMatch) {
-        const artifactHtml = artifactMatch[1];
-        const titleMatch = artifactHtml.match(/<!-- Artifact Title: (.*?) -->/);
-        const title = titleMatch ? titleMatch[1] : 'Interactive Content';
-        
-        // Determine artifact type based on content
-        let artifactType = 'interactive';
-        if (title.toLowerCase().includes('quiz')) artifactType = 'quiz_builder';
-        else if (title.toLowerCase().includes('calculator')) artifactType = 'math_visualizer';
-        else if (title.toLowerCase().includes('playground')) artifactType = 'code_playground';
-        else if (title.toLowerCase().includes('document')) artifactType = 'document_generator';
-        else if (title.toLowerCase().includes('presentation')) artifactType = 'presentation_maker';
-        else if (title.toLowerCase().includes('chart') || title.toLowerCase().includes('graph')) artifactType = 'data_visualizer';
-        else if (title.toLowerCase().includes('mind map')) artifactType = 'mind_map_creator';
-        
-        // Create artifact record
-        const artifact = await storage.createArtifact({
-          title,
-          type: artifactType,
-          content: artifactHtml,
-          userId,
-          collectionId: parsedCollectionId,
-          metadata: JSON.stringify({ 
-            createdFrom: 'chat',
-            conversationId: conversation.id
-          })
-        });
-        
-        artifactData = {
-          artifactId: artifact.id,
-          title,
-          type: artifactType
-        };
-      }
-
-      // Create AI message
-      const aiMessage = await storage.createMessage({
-        content: aiResponse.content,
-        role: "assistant",
-        conversationId: conversation.id,
-        sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
-        artifactData: artifactData ? JSON.stringify(artifactData) : null,
-      });
-
+      // Return conversation immediately - no AI response yet
       res.status(201).json({
         conversation,
-        messages: [userMessage, aiMessage],
+        messages: [userMessage],
       });
+
+      // Generate AI response asynchronously (don't await)
+      (async () => {
+        try {
+          // Generate AI response
+          let aiResponse;
+          if (type === "collection" && parsedCollectionId) {
+            const documents = await storage.getDocuments(parsedCollectionId, userId);
+            const collection = await storage.getCollection(parsedCollectionId, userId);
+            const collectionName = collection?.name || "Collection";
+            aiResponse = await generateCollectionResponse(fullMessage, documents, collectionName);
+          } else {
+            const content = await generateIndependentResponse(fullMessage);
+            aiResponse = { content, sources: null };
+          }
+
+          // Ensure aiResponse has content
+          if (!aiResponse || !aiResponse.content) {
+            aiResponse = { content: "I'm sorry, I couldn't generate a response. Please try again.", sources: null };
+          }
+
+          // Check if response contains artifact
+          const artifactMatch = aiResponse.content.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
+          let artifactData = null;
+          
+          if (artifactMatch) {
+            const artifactHtml = artifactMatch[1];
+            const titleMatch = artifactHtml.match(/<!-- Artifact Title: (.*?) -->/);
+            const title = titleMatch ? titleMatch[1] : 'Interactive Content';
+            
+            // Determine artifact type based on content
+            let artifactType = 'interactive';
+            if (title.toLowerCase().includes('quiz')) artifactType = 'quiz_builder';
+            else if (title.toLowerCase().includes('calculator')) artifactType = 'math_visualizer';
+            else if (title.toLowerCase().includes('playground')) artifactType = 'code_playground';
+            else if (title.toLowerCase().includes('document')) artifactType = 'document_generator';
+            else if (title.toLowerCase().includes('presentation')) artifactType = 'presentation_maker';
+            else if (title.toLowerCase().includes('chart') || title.toLowerCase().includes('graph')) artifactType = 'data_visualizer';
+            else if (title.toLowerCase().includes('mind map')) artifactType = 'mind_map_creator';
+            
+            // Create artifact record
+            const artifact = await storage.createArtifact({
+              title,
+              type: artifactType,
+              content: artifactHtml,
+              userId,
+              collectionId: parsedCollectionId,
+              metadata: JSON.stringify({ 
+                createdFrom: 'chat',
+                conversationId: conversation.id
+              })
+            });
+            
+            artifactData = {
+              artifactId: artifact.id,
+              title,
+              type: artifactType
+            };
+          }
+
+          // Create AI message
+          await storage.createMessage({
+            content: aiResponse.content,
+            role: "assistant",
+            conversationId: conversation.id,
+            sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
+            artifactData: artifactData ? JSON.stringify(artifactData) : null,
+          });
+
+        } catch (error) {
+          console.error("Error generating AI response:", error);
+          // Create error message if AI response fails
+          await storage.createMessage({
+            content: "I'm sorry, I encountered an error while generating a response. Please try asking your question again.",
+            role: "assistant",
+            conversationId: conversation.id,
+          });
+        }
+      })();
+
     } catch (error) {
       console.error("Error creating conversation:", error);
       res.status(500).json({ error: "Failed to create conversation" });
