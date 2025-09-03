@@ -297,26 +297,15 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                           {post.title || "Interesting discussion about the future of AI"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {post.viewCount || 0} views • {post.stats?.commentCount || 0} comments
+                          {post.viewCount || 0} views
                         </p>
                       </div>
                     </Link>
                   ))}
                   {posts.length === 0 && (
-                    <>
-                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          The Future of AI in Education
-                        </p>
-                        <p className="text-xs text-gray-500">42 likes • 8 comments</p>
-                      </div>
-                      <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          Building Better Learning Experiences
-                        </p>
-                        <p className="text-xs text-gray-500">28 likes • 5 comments</p>
-                      </div>
-                    </>
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No posts yet. Be the first to share something!
+                    </p>
                   )}
                 </CardContent>
               </Card>
