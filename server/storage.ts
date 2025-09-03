@@ -49,10 +49,13 @@ import {
   communities,
   communityTags,
   userCommunities,
+  tasks,
   type Tag,
   type Community,
   type InsertCommunity,
   type CommunityWithStats,
+  type Task,
+  type InsertTask,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, sql, and, ilike, inArray } from "drizzle-orm";
@@ -126,6 +129,13 @@ export interface IStorage {
   giftCredits(fromUserId: string, toUserId: string, amount: number, message?: string): Promise<void>;
   getCreditTransactions(userId: string, limit?: number): Promise<CreditTransaction[]>;
   getMonthlyUsage(userId: string): Promise<any>;
+
+  // Task methods
+  getTasks(userId: string): Promise<Task[]>;
+  getTask(id: number, userId: string): Promise<Task | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: number, updates: Partial<InsertTask>, userId: string): Promise<Task | undefined>;
+  deleteTask(id: number, userId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1106,6 +1116,50 @@ export class DatabaseStorage implements IStorage {
         eq(userCommunities.communityId, communityId)
       )
     );
+  }
+
+  // Task methods
+  async getTasks(userId: string): Promise<Task[]> {
+    return await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.userId, userId))
+      .orderBy(desc(tasks.createdAt));
+  }
+
+  async getTask(id: number, userId: string): Promise<Task | undefined> {
+    const [task] = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+    return task || undefined;
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const [newTask] = await db
+      .insert(tasks)
+      .values(task)
+      .returning();
+    return newTask;
+  }
+
+  async updateTask(id: number, updates: Partial<InsertTask>, userId: string): Promise<Task | undefined> {
+    const [task] = await db
+      .update(tasks)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
+      .returning();
+    return task || undefined;
+  }
+
+  async deleteTask(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(tasks)
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+    return result.rowCount > 0;
   }
 }
 

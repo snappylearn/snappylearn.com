@@ -26,6 +26,11 @@ export const collectionsApi = {
     return res.json();
   },
 
+  update: async (id: number, data: Partial<Omit<InsertCollection, "userId">>): Promise<Collection> => {
+    const res = await apiRequest(`/api/collections/${id}`, "PUT", data);
+    return res.json();
+  },
+
   delete: async (id: number): Promise<void> => {
     await apiRequest(`/api/collections/${id}`, "DELETE");
   },
@@ -122,11 +127,74 @@ export const messagesApi = {
 
 // Communities API
 export const communitiesApi = {
+  getAll: async (): Promise<any[]> => {
+    const res = await apiRequest("/api/communities", "GET");
+    return res.json();
+  },
+
+  create: async (data: { name: string; description: string; visibility: string; tagIds: number[] }): Promise<any> => {
+    const res = await apiRequest("/api/communities", "POST", data);
+    return res.json();
+  },
+
   join: async (communityId: number): Promise<void> => {
     await apiRequest(`/api/communities/${communityId}/join`, "POST");
   },
 
   leave: async (communityId: number): Promise<void> => {
     await apiRequest(`/api/communities/${communityId}/leave`, "DELETE");
+  },
+};
+
+// Topics/Tags API
+export const topicsApi = {
+  getAll: async (): Promise<any[]> => {
+    const res = await apiRequest("/api/topics", "GET");
+    return res.json();
+  },
+};
+
+// Tasks API
+export const tasksApi = {
+  getAll: async (): Promise<any[]> => {
+    const res = await apiRequest("/api/tasks", "GET");
+    return res.json();
+  },
+
+  create: async (data: { title: string; description: string; prompt: string; schedule: string; isActive?: boolean }): Promise<any> => {
+    const res = await apiRequest("/api/tasks", "POST", data);
+    return res.json();
+  },
+
+  update: async (id: number, data: Partial<{ title: string; description: string; prompt: string; schedule: string; isActive: boolean }>): Promise<any> => {
+    const res = await apiRequest(`/api/tasks/${id}`, "PUT", data);
+    return res.json();
+  },
+
+  delete: async (id: number): Promise<void> => {
+    await apiRequest(`/api/tasks/${id}`, "DELETE");
+  },
+
+  toggle: async (id: number): Promise<any> => {
+    const res = await apiRequest(`/api/tasks/${id}/toggle`, "PATCH");
+    return res.json();
+  },
+};
+
+// Users/Follow API
+export const usersApi = {
+  getAll: async (): Promise<any[]> => {
+    const res = await apiRequest("/api/users", "GET");
+    return res.json();
+  },
+
+  follow: async (userId: string): Promise<{ following: boolean }> => {
+    const res = await apiRequest(`/api/users/${userId}/follow`, "POST");
+    return res.json();
+  },
+
+  getFollowStats: async (userId: string): Promise<{ followerCount: number; followingCount: number }> => {
+    const res = await apiRequest(`/api/users/${userId}/follow-stats`, "GET");
+    return res.json();
   },
 };

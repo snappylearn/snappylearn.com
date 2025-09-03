@@ -42,13 +42,14 @@ export default function Communities() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch tags for multi-select
+  // Fetch tags for multi-select (using topics as tags)
   const { data: availableTags = [] } = useQuery<Tag[]>({
-    queryKey: ['/api/tags'],
+    queryKey: ['/api/topics'],
   });
 
   const { data: communities = [], isLoading } = useQuery<CommunityWithStats[]>({
     queryKey: ['/api/communities'],
+    queryFn: communitiesApi.getAll,
   });
 
   // Mutations for join/leave
@@ -171,9 +172,7 @@ export default function Communities() {
 
   // Create community mutation
   const createCommunityMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await apiRequest('POST', '/api/communities', data);
-    },
+    mutationFn: communitiesApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/communities'] });
       toast({

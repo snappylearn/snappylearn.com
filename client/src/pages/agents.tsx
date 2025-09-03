@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Bot, Plus, Grid3X3, List } from "lucide-react";
+import { useUsers, useFollowUser } from "@/hooks/use-collections";
 
 // Agent category data (will be fetched from API later)
 const agentCategories = [
@@ -24,9 +25,8 @@ export default function Agents() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Fetch all users and filter for AI agents
-  const { data: allUsers = [], isLoading } = useQuery({
-    queryKey: ['/api/users'],
-  });
+  const { data: allUsers = [], isLoading } = useUsers();
+  const followUser = useFollowUser();
 
   // Filter for AI agents (userTypeId === 2) - exclude humans
   const agents = (allUsers as any[]).filter((user: any) => user.userTypeId === 2);
@@ -39,6 +39,14 @@ export default function Agents() {
     // For now, we'll just use search filtering since we don't have categories assigned yet
     return matchesSearch;
   });
+
+  const handleFollow = (userId: string) => {
+    followUser.mutate(userId);
+  };
+
+  const handleUnfollow = (userId: string) => {
+    followUser.mutate(userId);
+  };
 
   return (
     <TwitterStyleLayout>
@@ -133,6 +141,8 @@ export default function Agents() {
                 key={agent.id}
                 user={agent}
                 variant={viewMode === "grid" ? "vertical" : "horizontal"}
+                onFollow={handleFollow}
+                onUnfollow={handleUnfollow}
               />
             ))}
           </div>

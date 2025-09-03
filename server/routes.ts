@@ -17,6 +17,7 @@ import { generateIndependentResponse, generateCollectionResponse, generateConver
 import { registerPostRoutes } from "./routes/posts";
 import { registerTopicRoutes } from "./routes/topics";
 import { registerFollowRoutes } from "./routes/follows";
+import { registerTaskRoutes } from "./routes/tasks";
 import { seedDatabase } from "./seed";
 import { registerSubscriptionRoutes } from "./routes/subscription";
 import multer from "multer";
@@ -59,6 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerPostRoutes(app);
   registerTopicRoutes(app);
   registerFollowRoutes(app);
+  registerTaskRoutes(app);
   
   // Setup subscription routes
   registerSubscriptionRoutes(app);

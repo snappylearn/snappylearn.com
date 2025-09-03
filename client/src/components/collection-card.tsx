@@ -1,10 +1,15 @@
-import { Folder, MoreHorizontal, Share, User } from "lucide-react";
+import { Folder, MoreHorizontal, Share, User, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import type { CollectionWithStats } from "@shared/schema";
 import { useLocation } from "wouter";
-import { useDeleteCollection } from "@/hooks/use-collections";
+import { useDeleteCollection, useUpdateCollection } from "@/hooks/use-collections";
+import { useState } from "react";
 
 interface CollectionCardProps {
   collection: CollectionWithStats;
@@ -14,6 +19,10 @@ interface CollectionCardProps {
 export function CollectionCard({ collection, onStartChat }: CollectionCardProps) {
   const [, setLocation] = useLocation();
   const deleteCollection = useDeleteCollection();
+  const updateCollection = useUpdateCollection();
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editName, setEditName] = useState(collection.name);
+  const [editDescription, setEditDescription] = useState(collection.description || "");
 
   const getCollectionColor = (id: number) => {
     const colors = [
@@ -37,9 +46,37 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
     setLocation(`/collections/${collection.id}`);
   };
 
+  const handleEdit = () => {
+    setIsEditOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim()) return;
+
+    updateCollection.mutate(
+      {
+        id: collection.id,
+        name: editName.trim(),
+        description: editDescription.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setIsEditOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleEditCancel = () => {
+    setEditName(collection.name);
+    setEditDescription(collection.description || "");
+    setIsEditOpen(false);
+  };
+
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this notebook? This will also delete all associated documents and conversations.")) {
-      deleteCollection.mutate(collection.id);
+      deleteCollection.mutate({ id: collection.id, name: collection.name });
     }
   };
 
@@ -59,6 +96,10 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleViewCollection}>
                 View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Notebook
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDelete} className="text-red-600">
                 Delete Notebook
@@ -105,6 +146,45 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
           </Button>
         </div>
       </CardContent>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Notebook</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Notebook Name</Label>
+              <Input
+                id="edit-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Enter notebook name"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Description (Optional)</Label>
+              <Textarea
+                id="edit-description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Enter description"
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={handleEditCancel}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateCollection.isPending}>
+                {updateCollection.isPending ? "Updating..." : "Update"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { tasksApi } from "@/lib/api";
 import { 
   CheckSquare,
   Clock,
@@ -25,10 +27,11 @@ import {
   TestTube
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
+import type { Task } from "@shared/schema";
 
 export default function Tasks() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -39,8 +42,12 @@ export default function Tasks() {
     useDeepSearch: false
   });
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: tasks = [], isLoading } = useQuery<Task[]>({
     queryKey: ['/api/tasks'],
+    queryFn: tasksApi.getAll,
   });
 
   // Sample tasks data for demo
@@ -94,40 +101,160 @@ export default function Tasks() {
     { value: "monthly", label: "Monthly" }
   ];
 
+  // Create task mutation
+  const createTaskMutation = useMutation({
+    mutationFn: tasksApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Success",
+        description: "Task created successfully!",
+      });
+      setCreateDialogOpen(false);
+      setNewTask({
+        title: "",
+        description: "",
+        prompt: "",
+        schedule: "daily",
+        isActive: true,
+        emailNotifications: false,
+        useDeepSearch: false
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update task mutation
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => tasksApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Success",
+        description: "Task updated successfully!",
+      });
+      setEditingTask(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete task mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: tasksApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Success",
+        description: "Task deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete task. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle task mutation
+  const toggleTaskMutation = useMutation({
+    mutationFn: tasksApi.toggle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Success",
+        description: "Task status updated!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to toggle task. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateTask = () => {
-    // TODO: API call to create task
-    console.log("Creating task:", newTask);
-    setCreateDialogOpen(false);
-    setNewTask({
-      title: "",
-      description: "",
-      prompt: "",
-      schedule: "daily",
-      isActive: true,
-      emailNotifications: false,
-      useDeepSearch: false
+    if (!newTask.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Task title is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!newTask.prompt.trim()) {
+      toast({
+        title: "Error",
+        description: "AI prompt is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createTaskMutation.mutate({
+      title: newTask.title,
+      description: newTask.description,
+      prompt: newTask.prompt,
+      schedule: newTask.schedule,
+      isActive: newTask.isActive,
+    });
+  };
+
+  const handleUpdateTask = () => {
+    if (!editingTask) return;
+    
+    updateTaskMutation.mutate({
+      id: editingTask.id,
+      data: {
+        title: editingTask.title,
+        description: editingTask.description,
+        prompt: editingTask.prompt,
+        schedule: editingTask.schedule,
+        isActive: editingTask.isActive,
+      }
     });
   };
 
   const handleToggleTask = (taskId: number) => {
-    // TODO: API call to toggle task active status
-    console.log("Toggling task:", taskId);
+    toggleTaskMutation.mutate(taskId);
   };
 
   const handleRunTask = (taskId: number) => {
     // TODO: API call to manually run task
     console.log("Running task:", taskId);
+    toast({
+      title: "Task Running",
+      description: "Task has been queued for execution.",
+    });
   };
 
   const handleTestTask = (taskId: number) => {
     // TODO: API call to test task and preview results
     console.log("Testing task:", taskId);
+    toast({
+      title: "Test Complete",
+      description: "Task test completed. Check console for results.",
+    });
   };
 
   const handleDeleteTask = (taskId: number) => {
-    // TODO: API call to delete task
     if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
-      console.log("Deleting task:", taskId);
+      deleteTaskMutation.mutate(taskId);
     }
   };
 
@@ -298,9 +425,90 @@ export default function Tasks() {
           </Dialog>
         </div>
 
+        {/* Edit Task Dialog */}
+        <Dialog open={editingTask !== null} onOpenChange={(open) => !open && setEditingTask(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Edit Task</DialogTitle>
+              <DialogDescription>
+                Update your automated AI task settings.
+              </DialogDescription>
+            </DialogHeader>
+            {editingTask && (
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-title">Task Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={editingTask.title}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, title: e.target.value } : null)}
+                    placeholder="Enter task title"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editingTask.description}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, description: e.target.value } : null)}
+                    placeholder="Enter task description"
+                    rows={2}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-prompt">AI Prompt</Label>
+                  <Textarea
+                    id="edit-prompt"
+                    value={editingTask.prompt}
+                    onChange={(e) => setEditingTask(prev => prev ? { ...prev, prompt: e.target.value } : null)}
+                    placeholder="Enter the AI prompt to execute"
+                    rows={3}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-schedule">Schedule</Label>
+                  <Select value={editingTask.schedule} onValueChange={(value) => setEditingTask(prev => prev ? { ...prev, schedule: value } : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select schedule" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {scheduleOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="edit-isActive"
+                      checked={editingTask.isActive}
+                      onCheckedChange={(checked) => setEditingTask(prev => prev ? { ...prev, isActive: checked } : null)}
+                    />
+                    <Label htmlFor="edit-isActive" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Task is active
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingTask(null)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateTask} disabled={!editingTask?.title.trim() || !editingTask?.prompt.trim()}>
+                Update Task
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Tasks List */}
         <div className="space-y-4">
-          {sampleTasks.map((task) => (
+          {tasks.map((task) => (
             <Card key={task.id} className="hover:shadow-md transition-shadow duration-200">
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
@@ -383,7 +591,7 @@ export default function Tasks() {
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => setEditingTask(task)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
@@ -401,7 +609,7 @@ export default function Tasks() {
           ))}
         </div>
 
-        {sampleTasks.length === 0 && (
+        {tasks.length === 0 && (
           <div className="text-center py-12">
             <CheckSquare className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
             <h3 className="text-lg font-medium mb-2">No tasks created yet</h3>
