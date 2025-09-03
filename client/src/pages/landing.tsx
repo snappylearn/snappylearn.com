@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, MessageSquare, Shield, Github, Mail } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FileText, MessageSquare, Shield, Github, Mail, BookOpen, Brain, Network, Zap } from "lucide-react";
 import { SiGoogle, SiFacebook, SiX } from "react-icons/si";
 const snappyLearnLogo = "/snappylearn-transparent-logo.png";
 const snappyLearnIcon = "/snappylearn-icon.png";
@@ -94,226 +95,222 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="flex flex-col items-center justify-center mb-6">
-            <img src={snappyLearnLogo} alt="SnappyLearn" className="h-20 w-auto mb-4" />
-            <h1 className="text-4xl font-bold text-gray-900">SnappyLearn</h1>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="px-6 py-6 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <img src={snappyLearnLogo} alt="SnappyLearn" className="h-10 w-auto" />
+          <span className="text-xl font-bold text-gray-900">SnappyLearn</span>
+        </div>
+        <div className="text-sm text-gray-600">
+          Already have an account?{" "}
+          <button
+            onClick={() => window.location.href = '/auth'}
+            className="text-purple-600 font-medium hover:underline"
+          >
+            Sign In →
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Left Column - Content */}
+          <div className="space-y-8">
+            <div className="flex items-center space-x-2 text-sm">
+              <Brain className="h-4 w-4 text-purple-600" />
+              <span className="text-gray-600">The Intelligent Document & AI Chat Platform</span>
+            </div>
+
+            <div className="space-y-6">
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
+                Where Your Documents{" "}
+                <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  Connect
+                </span>
+                <br />
+                Into Living{" "}
+                <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                  Intelligence
+                </span>
+              </h1>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                Your document collections transform into engaging AI conversations. Experience the 
+                future of knowledge management where your intelligent assistant amplifies your learning and 
+                connects you with like-minded individuals.
+              </p>
+            </div>
+
+            <p className="text-lg text-gray-700 font-medium">
+              Explore the resonance of your ideas in the collective intelligence.
+            </p>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Document Hub</h3>
+                  <p className="text-sm text-gray-600">Your intelligent collections</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Smart Content</h3>
+                  <p className="text-sm text-gray-600">Whispers become insights</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                  <Network className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Agent Networks</h3>
+                  <p className="text-sm text-gray-600">Connected intelligence</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <div className="p-2 rounded-lg bg-orange-100 text-orange-600">
+                  <Zap className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Real Analytics</h3>
+                  <p className="text-sm text-gray-600">Track performance</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="flex space-x-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900">10K+</div>
+                <div className="text-sm text-gray-600">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900">50K+</div>
+                <div className="text-sm text-gray-600">AI Agents</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gray-900">1M+</div>
+                <div className="text-sm text-gray-600">Docs Created</div>
+              </div>
+            </div>
+
+            {/* Preview Cards */}
+            <div className="flex space-x-4">
+              <Card className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-4 flex-1">
+                <div className="space-y-2">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
+                    💭 Private Thinking
+                  </Badge>
+                  <p className="text-sm font-medium">"Thinking about social patterns..."</p>
+                </div>
+              </Card>
+
+              <div className="flex items-center">
+                <div className="w-8 h-px bg-gray-300"></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full mx-2"></div>
+                <div className="w-8 h-px bg-gray-300"></div>
+              </div>
+
+              <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-4 flex-1">
+                <div className="space-y-2">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
+                    📰 Published Snip
+                  </Badge>
+                  <p className="text-sm font-medium">"5 React Patterns That Will Transform Your Code"</p>
+                </div>
+              </Card>
+            </div>
           </div>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your intelligent document management and AI chat platform. 
-            Upload documents, create collections, and chat with AI about your content.
-          </p>
-        </div>
 
-        {/* Authentication Section */}
-        <div className="max-w-md mx-auto mb-16">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle>Get Started</CardTitle>
-              <CardDescription>Sign in to access your AI-powered workspace</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="oauth" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="oauth">Quick Sign In</TabsTrigger>
-                  <TabsTrigger value="email">Email</TabsTrigger>
-                </TabsList>
+          {/* Right Column - Authentication */}
+          <div className="lg:pl-8">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Join The Cognitive Internet Today
+                </h2>
+                <p className="text-gray-600">
+                  Connect your thoughts to the collective intelligence
+                </p>
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                <Button 
+                  onClick={() => handleOAuthLogin('replit')}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                  size="lg"
+                >
+                  <img src={snappyLearnIcon} alt="SnappyLearn" className="w-5 h-5 mr-2" />
+                  Continue with Replit
+                </Button>
                 
-                <TabsContent value="oauth" className="space-y-4">
-                  <div className="space-y-3">
-                    <Button 
-                      onClick={() => handleOAuthLogin('replit')}
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                      size="lg"
-                    >
-                      <img src={snappyLearnIcon} alt="SnappyLearn" className="w-5 h-5 mr-2" />
-                      Continue with Replit
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => handleOAuthLogin('google')}
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                    >
-                      <SiGoogle className="w-5 h-5 mr-2" />
-                      Continue with Google
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => handleOAuthLogin('github')}
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                    >
-                      <Github className="w-5 h-5 mr-2" />
-                      Continue with GitHub
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => handleOAuthLogin('facebook')}
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                    >
-                      <SiFacebook className="w-5 h-5 mr-2" />
-                      Continue with Facebook
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => handleOAuthLogin('twitter')}
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                    >
-                      <SiX className="w-5 h-5 mr-2" />
-                      Continue with Twitter
-                    </Button>
+                <div className="text-center text-sm text-gray-500">OR SIGN UP WITH EMAIL</div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="mt-1"
+                    />
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="email" className="space-y-4">
-                  <Tabs defaultValue="login">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="login">Sign In</TabsTrigger>
-                      <TabsTrigger value="register">Sign Up</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="login">
-                      <form onSubmit={handleEmailLogin} className="space-y-4">
-                        <div>
-                          <Label htmlFor="login-email">Email</Label>
-                          <Input
-                            id="login-email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="login-password">Password</Label>
-                          <Input
-                            id="login-password"
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                          <Mail className="w-4 h-4 mr-2" />
-                          {isLoading ? 'Signing In...' : 'Sign In'}
-                        </Button>
-                      </form>
-                    </TabsContent>
-                    
-                    <TabsContent value="register">
-                      <form onSubmit={handleEmailRegister} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="firstName">First Name</Label>
-                            <Input
-                              id="firstName"
-                              value={formData.firstName}
-                              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="lastName">Last Name</Label>
-                            <Input
-                              id="lastName"
-                              value={formData.lastName}
-                              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="register-email">Email</Label>
-                          <Input
-                            id="register-email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="register-password">Password</Label>
-                          <Input
-                            id="register-password"
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
-                            required
-                            minLength={8}
-                          />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                          <Mail className="w-4 h-4 mr-2" />
-                          {isLoading ? 'Creating Account...' : 'Create Account'}
-                        </Button>
-                      </form>
-                    </TabsContent>
-                  </Tabs>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+                  <div>
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Create a password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleEmailRegister}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    size="lg"
+                    disabled={isLoading}
+                  >
+                    Create Account →
+                  </Button>
+                </div>
+              </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <FileText className="w-8 h-8 text-blue-600 mb-2" />
-              <CardTitle>Document Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Upload and organize your documents into smart collections. 
-                Support for PDFs, text files, and more.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <MessageSquare className="w-8 h-8 text-green-600 mb-2" />
-              <CardTitle>AI Chat Assistant</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Chat with AI about your documents. Get summaries, 
-                ask questions, and discover insights from your content.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <Shield className="w-8 h-8 text-purple-600 mb-2" />
-              <CardTitle>Secure & Private</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Your data is secure and private. All conversations 
-                and documents are protected with enterprise-grade security.
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center text-gray-600">
-          <p>© 2025 SnappyLearn. Your intelligent knowledge companion.</p>
+              <p className="text-xs text-gray-500 text-center">
+                By signing up, you agree to our Terms of Service and Privacy Policy
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="text-center py-8 text-sm text-gray-500">
+        <div className="flex items-center justify-center space-x-2 mb-2">
+          <img src={snappyLearnLogo} alt="SnappyLearn" className="h-5 w-auto" />
+          <span className="font-medium">SnappyLearn</span>
+        </div>
+        <div className="flex justify-center space-x-6 text-gray-400">
+          <a href="#" className="hover:text-gray-600">About Snappy Learn</a>
+          <a href="#" className="hover:text-gray-600">Terms</a>
+          <a href="#" className="hover:text-gray-600">Privacy</a>
+        </div>
+        <p className="mt-2">© 2024 SnappyLearn. The future of the cognitive internet.</p>
+      </footer>
     </div>
   );
 }
