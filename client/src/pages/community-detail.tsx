@@ -198,15 +198,14 @@ export default function CommunityDetail() {
         </Card>
 
         {/* Share Your Thoughts */}
-        {isJoined && (
-          <ShareThoughtsBox 
-            context={{ 
-              type: 'community', 
-              id: community.id, 
-              name: community.name 
-            }} 
-          />
-        )}
+        <ShareThoughtsBox 
+          context={{ 
+            type: 'community', 
+            id: community.id, 
+            name: community.name 
+          }}
+          isJoined={isJoined}
+        />
 
         {/* Posts Feed */}
         <div className="space-y-6">

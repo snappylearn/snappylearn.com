@@ -18,9 +18,10 @@ interface ShareThoughtsBoxProps {
     name?: string;
   };
   onPostCreated?: () => void;
+  isJoined?: boolean; // For community membership status
 }
 
-export function ShareThoughtsBox({ context, onPostCreated }: ShareThoughtsBoxProps) {
+export function ShareThoughtsBox({ context, onPostCreated, isJoined = true }: ShareThoughtsBoxProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedTopicId, setSelectedTopicId] = useState<string>("");
@@ -75,6 +76,16 @@ export function ShareThoughtsBox({ context, onPostCreated }: ShareThoughtsBoxPro
       toast({
         title: "Error",
         description: "Please write something to share",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // For community pages, check if user has joined
+    if (context?.type === 'community' && !isJoined) {
+      toast({
+        title: "Join Community Required",
+        description: "You need to join this community before you can post. Please click the 'Join Community' button first.",
         variant: "destructive",
       });
       return;
