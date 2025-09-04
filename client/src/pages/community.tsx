@@ -15,28 +15,8 @@ export default function Community() {
   const myCollections = collections.filter(c => c.userId === user?.id);
 
   // Mock data for community features - in real app, this would come from API
-  const communityHighlights = [
-    {
-      id: 1,
-      user: { name: "Kei Watanabe", avatar: "", verified: true },
-      text: "ChatGPT processes multiple result types - webpage - webpage_extended - grouped_webpages - image_inline",
-      collection: "AI Research Notes",
-      timestamp: "2 hours ago",
-      likes: 42,
-      comments: 8,
-      bookmarks: 15
-    },
-    {
-      id: 2,
-      user: { name: "Alex Johnson", avatar: "", verified: false },
-      text: "Instead of manually typing out notes while watching the video (painful), use a tool like Glasp or YouTube's built-in transcript feature to extract the full transcript in seconds.",
-      collection: "Productivity Hacks",
-      timestamp: "4 hours ago",
-      likes: 28,
-      comments: 5,
-      bookmarks: 9
-    }
-  ];
+  // Community highlights will be fetched from API in future implementation
+  const communityHighlights: any[] = [];
 
   return (
     <TwitterStyleLayout>
@@ -62,7 +42,8 @@ export default function Community() {
 
         {/* Community Highlights */}
         <div className="p-6 space-y-6">
-          {communityHighlights.map((highlight) => (
+          {communityHighlights.length > 0 ? (
+            communityHighlights.map((highlight) => (
             <div key={highlight.id} className="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
               {/* User Info */}
               <div className="flex items-center space-x-3 mb-4">
@@ -111,7 +92,16 @@ export default function Community() {
                 </button>
               </div>
             </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-center py-12">
+              <MessageCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No community highlights yet</h3>
+              <p className="text-gray-600">
+                Community highlights will appear here as users share insights from their collections.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </TwitterStyleLayout>

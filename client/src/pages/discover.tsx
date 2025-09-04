@@ -51,102 +51,23 @@ export default function Discover() {
 
   // Use real communities data from API
 
-  // Sample users data for People
-  const sampleUsers = [
-    {
-      id: "1",
-      firstName: "Emily",
-      lastName: "Chen",
-      profileImageUrl: "/avatars/emily.jpg",
-      followerCount: 1200,
-      postCount: 45,
-      isFollowing: false,
-      bio: "Product designer passionate about accessible interfaces"
-    },
-    {
-      id: "2", 
-      firstName: "Marcus",
-      lastName: "Johnson",
-      profileImageUrl: "/avatars/marcus.jpg",
-      followerCount: 850,
-      postCount: 67,
-      isFollowing: false,
-      bio: "Full-stack developer and open source contributor"
-    },
-    {
-      id: "3",
-      firstName: "Sophie",
-      lastName: "Martinez",
-      profileImageUrl: "/avatars/sophie.jpg",
-      followerCount: 2100,
-      postCount: 123,
-      isFollowing: true,
-      bio: "Data scientist sharing insights about ML applications"
-    }
-  ];
+  // Sample users removed - using only real data from API
 
-  const featuredCollections = [
-    {
-      id: 1,
-      title: "AI Research Highlights",
-      description: "Curated insights from latest AI research papers and breakthroughs",
-      author: "Dr. Sarah Chen",
-      authorAvatar: "/avatars/sarah.jpg",
-      tags: ["AI", "Research", "Machine Learning"],
-      stats: { documents: 45, highlights: 128, followers: 2400 },
-      updated: "2 days ago",
-      isFollowing: false
-    },
-    {
-      id: 2,
-      title: "Startup Growth Strategies", 
-      description: "Real-world strategies and case studies from successful startup founders",
-      author: "Mark Rodriguez",
-      authorAvatar: "/avatars/mark.jpg",
-      tags: ["Startups", "Growth", "Strategy"],
-      stats: { documents: 32, highlights: 89, followers: 1800 },
-      updated: "1 day ago",
-      isFollowing: true
-    },
-    {
-      id: 3,
-      title: "Philosophy & Ethics",
-      description: "Deep dives into philosophical concepts and ethical frameworks",
-      author: "Prof. Elena Vasquez",
-      authorAvatar: "/avatars/elena.jpg", 
-      tags: ["Ethics", "Philosophy", "Critical Thinking"],
-      stats: { documents: 67, highlights: 234, followers: 3200 },
-      updated: "3 days ago",
-      isFollowing: false
-    },
-    {
-      id: 4,
-      title: "Design Systems Guide",
-      description: "Comprehensive guide to building and maintaining design systems",
-      author: "Alex Thompson",
-      authorAvatar: "/avatars/alex.jpg",
-      tags: ["Design", "UI/UX", "Systems"],
-      stats: { documents: 28, highlights: 156, followers: 950 },
-      updated: "1 week ago",
-      isFollowing: false
-    }
-  ];
+  // Featured collections will be fetched from API in future implementation
+  const featuredCollections: any[] = [];
 
-  // Combine collections with sample data for display
-  const allCollections = [
-    ...(collections as any[]).map((col: any) => ({
-      id: col.id,
-      title: col.name,
-      description: col.description || "No description available",
-      author: "User",
-      authorAvatar: "/avatars/default.jpg",
-      tags: ["Notebook"],
-      stats: { documents: 0, highlights: 0, followers: 0 },
-      updated: "Recently",
-      isFollowing: false
-    })),
-    ...featuredCollections
-  ];
+  // Use only real collections from database
+  const allCollections = (collections as any[]).map((col: any) => ({
+    id: col.id,
+    title: col.name,
+    description: col.description || "No description available",
+    author: "User",
+    authorAvatar: "/avatars/default.jpg",
+    tags: ["Notebook"],
+    stats: { documents: col.documentCount || 0, highlights: 0, followers: 0 },
+    updated: new Date(col.createdAt).toLocaleDateString(),
+    isFollowing: false
+  }));
 
   const filteredCommunities = (communities as any[]).filter((community: any) =>
     community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -159,7 +80,7 @@ export default function Discover() {
   );
 
   // Combine real users with sample users for display
-  const displayUsers = (allUsers as any[]).length > 0 ? (allUsers as any[]) : sampleUsers;
+  const displayUsers = (allUsers as any[]) || [];
   const filteredUsers = displayUsers.filter((user: any) =>
     `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (user.bio || user.about || '').toLowerCase().includes(searchQuery.toLowerCase())

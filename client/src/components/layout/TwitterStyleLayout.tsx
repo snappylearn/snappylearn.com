@@ -361,32 +361,54 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                   <CardTitle className="text-lg font-semibold">Who to follow</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Mock users - replace with real data */}
-                  {[
-                    { name: "Dr. Sarah Chen", handle: "@sarahchen", avatar: "/avatars/sarah.jpg", followers: "2.4K followers" },
-                    { name: "Mark Rodriguez", handle: "@markrod", avatar: "/avatars/mark.jpg", followers: "1.8K followers" },
-                    { name: "Alex Kim", handle: "@alexkim", avatar: "/avatars/alex.jpg", followers: "3.1K followers" }
-                  ].map((person, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                            {person.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{person.name}</p>
-                          <p className="text-xs text-gray-500">{person.followers}</p>
-                        </div>
-                      </div>
-                      <Button size="sm" variant="outline" className="rounded-full">
-                        Follow
-                      </Button>
+                  {suggestedUsers.length > 0 ? (
+                    <>
+                      {suggestedUsers.slice(0, 3).map((person: any) => {
+                        const displayName = [person.firstName, person.lastName].filter(Boolean).join(' ') || person.email;
+                        const initials = [person.firstName, person.lastName]
+                          .filter(Boolean)
+                          .map((name: string) => name?.[0])
+                          .join('')
+                          .toUpperCase() || person.email?.[0]?.toUpperCase() || 'U';
+                        
+                        return (
+                          <div key={person.id} className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={person.profileImageUrl || undefined} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                                  {initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                                <p className="text-xs text-gray-500">
+                                  {person.followerCount ? `${person.followerCount} followers` : 'SnappyLearn Member'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="rounded-full"
+                              onClick={() => handleFollowUser(person.id)}
+                            >
+                              {person.isFollowing ? 'Following' : 'Follow'}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                      <Link href="/discover">
+                        <Button variant="link" className="w-full text-purple-600 text-sm">
+                          Show more
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500">No suggested users available</p>
                     </div>
-                  ))}
-                  <Button variant="link" className="w-full text-purple-600 text-sm">
-                    Show more
-                  </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -407,14 +429,9 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                       </Badge>
                     ))}
                     {topics.length === 0 && (
-                      <>
-                        <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">AI & Machine Learning</Badge>
-                        <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">Startups</Badge>
-                        <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">Design</Badge>
-                        <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">Philosophy</Badge>
-                        <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">Science</Badge>
-                        <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100">Education</Badge>
-                      </>
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        No topics available yet.
+                      </p>
                     )}
                   </div>
                 </CardContent>
