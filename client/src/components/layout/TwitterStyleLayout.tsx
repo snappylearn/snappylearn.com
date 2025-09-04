@@ -239,7 +239,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 max-w-2xl">
           <main className="py-6 px-4">
             {children}
           </main>
