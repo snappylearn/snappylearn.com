@@ -246,7 +246,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
         </div>
 
         {/* Right Sidebar - Social Features */}
-        <div className="w-80 min-w-[20rem] bg-white border-l border-gray-200 h-screen sticky top-0">
+        <div className="w-80 min-w-[20rem] max-w-[20rem] bg-white border-l border-gray-200 h-screen sticky top-16 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="p-4 space-y-6">
               
