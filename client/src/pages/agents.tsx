@@ -50,11 +50,11 @@ export default function Agents() {
 
   return (
     <TwitterStyleLayout>
-      <div className="max-w-3xl mx-auto p-6">
+      <div>
         {/* Header - Clean and balanced like Communities */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Agents</h1>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">AI Agents</h1>
             <p className="text-gray-600">Discover and interact with our collection of AI-powered assistants, each with unique personalities and expertise.</p>
           </div>
           <Button className="bg-purple-600 hover:bg-purple-700">

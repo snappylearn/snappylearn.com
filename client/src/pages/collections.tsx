@@ -63,77 +63,75 @@ export default function Collections() {
     <TwitterStyleLayout>
       <div>
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">Collections</h1>
-              <p className="text-sm text-gray-600">Organize your knowledge into collections</p>
-            </div>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Collection
-            </Button>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Collections</h1>
+            <p className="text-gray-600">Organize your knowledge into collections</p>
           </div>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Collection
+          </Button>
         </div>
 
         {/* Main Content */}
-        <div className="px-6">
-          {/* Search and Filters */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search collections..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-80"
-                />
-              </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Recently Updated</SelectItem>
-                  <SelectItem value="name">Name (A-Z)</SelectItem>
-                  <SelectItem value="documents">Most Documents</SelectItem>
-                </SelectContent>
-              </Select>
+        <div>
+        {/* Search and Filters */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search collections..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-80"
+              />
             </div>
-            
-            {/* View Toggle */}
-            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className={`${
-                  viewMode === "grid" 
-                    ? "bg-white shadow-sm" 
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                <Grid3X3 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className={`${
-                  viewMode === "list" 
-                    ? "bg-white shadow-sm" 
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                <List className="w-4 h-4" />
-              </Button>
-            </div>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Recently Updated</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="documents">Most Documents</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+          
+          {/* View Toggle */}
+          <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className={`${
+                viewMode === "grid" 
+                  ? "bg-white shadow-sm" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Grid3X3 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className={`${
+                viewMode === "list" 
+                  ? "bg-white shadow-sm" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
 
           {/* Collections Display */}
           {filteredCollections.length > 0 ? (
