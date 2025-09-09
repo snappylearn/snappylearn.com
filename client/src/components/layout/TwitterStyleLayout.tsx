@@ -49,6 +49,12 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     enabled: !!user,
   });
 
+  // Fetch suggested users for the "Who to follow" section
+  const { data: suggestedUsers = [] } = useQuery({
+    queryKey: ['/api/users/suggested'],
+    enabled: !!user,
+  });
+
 
   // Left sidebar navigation items
   const navigation = [
