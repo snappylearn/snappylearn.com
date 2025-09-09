@@ -2,15 +2,18 @@ import type { Express } from "express";
 import { jwtAuth, getJwtUserId } from "./auth";
 import { storage } from "../storage";
 
-if (!process.env.PAYSTACK_SECRET_KEY) {
-  throw new Error('Missing required Paystack secret: PAYSTACK_SECRET_KEY');
-}
-
 // Use direct API calls instead of the paystack library for better ES6 compatibility
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
+// Check if Paystack is configured
+const isPaystackConfigured = !!PAYSTACK_SECRET_KEY;
+
 async function paystackRequest(endpoint: string, method: string = "GET", data?: any) {
+  if (!isPaystackConfigured) {
+    throw new Error('Paystack is not configured. Please add PAYSTACK_SECRET_KEY to use payment features.');
+  }
+  
   const url = `${PAYSTACK_BASE_URL}${endpoint}`;
   const options: RequestInit = {
     method,
