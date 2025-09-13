@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "bash"]
+modules = ["nodejs-20", "web", "bash", "postgresql-16"]
 run = "npm run build && npm start"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -13,10 +13,6 @@ run = "npm start"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 39033
-externalPort = 3000
 
 [workflows]
 runButton = "Project"
