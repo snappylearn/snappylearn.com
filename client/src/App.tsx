@@ -28,6 +28,7 @@ import ArtifactsPage from "@/pages/artifacts";
 import Assistants from "@/pages/agents";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Profile from "@/pages/profile";
+import UserProfile from "@/pages/user-profile";
 import UsageDashboard from "@/pages/usage-dashboard";
 import PostDetail from "@/pages/post-detail";
 import NotFound from "@/pages/not-found";
@@ -84,6 +85,7 @@ function Router() {
       <Route path="/billing" component={UsageDashboard} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/profile" component={Profile} />
+      <Route path="/users/:id" component={UserProfile} />
       <Route component={NotFound} />
     </Switch>
   );

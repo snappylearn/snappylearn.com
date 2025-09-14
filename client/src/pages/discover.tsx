@@ -366,6 +366,9 @@ export default function Discover() {
                   key={user.id}
                   user={user}
                   creatorName={user.createdBy ? "Admin" : undefined}
+                  onClick={(userId) => {
+                    setLocation(`/users/${userId}`);
+                  }}
                   onFollow={(userId) => {
                     if (!isAuthenticated) {
                       toast({

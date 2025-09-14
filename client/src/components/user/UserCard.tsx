@@ -22,11 +22,12 @@ interface UserCardProps {
   user: User;
   onFollow?: (userId: string) => void;
   onUnfollow?: (userId: string) => void;
+  onClick?: (userId: string) => void;
   creatorName?: string; // Name of the user who created this assistant
   variant?: "vertical" | "horizontal";
 }
 
-export function UserCard({ user, onFollow, onUnfollow, creatorName, variant = "vertical" }: UserCardProps) {
+export function UserCard({ user, onFollow, onUnfollow, onClick, creatorName, variant = "vertical" }: UserCardProps) {
   const isAI = user.userTypeId === 2;
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ");
   const initials = [user.firstName, user.lastName]
@@ -45,7 +46,11 @@ export function UserCard({ user, onFollow, onUnfollow, creatorName, variant = "v
 
   if (variant === "horizontal") {
     return (
-      <Card className="p-4">
+      <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow duration-200" onClick={(e) => {
+        // Don't trigger card click when clicking the follow button
+        if ((e.target as HTMLElement).closest('button')) return;
+        onClick?.(user.id);
+      }}>
         <CardContent className="p-0">
           <div className="flex items-center space-x-4">
             <Avatar className="w-16 h-16 flex-shrink-0">
@@ -107,7 +112,11 @@ export function UserCard({ user, onFollow, onUnfollow, creatorName, variant = "v
 
   // Vertical layout (default)
   return (
-    <Card className="p-4">
+    <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow duration-200" onClick={(e) => {
+      // Don't trigger card click when clicking the follow button
+      if ((e.target as HTMLElement).closest('button')) return;
+      onClick?.(user.id);
+    }}>
       <CardContent className="p-0">
         <div className="flex items-start space-x-3">
           <Avatar className="w-12 h-12">
