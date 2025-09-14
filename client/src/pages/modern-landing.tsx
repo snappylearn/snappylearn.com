@@ -216,9 +216,9 @@ export default function ModernLanding() {
               <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-2xl font-bold text-white">1</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Notebooks</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Create Collections</h3>
               <p className="text-gray-600">
-                Organize your documents into smart notebooks. Upload PDFs, text files, and attachments with drag-and-drop ease.
+                Organize your documents into smart collections. Upload PDFs, text files, and attachments with drag-and-drop ease.
               </p>
             </div>
 
@@ -278,7 +278,7 @@ export default function ModernLanding() {
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-gray-700">1 notebook</span>
+                    <span className="text-gray-700">1 collection</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
@@ -314,7 +314,7 @@ export default function ModernLanding() {
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-gray-700">Unlimited notebooks</span>
+                    <span className="text-gray-700">Unlimited collections</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="w-5 h-5 text-green-600 mr-2" />

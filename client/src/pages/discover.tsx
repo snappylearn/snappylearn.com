@@ -63,7 +63,7 @@ export default function Discover() {
     description: col.description || "No description available",
     author: "User",
     authorAvatar: "/avatars/default.jpg",
-    tags: ["Notebook"],
+    tags: ["Collection"],
     stats: { documents: col.documentCount || 0, highlights: 0, followers: 0 },
     updated: new Date(col.createdAt).toLocaleDateString(),
     isFollowing: false
@@ -180,14 +180,14 @@ export default function Discover() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Discover</h1>
-          <p className="text-gray-600">Find communities, notebooks, and people to follow</p>
+          <p className="text-gray-600">Find communities, collections, and people to follow</p>
         </div>
 
         {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search communities, notebooks, or people..."
+            placeholder="Search communities, collections, or people..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -203,7 +203,7 @@ export default function Discover() {
             </TabsTrigger>
             <TabsTrigger value="notebooks" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
-              Notebooks
+              Collections
             </TabsTrigger>
             <TabsTrigger value="people" className="flex items-center gap-2">
               <UserPlus className="h-4 w-4" />
@@ -249,9 +249,9 @@ export default function Discover() {
             )}
           </TabsContent>
 
-          {/* Notebooks Tab */}
+          {/* Collections Tab */}
           <TabsContent value="notebooks" className="mt-6">
-            <h2 className="text-xl font-semibold mb-4">Notebooks</h2>
+            <h2 className="text-xl font-semibold mb-4">Collections</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredCollections.map((collection) => (
                 <Card key={collection.id} className="hover:shadow-md transition-shadow duration-200 flex flex-col min-h-64">
@@ -312,7 +312,7 @@ export default function Discover() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 justify-center">
                         <Button size="sm" variant="outline" onClick={() => {
-                          // Navigate to notebook detail page
+                          // Navigate to collection detail page
                           setLocation(`/collections/${collection.id}`);
                         }}>
                           <Eye className="h-4 w-4 mr-1" />
@@ -322,8 +322,8 @@ export default function Discover() {
                           size="sm"
                           variant={collection.isFollowing ? "secondary" : "default"}
                           onClick={() => {
-                            // TODO: Implement follow/unfollow notebook functionality with API
-                            console.log(collection.isFollowing ? "Unfollow notebook:" : "Follow notebook:", collection.id);
+                            // TODO: Implement follow/unfollow collection functionality with API
+                            console.log(collection.isFollowing ? "Unfollow collection:" : "Follow collection:", collection.id);
                             toast({
                               title: collection.isFollowing ? "Unfollowed" : "Following",
                               description: collection.isFollowing 
@@ -351,7 +351,7 @@ export default function Discover() {
             {filteredCollections.length === 0 && (
               <div className="text-center py-12">
                 <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">No notebooks found</h3>
+                <h3 className="text-lg font-medium mb-2">No collections found</h3>
                 <p className="text-gray-500">Try adjusting your search terms</p>
               </div>
             )}

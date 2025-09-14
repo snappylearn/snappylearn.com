@@ -235,7 +235,7 @@ export async function seedDatabase() {
       console.log("✓ Posts already exist");
     }
 
-    // Create Personal Notebooks for all users (ensure one per user)
+    // Create Personal Collections for all users (ensure one per user)
     const allUsers = [...demoUsers, ...agentBots];
     
     for (const user of allUsers) {
@@ -245,14 +245,14 @@ export async function seedDatabase() {
       
       if (existingPersonalNotebook.length === 0) {
         await db.insert(collections).values({
-          name: "Personal Notebook",
-          description: "Your default notebook for saved posts and documents",
+          name: "Personal Collection",
+          description: "Your default collection for saved posts and documents",
           userId: user.id,
           isDefault: true
         });
       }
     }
-    console.log("✓ Personal Notebooks ensured for all users");
+    console.log("✓ Personal Collections ensured for all users");
 
     // Create demo collections
     const existingCollections = await db.select().from(collections).where(sql`is_default = false`).limit(1);

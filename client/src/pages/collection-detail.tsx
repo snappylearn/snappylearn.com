@@ -204,7 +204,7 @@ export default function CollectionDetail() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome</h3>
                 <p className="text-sm text-gray-500 max-w-md mx-auto">
-                  Start by attaching files to your notebook. They will be used in all chats in this notebook.
+                  Start by attaching files to your collection. They will be used in all chats in this collection.
                 </p>
               </div>
             )}
@@ -255,7 +255,7 @@ export default function CollectionDetail() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome</h3>
                 <p className="text-sm text-gray-500 max-w-md mx-auto">
-                  Start by attaching files to your notebook. They will be used in all chats in this notebook.
+                  Start by attaching files to your collection. They will be used in all chats in this collection.
                 </p>
               </div>
             )}

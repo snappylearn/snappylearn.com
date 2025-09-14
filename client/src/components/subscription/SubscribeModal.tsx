@@ -23,7 +23,7 @@ const plans = [
     features: [
       "1 Collection",
       "1 Task", 
-      "1 Agent",
+      "1 Assistant",
       "1 Community",
       "50 Monthly Credits"
     ],
@@ -40,7 +40,7 @@ const plans = [
     features: [
       "5 Collections",
       "10 Tasks",
-      "5 Agents", 
+      "5 Assistants", 
       "5 Communities",
       "1,500 Monthly Credits",
       "Transfer & Gift Credits"
@@ -58,7 +58,7 @@ const plans = [
     features: [
       "Unlimited Collections",
       "Unlimited Tasks", 
-      "Unlimited Agents",
+      "Unlimited Assistants",
       "Unlimited Communities",
       "6,000 Monthly Credits",
       "Transfer & Gift Credits",

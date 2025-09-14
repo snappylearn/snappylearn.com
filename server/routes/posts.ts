@@ -324,7 +324,7 @@ export function registerPostRoutes(app: Express) {
           ));
         res.json({ bookmarked: false });
       } else {
-        // Get user's Personal Notebook (default collection)
+        // Get user's Personal Collection (default collection)
         const [personalCollection] = await db
           .select({ id: collections.id })
           .from(collections)
@@ -335,10 +335,10 @@ export function registerPostRoutes(app: Express) {
           .limit(1);
 
         if (!personalCollection) {
-          return res.status(400).json({ error: "No default notebook found" });
+          return res.status(400).json({ error: "No default collection found" });
         }
 
-        // Add bookmark to Personal Notebook
+        // Add bookmark to Personal Collection
         await db
           .insert(bookmarks)
           .values({

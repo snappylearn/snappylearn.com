@@ -220,7 +220,7 @@ export default function UsageDashboard() {
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
-                      1 Notebook
+                      1 Collection
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
@@ -260,7 +260,7 @@ export default function UsageDashboard() {
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
-                      10 Notebooks
+                      10 Collections
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
@@ -268,7 +268,7 @@ export default function UsageDashboard() {
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
-                      3 Agents
+                      3 Assistants
                     </div>
                   </div>
                   <SubscribeButton 
@@ -300,7 +300,7 @@ export default function UsageDashboard() {
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
-                      Unlimited Notebooks
+                      Unlimited Collections
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
@@ -308,7 +308,7 @@ export default function UsageDashboard() {
                     </div>
                     <div className="flex items-center text-sm">
                       <Check className="h-4 w-4 text-green-600 mr-2" />
-                      Unlimited Agents
+                      Unlimited Assistants
                     </div>
                   </div>
                   <SubscribeButton 

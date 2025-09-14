@@ -196,7 +196,7 @@ export default function Landing() {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-gray-900">50K+</div>
-                <div className="text-sm text-gray-600">AI Agents</div>
+                <div className="text-sm text-gray-600">AI Assistants</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-gray-900">1M+</div>

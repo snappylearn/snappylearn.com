@@ -206,7 +206,7 @@ export function BookmarkPopover({
 
               <Separator className="my-4" />
 
-              {/* Create new notebook */}
+              {/* Create new collection */}
               {isCreatingCollection ? (
                 <div className="space-y-3">
                   <Input
@@ -263,7 +263,7 @@ export function BookmarkPopover({
                 onClick={handleSaveBookmark}
                 disabled={selectedCollections.length === 0 || bookmarkMutation.isPending}
               >
-                {bookmarkMutation.isPending ? "Saving..." : `Save to ${selectedCollections.length} notebook(s)`}
+                {bookmarkMutation.isPending ? "Saving..." : `Save to ${selectedCollections.length} collection(s)`}
               </Button>
             </>
           )}

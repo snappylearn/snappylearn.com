@@ -61,7 +61,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     { name: "Home", href: "/", icon: Home },
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Agents", href: "/agents", icon: Bot },
+    { name: "Assistants", href: "/agents", icon: Bot },
     { name: "Collections", href: "/collections", icon: FolderOpen },
     { name: "Communities", href: "/communities", icon: Users },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
@@ -350,7 +350,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                     ))
                   ) : (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      No notebooks yet. Create your first notebook!
+                      No collections yet. Create your first collection!
                     </p>
                   )}
                   <Link href="/collections">

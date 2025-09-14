@@ -105,8 +105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!hasPersonalCollection) {
         try {
           await storage.createCollection({
-            name: "Personal Notebook",
-            description: "Your default notebook for saved posts and documents",
+            name: "Personal Collection",
+            description: "Your default collection for saved posts and documents",
             userId: userId,
             visibilityTypeId: 1, // Private
             isDefault: true,

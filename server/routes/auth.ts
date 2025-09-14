@@ -52,15 +52,15 @@ export function setupAuthRoutes(app: Express) {
       // Create default Personal Collection for new user
       try {
         await storage.createCollection({
-          name: "Personal Notebook",
-          description: "Your default notebook for saved posts and documents",
+          name: "Personal Collection",
+          description: "Your default collection for saved posts and documents",
           userId: newUser.id,
           visibilityTypeId: 1, // Private
           isDefault: true,
         });
-        console.log("Personal Notebook created for user:", newUser.email);
+        console.log("Personal Collection created for user:", newUser.email);
       } catch (collectionError) {
-        console.error("Failed to create Personal Notebook:", collectionError);
+        console.error("Failed to create Personal Collection:", collectionError);
         // Don't fail the signup if collection creation fails
       }
 
