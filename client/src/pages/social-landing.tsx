@@ -1,11 +1,11 @@
 import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Users, Share, Zap, ArrowRight, BookOpen, MessageSquare, Network } from "lucide-react";
+import { Brain, Users, Share, Zap, ArrowRight, BookOpen, MessageSquare, Network, Search, Target, Globe, Heart, Lightbulb, Camera, UserCheck } from "lucide-react";
 import { AuthPage } from "@/components/auth/AuthPage";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -121,6 +121,7 @@ export default function SocialLanding() {
           <button
             onClick={() => window.location.href = '/auth'}
             className="text-purple-600 font-medium hover:underline"
+            data-testid="button-signin"
           >
             Sign In →
           </button>
@@ -131,118 +132,156 @@ export default function SocialLanding() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Left Column - Content */}
           <div className="space-y-8">
-            <div className="flex items-center space-x-2 text-sm">
-              <Brain className="h-4 w-4 text-purple-600" />
-              <span className="text-gray-600">The Intelligent Document & AI Chat Platform</span>
-            </div>
-
+            {/* Hero Section */}
             <div className="space-y-6">
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                Where Your Documents{" "}
+              <div className="flex items-center space-x-2">
+                <Lightbulb className="h-6 w-6 text-purple-600" />
+                <Badge className="bg-purple-100 text-purple-800 border-purple-200" data-testid="badge-tagline">
+                  ✨ Ignite Your Curiosity. Inspire Your Journey.
+                </Badge>
+              </div>
+              
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight" data-testid="heading-main">
                 <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Connect
+                  Ignite Your Curiosity.
                 </span>
                 <br />
-                Into Living{" "}
                 <span className="bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
-                  Intelligence
+                  Inspire Your Journey.
                 </span>
               </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Your document collections transform into engaging AI conversations. Experience the 
-                future of knowledge management where your intelligent assistant amplifies your learning and 
-                connects you with like-minded individuals.
+              
+              <p className="text-xl text-gray-600 leading-relaxed" data-testid="text-subheading">
+                A community of lifelong learners, guided by AI companions, curiosity, and collective wisdom.
+              </p>
+              
+              <p className="text-lg text-gray-700 font-medium italic" data-testid="text-purpose">
+                "Learning is not about what you know. It's about the excitement of what you can discover."
               </p>
             </div>
 
-            <p className="text-lg text-gray-700 font-medium">
-              Explore the resonance of your ideas in the collective intelligence.
-            </p>
+            {/* Core Experiences */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900" data-testid="heading-core-experiences">Core Experiences</h2>
+              <div className="grid grid-cols-1 gap-4">
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="card-discover-knowledge">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 rounded-lg bg-purple-100 text-purple-600">
+                        <Search className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">🔍 Discover Knowledge in Everyday Life</h3>
+                        <p className="text-gray-600">Snap a photo, ask a question, or explore insights — turn daily moments into discovery.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-start space-x-3">
-                <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Document Hub</h3>
-                  <p className="text-sm text-gray-600">Your intelligent collections</p>
-                </div>
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="card-chat-minds">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 rounded-lg bg-blue-100 text-blue-600">
+                        <MessageSquare className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">💬 Chat With Great Minds</h3>
+                        <p className="text-gray-600">Converse with Aristotle, Einstein, or a mentor AI who adapts to your goals.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="card-learn-together">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 rounded-lg bg-green-100 text-green-600">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">🤝 Learn Together, Grow Together</h3>
+                        <p className="text-gray-600">Join dynamic communities, and collaborative challenges.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300" data-testid="card-your-path">
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 rounded-lg bg-orange-100 text-orange-600">
+                        <Target className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">🎯 Your Path, Your Way</h3>
+                        <p className="text-gray-600">Personalized journeys that adapt to your curiosity, not just algorithms.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
+            </div>
 
-              <div className="flex items-start space-x-3">
-                <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-                  <MessageSquare className="h-5 w-5" />
+            {/* Document Hub & Agent Networks Integration */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900" data-testid="heading-tools">Powered by Advanced Tools</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Document Hub</h4>
+                    <p className="text-sm text-gray-600">Your intelligent collections</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Smart Content</h3>
-                  <p className="text-sm text-gray-600">Whispers become insights</p>
-                </div>
-              </div>
 
-              <div className="flex items-start space-x-3">
-                <div className="p-2 rounded-lg bg-green-100 text-green-600">
-                  <Network className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Agent Networks</h3>
-                  <p className="text-sm text-gray-600">Connected intelligence</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="p-2 rounded-lg bg-orange-100 text-orange-600">
-                  <Zap className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Real Analytics</h3>
-                  <p className="text-sm text-gray-600">Track performance</p>
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                    <Network className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">Agent Networks</h4>
+                    <p className="text-sm text-gray-600">Connected intelligence</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="flex space-x-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">10K+</div>
-                <div className="text-sm text-gray-600">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">50K+</div>
-                <div className="text-sm text-gray-600">AI Agents</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">1M+</div>
-                <div className="text-sm text-gray-600">Docs Created</div>
-              </div>
-            </div>
-
-            {/* Preview Cards */}
-            <div className="flex space-x-4">
-              <Card className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-4 flex-1">
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
-                    💭 Private Thinking
-                  </Badge>
-                  <p className="text-sm font-medium">"Thinking about social patterns..."</p>
+            {/* Why SnappyLearn Exists */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900" data-testid="heading-why-exists">Why SnappyLearn Exists</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-pink-100 text-pink-600">
+                    <Brain className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">🧠 Lifelong Curiosity</h4>
+                    <p className="text-sm text-gray-600">Ignite joy in learning daily.</p>
+                  </div>
                 </div>
-              </Card>
 
-              <div className="flex items-center">
-                <div className="w-8 h-px bg-gray-300"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full mx-2"></div>
-                <div className="w-8 h-px bg-gray-300"></div>
-              </div>
-
-              <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-4 flex-1">
-                <div className="space-y-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-none text-xs">
-                    📰 Published Snip
-                  </Badge>
-                  <p className="text-sm font-medium">"5 React Patterns That Will Transform Your Code"</p>
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                    <UserCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">🤝 Community of Explorers</h4>
+                    <p className="text-sm text-gray-600">Learn with others, not alone.</p>
+                  </div>
                 </div>
-              </Card>
+
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">🌍 Global Impact</h4>
+                    <p className="text-sm text-gray-600">Accessible, inspiring, and meaningful.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -250,11 +289,11 @@ export default function SocialLanding() {
           <div className="lg:pl-8">
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-8">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Join The Cognitive Internet Today
+                <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="heading-signup">
+                  Begin Your Learning Journey
                 </h2>
-                <p className="text-gray-600">
-                  Connect your thoughts to the collective intelligence
+                <p className="text-gray-600" data-testid="text-signup-description">
+                  Join a community of curious minds and AI companions
                 </p>
               </div>
               
