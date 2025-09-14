@@ -11,10 +11,14 @@ if (!process.env.DATABASE_URL) {
 // Use postgres-js driver which works with Supabase and standard PostgreSQL
 // Configure for Replit environment with SSL handling
 const client = postgres(process.env.DATABASE_URL, { 
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : 'require',
+  ssl: { 
+    rejectUnauthorized: false,
+    require: true
+  },
   max: 10,
   idle_timeout: 20,
-  connect_timeout: 60
+  connect_timeout: 60,
+  prepare: false
 });
 
 export const db = drizzle(client, { schema });
