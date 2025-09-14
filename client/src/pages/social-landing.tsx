@@ -158,6 +158,22 @@ export default function SocialLanding() {
               <p className="text-base text-gray-700 font-medium italic" data-testid="text-purpose">
                 "Learning is not about what you know. It's about the excitement of what you can discover."
               </p>
+              
+              {/* Stats */}
+              <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-600" data-testid="section-stats">
+                <div className="flex items-center space-x-1">
+                  <span className="font-semibold text-purple-600">10K+</span>
+                  <span>active learners</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="font-semibold text-blue-600">50K+</span>
+                  <span>documents shared</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="font-semibold text-green-600">100K+</span>
+                  <span>AI conversations</span>
+                </div>
+              </div>
             </div>
 
             {/* Core Experiences */}
@@ -222,68 +238,50 @@ export default function SocialLanding() {
               </div>
             </div>
 
-            {/* Compact Tools & Purpose Section */}
+            {/* Tools & Purpose Section - 2x2 Grid */}
             <div className="space-y-2">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {/* Powered by Advanced Tools */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2" data-testid="heading-tools">Powered by Advanced Tools</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1 rounded bg-purple-100 text-purple-600">
-                        <BookOpen className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Document Hub</h4>
-                        <p className="text-xs text-gray-600">Your intelligent collections</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1 rounded bg-green-100 text-green-600">
-                        <Network className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Agent Networks</h4>
-                        <p className="text-xs text-gray-600">Connected intelligence</p>
-                      </div>
-                    </div>
+                {/* Document Hub */}
+                <div className="flex items-center space-x-2">
+                  <div className="p-1 rounded bg-purple-100 text-purple-600">
+                    <BookOpen className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Document Hub</h4>
+                    <p className="text-xs text-gray-600">Your intelligent collections</p>
                   </div>
                 </div>
 
-                {/* Why SnappyLearn Exists */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2" data-testid="heading-why-exists">Why SnappyLearn Exists</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1 rounded bg-pink-100 text-pink-600">
-                        <Brain className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900">🧠 Lifelong Curiosity</h4>
-                        <p className="text-xs text-gray-600">Ignite joy in learning daily.</p>
-                      </div>
-                    </div>
+                {/* Agent Networks */}
+                <div className="flex items-center space-x-2">
+                  <div className="p-1 rounded bg-green-100 text-green-600">
+                    <Network className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">Agent Networks</h4>
+                    <p className="text-xs text-gray-600">Connected intelligence</p>
+                  </div>
+                </div>
 
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1 rounded bg-blue-100 text-blue-600">
-                        <UserCheck className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900">🤝 Community of Explorers</h4>
-                        <p className="text-xs text-gray-600">Learn with others, not alone.</p>
-                      </div>
-                    </div>
+                {/* Lifelong Curiosity */}
+                <div className="flex items-center space-x-2">
+                  <div className="p-1 rounded bg-pink-100 text-pink-600">
+                    <Brain className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">🧠 Lifelong Curiosity</h4>
+                    <p className="text-xs text-gray-600">Ignite joy in learning daily.</p>
+                  </div>
+                </div>
 
-                    <div className="flex items-center space-x-2">
-                      <div className="p-1 rounded bg-green-100 text-green-600">
-                        <Globe className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900">🌍 Global Impact</h4>
-                        <p className="text-xs text-gray-600">Accessible, inspiring, and meaningful.</p>
-                      </div>
-                    </div>
+                {/* Community of Explorers */}
+                <div className="flex items-center space-x-2">
+                  <div className="p-1 rounded bg-blue-100 text-blue-600">
+                    <UserCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">🤝 Community of Explorers</h4>
+                    <p className="text-xs text-gray-600">Learn with others, not alone.</p>
                   </div>
                 </div>
               </div>
