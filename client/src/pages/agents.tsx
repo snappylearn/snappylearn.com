@@ -10,13 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Search, Bot, Plus, Grid3X3, List } from "lucide-react";
 import { useUsers, useFollowUser } from "@/hooks/use-collections";
 
+// Agent category mapping
+const agentCategoryMapping: { [key: string]: string } = {
+  "agent-einstein": "science-discovery",
+  "agent-curie": "science-discovery", 
+  "agent-tesla": "science-discovery",
+  "agent-socrates": "philosophy-wisdom",
+  "agent-davinci": "creativity-arts"
+};
+
 // Agent category data (will be fetched from API later)
 const agentCategories = [
   { id: 1, name: "Science & Discovery", slug: "science-discovery", count: 3, color: "#3b82f6" },
-  { id: 2, name: "Philosophy & Wisdom", slug: "philosophy-wisdom", count: 2, color: "#8b5cf6" },
-  { id: 3, name: "Creativity & Arts", slug: "creativity-arts", count: 2, color: "#ec4899" },
-  { id: 4, name: "Technology & Innovation", slug: "technology-innovation", count: 2, color: "#06b6d4" },
-  { id: 5, name: "Leadership & Politics", slug: "leadership-politics", count: 1, color: "#f59e0b" },
+  { id: 2, name: "Philosophy & Wisdom", slug: "philosophy-wisdom", count: 1, color: "#8b5cf6" },
+  { id: 3, name: "Creativity & Arts", slug: "creativity-arts", count: 1, color: "#ec4899" },
 ];
 
 export default function Agents() {
@@ -36,8 +43,10 @@ export default function Agents() {
     const matchesSearch = `${agent.firstName || ''} ${agent.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (agent.about || '').toLowerCase().includes(searchQuery.toLowerCase());
     
-    // For now, we'll just use search filtering since we don't have categories assigned yet
-    return matchesSearch;
+    // Filter by category if one is selected
+    const matchesCategory = selectedCategory === null || agentCategoryMapping[agent.id] === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
   });
 
   const handleFollow = (userId: string) => {
