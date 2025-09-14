@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true)
 
   // Check if user is admin
-  const isAdmin = user && (user.role === 'admin' || user.role === 'super_admin')
+  const isAdmin = !!(user && (user.role === 'admin' || user.role === 'super_admin'))
   
   // Check if user is authenticated
   const isAuthenticated = !!user
@@ -74,10 +74,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         } else {
           console.log('Token invalid, clearing...');
           localStorage.removeItem('auth_token');
+          setUser(null);
         }
       } catch (error) {
         console.error('Session check error:', error);
         localStorage.removeItem('auth_token');
+        setUser(null);
       } finally {
         setLoading(false);
       }
