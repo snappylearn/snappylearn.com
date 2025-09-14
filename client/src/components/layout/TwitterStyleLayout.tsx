@@ -62,7 +62,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Agents", href: "/agents", icon: Bot },
-    { name: "Notebooks", href: "/collections", icon: FolderOpen },
+    { name: "Collections", href: "/collections", icon: FolderOpen },
     { name: "Communities", href: "/communities", icon: Users },
     { name: "Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Profile", href: "/profile", icon: User },
@@ -316,12 +316,12 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </CardContent>
               </Card>
 
-              {/* Recent Notebooks */}
+              {/* Recent Collections */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <FolderOpen className="w-5 h-5" />
-                    Recent Notebooks
+                    Recent Collections
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">

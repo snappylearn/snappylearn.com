@@ -57,14 +57,14 @@ export function BookmarkPopover({
       setNewCollectionName("");
       setIsCreatingCollection(false);
       toast({
-        title: "Notebook created",
+        title: "Collection created",
         description: `"${newCollection.name}" has been created successfully.`,
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create notebook. Please try again.",
+        description: "Failed to create collection. Please try again.",
         variant: "destructive",
       });
     },
@@ -83,7 +83,7 @@ export function BookmarkPopover({
       setSelectedCollections([]);
       toast({
         title: "Post saved",
-        description: `"${postTitle}" has been saved to your selected notebooks.`,
+        description: `"${postTitle}" has been saved to your selected collections.`,
       });
     },
     onError: () => {
@@ -119,15 +119,15 @@ export function BookmarkPopover({
     
     createCollectionMutation.mutate({
       name: newCollectionName.trim(),
-      description: `Notebook created while saving "${postTitle}"`,
+      description: `Collection created while saving "${postTitle}"`,
     });
   };
 
   const handleSaveBookmark = () => {
     if (selectedCollections.length === 0) {
       toast({
-        title: "No notebooks selected",
-        description: "Please select at least one notebook to save this post.",
+        title: "No collections selected",
+        description: "Please select at least one collection to save this post.",
         variant: "destructive",
       });
       return;
@@ -156,7 +156,7 @@ export function BookmarkPopover({
         <div className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Bookmark className="h-4 w-4" />
-            <h3 className="font-semibold">Save to Notebook</h3>
+            <h3 className="font-semibold">Save to Collection</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4 line-clamp-2">
             "{postTitle}"
@@ -198,7 +198,7 @@ export function BookmarkPopover({
 
                   {(!Array.isArray(collections) || collections.length === 0) && (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      No notebooks yet. Create your first one below!
+                      No collections yet. Create your first one below!
                     </p>
                   )}
                 </div>
@@ -210,7 +210,7 @@ export function BookmarkPopover({
               {isCreatingCollection ? (
                 <div className="space-y-3">
                   <Input
-                    placeholder="Notebook name"
+                    placeholder="Collection name"
                     value={newCollectionName}
                     onChange={(e) => setNewCollectionName(e.target.value)}
                     onKeyDown={(e) => {
@@ -251,7 +251,7 @@ export function BookmarkPopover({
                   onClick={() => setIsCreatingCollection(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Create new notebook
+                  Create new collection
                 </Button>
               )}
 

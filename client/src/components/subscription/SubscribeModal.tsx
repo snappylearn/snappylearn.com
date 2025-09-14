@@ -21,7 +21,7 @@ const plans = [
     price: { monthly: 0, yearly: 0 },
     credits: 50,
     features: [
-      "1 Notebook",
+      "1 Collection",
       "1 Task", 
       "1 Agent",
       "1 Community",
@@ -38,7 +38,7 @@ const plans = [
     price: { monthly: 999, yearly: 9588 }, // $9.99 monthly, $95.88 yearly (20% off)
     credits: 1500,
     features: [
-      "5 Notebooks",
+      "5 Collections",
       "10 Tasks",
       "5 Agents", 
       "5 Communities",
@@ -56,7 +56,7 @@ const plans = [
     price: { monthly: 2900, yearly: 27840 }, // $29 monthly, $278.40 yearly (20% off)
     credits: 6000,
     features: [
-      "Unlimited Notebooks",
+      "Unlimited Collections",
       "Unlimited Tasks", 
       "Unlimited Agents",
       "Unlimited Communities",

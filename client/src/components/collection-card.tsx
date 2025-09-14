@@ -75,7 +75,7 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this notebook? This will also delete all associated documents and conversations.")) {
+    if (confirm("Are you sure you want to delete this collection? This will also delete all associated documents and conversations.")) {
       deleteCollection.mutate({ id: collection.id, name: collection.name });
     }
   };
@@ -99,10 +99,10 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleEdit}>
                 <Edit className="mr-2 h-4 w-4" />
-                Edit Notebook
+                Edit Collection
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDelete} className="text-red-600">
-                Delete Notebook
+                Delete Collection
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -151,16 +151,16 @@ export function CollectionCard({ collection, onStartChat }: CollectionCardProps)
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Notebook</DialogTitle>
+            <DialogTitle>Edit Collection</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="edit-name">Notebook Name</Label>
+              <Label htmlFor="edit-name">Collection Name</Label>
               <Input
                 id="edit-name"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder="Enter notebook name"
+                placeholder="Enter collection name"
                 required
               />
             </div>

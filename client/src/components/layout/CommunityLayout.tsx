@@ -36,7 +36,7 @@ export function CommunityLayout({ children }: CommunityLayoutProps) {
       active: location === "/"
     },
     {
-      name: "My Notebooks",
+      name: "My Collections",
       href: "/my-collections",
       icon: FolderOpen,
       active: location === "/my-collections"
