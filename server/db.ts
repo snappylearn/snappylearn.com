@@ -1,9 +1,6 @@
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
-
-// Configure Neon to use HTTP transport to avoid WebSocket SSL issues in Replit
-neonConfig.fetchConnectionCache = true;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,5 +8,13 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });
+// Use postgres-js driver which works with Supabase and standard PostgreSQL
+// Configure for Replit environment with SSL handling
+const client = postgres(process.env.DATABASE_URL, { 
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : 'require',
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 60
+});
+
+export const db = drizzle(client, { schema });
