@@ -43,10 +43,7 @@ export default function Discover() {
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['/api/users/suggested'],
-  });
-  
-  const { data: allUsers = [], isLoading: allUsersLoading } = useQuery({
-    queryKey: ['/api/users'],
+    enabled: isAuthenticated, // Only fetch when authenticated
   });
 
   // Use real communities data from API
@@ -79,8 +76,8 @@ export default function Discover() {
     collection.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Combine real users with sample users for display
-  const displayUsers = (allUsers as any[]) || [];
+  // Use suggested users for display when authenticated
+  const displayUsers = (users as any[]) || [];
   const filteredUsers = displayUsers.filter((user: any) =>
     `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (user.bio || user.about || '').toLowerCase().includes(searchQuery.toLowerCase())
@@ -360,8 +357,21 @@ export default function Discover() {
           {/* People Tab */}
           <TabsContent value="people" className="mt-6">
             <h2 className="text-xl font-semibold mb-4">People</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filteredUsers.map((user: any) => (
+            
+            {!isAuthenticated ? (
+              <div className="text-center py-12">
+                <UserPlus className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
+                <h3 className="text-lg font-medium mb-2">Sign in to discover people</h3>
+                <p className="text-gray-500">Please sign in to see who to follow and connect with other users</p>
+              </div>
+            ) : usersLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading users...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredUsers.map((user: any) => (
                 <UserCard
                   key={user.id}
                   user={user}
@@ -392,10 +402,11 @@ export default function Discover() {
                     followUser.mutate(userId);
                   }}
                 />
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {filteredUsers.length === 0 && (
+            {isAuthenticated && filteredUsers.length === 0 && (
               <div className="text-center py-12">
                 <UserPlus className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
                 <h3 className="text-lg font-medium mb-2">No users found</h3>

@@ -117,7 +117,7 @@ export function useFollowUser() {
   return useMutation({
     mutationFn: usersApi.follow,
     onSuccess: (data, userId) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/suggested"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users", userId] });
       
       toast({
