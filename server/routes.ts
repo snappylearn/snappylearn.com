@@ -94,6 +94,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Suggested users endpoint for recommendations
+  app.get("/api/users/suggested", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const suggestedUsers = await storage.getSuggestedUsers(userId);
+      res.json(suggestedUsers);
+    } catch (error) {
+      console.error("Error fetching suggested users:", error);
+      res.status(500).json({ error: "Failed to fetch suggested users" });
+    }
+  });
+
+  // Individual user profile endpoint
+  app.get("/api/users/:id", jwtAuth, async (req: any, res) => {
+    try {
+      const currentUserId = getJwtUserId(req);
+      const targetUserId = req.params.id;
+      const userProfile = await storage.getUserProfile(targetUserId, currentUserId);
+      
+      if (!userProfile) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ error: "Failed to fetch user profile" });
+    }
+  });
+
   // Collections endpoints
   app.get("/api/collections", jwtAuth, async (req: any, res) => {
     try {

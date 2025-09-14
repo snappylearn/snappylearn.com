@@ -14,6 +14,7 @@ import {
   userCredits,
   creditGifts,
   posts,
+  follows,
   communities,
   communityTags,
   userCommunities,
@@ -66,7 +67,7 @@ import {
   type InsertTaskRun,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, count, sql, and, ilike, inArray, gte } from "drizzle-orm";
+import { eq, desc, count, sql, and, ilike, inArray, gte, notInArray } from "drizzle-orm";
 
 export interface IStorage {
   // User methods - required for multi-provider Auth
@@ -77,6 +78,8 @@ export interface IStorage {
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User | undefined>;
   deleteUser(id: string): Promise<boolean>;
   getPublicUsers(): Promise<User[]>;
+  getSuggestedUsers(userId: string): Promise<User[]>;
+  getUserProfile(targetUserId: string, currentUserId: string): Promise<any>;
 
   // Collection methods
   getCollections(userId: string): Promise<CollectionWithStats[]>;
@@ -236,6 +239,90 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.isActive, true))
       .orderBy(desc(users.createdAt));
     return publicUsers;
+  }
+
+  async getSuggestedUsers(userId: string): Promise<User[]> {
+    // Get IDs of users already followed by current user
+    const followedUsers = await db
+      .select({ userId: follows.followingId })
+      .from(follows)
+      .where(eq(follows.followerId, userId));
+    
+    const followedUserIds = followedUsers.map(f => f.userId);
+
+    // Get users excluding current user and already followed users, prioritizing AI assistants
+    const suggestedUsers = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        userTypeId: users.userTypeId,
+        about: users.about,
+        createdAt: users.createdAt,
+        isActive: users.isActive,
+        role: users.role
+      })
+      .from(users)
+      .where(and(
+        eq(users.isActive, true),
+        sql`${users.id} != ${userId}`,
+        followedUserIds.length > 0 ? notInArray(users.id, followedUserIds) : sql`1=1`
+      ))
+      .orderBy(desc(users.userTypeId), desc(users.createdAt)) // AI users first (userTypeId = 2), then by creation date
+      .limit(5);
+    return suggestedUsers;
+  }
+
+  async getUserProfile(targetUserId: string, currentUserId: string): Promise<any> {
+    // Get user basic info (excluding sensitive data like email)
+    const [user] = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        userTypeId: users.userTypeId,
+        about: users.about,
+        createdAt: users.createdAt,
+        isActive: users.isActive,
+        role: users.role
+      })
+      .from(users)
+      .where(eq(users.id, targetUserId));
+
+    if (!user) {
+      return null;
+    }
+
+    // Get follower count
+    const [followerCountResult] = await db
+      .select({ count: count() })
+      .from(follows)
+      .where(eq(follows.followingId, targetUserId));
+
+    // Get post count (using the now-existing posts table)
+    const [postCountResult] = await db
+      .select({ count: count() })
+      .from(posts)
+      .where(eq(posts.authorId, targetUserId));
+
+    // Check if current user is following target user
+    const [followStatus] = await db
+      .select()
+      .from(follows)
+      .where(and(
+        eq(follows.followerId, currentUserId),
+        eq(follows.followingId, targetUserId)
+      ));
+
+    return {
+      ...user,
+      followerCount: followerCountResult.count || 0,
+      postCount: postCountResult.count || 0,
+      isFollowing: !!followStatus,
+      bio: user.about || null
+    };
   }
 
   // Collection methods
