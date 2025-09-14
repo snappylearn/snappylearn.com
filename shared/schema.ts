@@ -500,7 +500,10 @@ export const tasks = pgTable("tasks", {
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
   prompt: text("prompt").notNull(), // AI prompt to execute
+  frequency: varchar("frequency", { length: 20 }).notNull().default("daily"), // 'once', 'daily', 'weekly', 'monthly', 'yearly'
   schedule: varchar("schedule"), // Cron expression or schedule
+  scheduledDate: date("scheduled_date"), // Specific date for execution
+  scheduledTime: varchar("scheduled_time", { length: 8 }), // Time in HH:MM format (24-hour)
   startDate: date("start_date"), // When the task should start running
   isActive: boolean("is_active").default(true),
   lastRun: timestamp("last_run"),
@@ -511,6 +514,7 @@ export const tasks = pgTable("tasks", {
 }, (table) => [
   index("idx_tasks_user").on(table.userId),
   index("idx_tasks_next_run").on(table.nextRun),
+  index("idx_tasks_frequency").on(table.frequency),
 ]);
 
 // Task runs table for tracking execution history

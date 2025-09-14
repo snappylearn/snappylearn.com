@@ -36,8 +36,9 @@ export default function Tasks() {
     title: "",
     description: "",
     prompt: "",
-    schedule: "daily",
-    startDate: new Date().toISOString().split('T')[0], // Default to today
+    frequency: "daily",
+    scheduledDate: new Date().toISOString().split('T')[0], // Default to today
+    scheduledTime: "09:00", // Default to 9:00 AM
     isActive: true,
   });
 
@@ -49,13 +50,13 @@ export default function Tasks() {
     queryFn: tasksApi.getAll,
   });
 
-  // Schedule options
-  const scheduleOptions = [
-    { value: "hourly", label: "Every Hour" },
+  // Frequency options (matching the image design)
+  const frequencyOptions = [
+    { value: "once", label: "Once" },
     { value: "daily", label: "Daily" },
     { value: "weekly", label: "Weekly" },
     { value: "monthly", label: "Monthly" },
-    { value: "custom", label: "Custom" },
+    { value: "yearly", label: "Yearly" },
   ];
 
   // Mutations
@@ -68,8 +69,9 @@ export default function Tasks() {
         title: "",
         description: "",
         prompt: "",
-        schedule: "daily",
-        startDate: new Date().toISOString().split('T')[0],
+        frequency: "daily",
+        scheduledDate: new Date().toISOString().split('T')[0],
+        scheduledTime: "09:00",
         isActive: true,
       });
       toast({
@@ -148,7 +150,18 @@ export default function Tasks() {
       });
       return;
     }
-    createTaskMutation.mutate(newTask);
+    // Convert new task format to API format
+    const taskData = {
+      title: newTask.title,
+      description: newTask.description || "",
+      prompt: newTask.prompt,
+      schedule: newTask.frequency, // Map frequency to schedule for API compatibility
+      frequency: newTask.frequency,
+      scheduledDate: newTask.scheduledDate,
+      scheduledTime: newTask.scheduledTime,
+      isActive: newTask.isActive,
+    };
+    createTaskMutation.mutate(taskData);
   };
 
   const handleUpdateTask = () => {
@@ -205,9 +218,19 @@ export default function Tasks() {
     });
   };
 
-  const getScheduleDisplayText = (schedule: string | null) => {
-    const option = scheduleOptions.find(opt => opt.value === schedule);
+  const getFrequencyDisplayText = (frequency: string | null) => {
+    const option = frequencyOptions.find(opt => opt.value === frequency);
     return option?.label || 'Manual';
+  };
+
+  const formatTaskTime = (time: string | null, date: string | null) => {
+    if (!time) return 'No time set';
+    // Convert 24-hour time to 12-hour format
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
 
   if (isLoading) {
@@ -258,68 +281,84 @@ export default function Tasks() {
                   Set up an automated AI task that runs on a schedule.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-6 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="title">Task Title</Label>
+                  <Label htmlFor="title">Name of task</Label>
                   <Input
                     id="title"
                     value={newTask.title}
                     onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Enter task title"
+                    placeholder="Enter task name"
                   />
                 </div>
+                
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={newTask.description}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter task description"
-                    rows={2}
-                  />
+                  <Label>Frequency</Label>
+                  <div className="flex gap-2">
+                    {frequencyOptions.map((option) => (
+                      <Button
+                        key={option.value}
+                        type="button"
+                        variant={newTask.frequency === option.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setNewTask(prev => ({ ...prev, frequency: option.value }))}
+                        className="flex-1"
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="scheduledDate">On</Label>
+                    <Input
+                      id="scheduledDate"
+                      type="date"
+                      value={newTask.scheduledDate}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, scheduledDate: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="scheduledTime">Time</Label>
+                    <Input
+                      id="scheduledTime"
+                      type="time"
+                      value={newTask.scheduledTime}
+                      onChange={(e) => setNewTask(prev => ({ ...prev, scheduledTime: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
                 <div className="grid gap-2">
-                  <Label htmlFor="prompt">AI Prompt</Label>
+                  <Label htmlFor="prompt">Instructions</Label>
                   <Textarea
                     id="prompt"
                     value={newTask.prompt}
                     onChange={(e) => setNewTask(prev => ({ ...prev, prompt: e.target.value }))}
-                    placeholder="Enter the AI prompt to execute"
-                    rows={3}
+                    placeholder="Enter prompt here..."
+                    rows={4}
+                    className="resize-none"
                   />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={newTask.startDate}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, startDate: e.target.value }))}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="schedule">Schedule</Label>
-                  <Select value={newTask.schedule} onValueChange={(value) => setNewTask(prev => ({ ...prev, schedule: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select schedule" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {scheduleOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateTask} disabled={!newTask.title.trim() || !newTask.prompt.trim()}>
-                  Create Task
-                </Button>
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                  {tasks.length}/10 occasional tasks remaining
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleCreateTask} 
+                    disabled={!newTask.title.trim() || !newTask.prompt.trim()}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    Create Task
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -391,7 +430,7 @@ export default function Tasks() {
                                 : 'bg-gray-50 text-gray-600 border-gray-200'
                             }`}
                           >
-                            {getScheduleDisplayText(task.schedule)}
+                            {getFrequencyDisplayText((task as any).frequency)}
                           </Badge>
                           <Badge 
                             className={`text-xs px-2 py-1 ${
@@ -409,12 +448,16 @@ export default function Tasks() {
                       
                       <div className="flex items-center gap-6 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
-                          <Activity className="h-4 w-4" />
-                          <span>Last run: {formatDateTime(task.lastRun)}</span>
+                          <Calendar className="h-4 w-4" />
+                          <span>Scheduled: {(task as any).scheduledDate || 'Not set'}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <TrendingUp className="h-4 w-4" />
-                          <span>Next run: {formatDateTime(task.nextRun)}</span>
+                          <Clock className="h-4 w-4" />
+                          <span>Time: {formatTaskTime((task as any).scheduledTime, (task as any).scheduledDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Activity className="h-4 w-4" />
+                          <span>Last run: {formatDateTime(task.lastRun)}</span>
                         </div>
                       </div>
                     </div>
@@ -521,7 +564,7 @@ export default function Tasks() {
                   <Label htmlFor="edit-description">Description</Label>
                   <Textarea
                     id="edit-description"
-                    value={editingTask.description}
+                    value={editingTask.description || ""}
                     onChange={(e) => setEditingTask(prev => prev ? { ...prev, description: e.target.value } : null)}
                     placeholder="Enter task description"
                     rows={2}
@@ -539,12 +582,12 @@ export default function Tasks() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="edit-schedule">Schedule</Label>
-                  <Select value={editingTask.schedule} onValueChange={(value) => setEditingTask(prev => prev ? { ...prev, schedule: value } : null)}>
+                  <Select value={editingTask.schedule || ""} onValueChange={(value) => setEditingTask(prev => prev ? { ...prev, schedule: value } : null)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select schedule" />
                     </SelectTrigger>
                     <SelectContent>
-                      {scheduleOptions.map((option) => (
+                      {frequencyOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -556,7 +599,7 @@ export default function Tasks() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="edit-isActive"
-                      checked={editingTask.isActive}
+                      checked={editingTask.isActive || false}
                       onCheckedChange={(checked) => setEditingTask(prev => prev ? { ...prev, isActive: checked } : null)}
                     />
                     <Label htmlFor="edit-isActive" className="flex items-center gap-2">
