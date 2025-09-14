@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { db } from "../db";
 import { 
   posts, 
+  postTopics,
   topics, 
   users, 
   collections,
@@ -16,8 +17,7 @@ import {
   insertLikeSchema,
   insertCommentSchema,
   insertBookmarkSchema,
-  insertRepostSchema,
-  type PostWithDetails
+  insertRepostSchema
 } from "@shared/schema";
 import { jwtAuth, getJwtUserId } from "../routes/auth";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
@@ -41,7 +41,6 @@ export function registerPostRoutes(app: Express) {
           content: posts.content,
           excerpt: posts.excerpt,
           authorId: posts.authorId,
-          topicId: posts.topicId,
           communityId: posts.communityId,
           type: posts.type,
           metadata: posts.metadata,
@@ -66,7 +65,8 @@ export function registerPostRoutes(app: Express) {
         })
         .from(posts)
         .leftJoin(users, eq(posts.authorId, users.id))
-        .leftJoin(topics, eq(posts.topicId, topics.id))
+        .leftJoin(postTopics, eq(posts.id, postTopics.postId))
+        .leftJoin(topics, eq(postTopics.topicId, topics.id))
         .where(eq(posts.isPublished, true))
         .orderBy(desc(posts.isPinned), desc(posts.createdAt))
         .limit(limit)
@@ -197,7 +197,21 @@ export function registerPostRoutes(app: Express) {
       // Generate excerpt
       const excerpt = await generatePostExcerpt(content);
 
-      // Auto-assign topic if not provided
+      // Create the post first
+      const [post] = await db
+        .insert(posts)
+        .values({
+          title,
+          content,
+          excerpt,
+          authorId: userId,
+          communityId,
+          type,
+          metadata,
+        })
+        .returning();
+
+      // Handle topic assignment separately if provided
       let finalTopicId = topicId;
       if (!finalTopicId) {
         const topicSuggestion = await generateTopicFromContent(content, title);
@@ -225,19 +239,15 @@ export function registerPostRoutes(app: Express) {
         }
       }
 
-      const [post] = await db
-        .insert(posts)
-        .values({
-          title,
-          content,
-          excerpt,
-          authorId: userId,
-          topicId: finalTopicId,
-          communityId,
-          type,
-          metadata,
-        })
-        .returning();
+      // Create the post-topic relationship if topic is assigned
+      if (finalTopicId) {
+        await db
+          .insert(postTopics)
+          .values({
+            postId: post.id,
+            topicId: finalTopicId,
+          });
+      }
 
       res.json(post);
     } catch (error) {
@@ -548,7 +558,6 @@ export function registerPostRoutes(app: Express) {
           content: posts.content,
           excerpt: posts.excerpt,
           authorId: posts.authorId,
-          topicId: posts.topicId,
           communityId: posts.communityId,
           type: posts.type,
           metadata: posts.metadata,
@@ -573,7 +582,8 @@ export function registerPostRoutes(app: Express) {
         })
         .from(posts)
         .leftJoin(users, eq(posts.authorId, users.id))
-        .leftJoin(topics, eq(posts.topicId, topics.id))
+        .leftJoin(postTopics, eq(posts.id, postTopics.postId))
+        .leftJoin(topics, eq(postTopics.topicId, topics.id))
         .where(and(eq(posts.id, postId), eq(posts.isPublished, true)))
         .limit(1);
 
