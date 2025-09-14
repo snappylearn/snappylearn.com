@@ -66,7 +66,7 @@ import {
   type InsertTaskRun,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, count, sql, and, ilike, inArray } from "drizzle-orm";
+import { eq, desc, count, sql, and, ilike, inArray, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User methods - required for multi-provider Auth
@@ -966,7 +966,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(creditTransactions.userId, userId),
-          sql`${creditTransactions.createdAt} >= ${startOfMonth}`
+          gte(creditTransactions.createdAt, startOfMonth)
         )
       );
 
