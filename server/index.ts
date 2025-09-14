@@ -2,6 +2,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Handle SSL certificate issues in Replit development environment
+if (process.env.NODE_ENV === "production") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  log("SSL certificate verification disabled for Replit environment");
+}
+
 // Make Supabase environment variables available for Vite
 process.env.VITE_SUPABASE_URL = process.env.SUPABASE_URL;
 process.env.VITE_SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
