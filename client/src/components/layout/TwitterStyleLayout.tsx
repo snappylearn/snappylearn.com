@@ -397,7 +397,8 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                               size="sm" 
                               variant="outline" 
                               className="rounded-full"
-                              onClick={() => handleFollowUser(person.id)}
+                              onClick={() => console.log('Follow user:', person.id)}
+                              disabled
                             >
                               {person.isFollowing ? 'Following' : 'Follow'}
                             </Button>

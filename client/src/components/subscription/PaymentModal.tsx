@@ -40,7 +40,7 @@ function PaymentForm({ planId, planName, price, isYearly, credits, onClose }: Om
 
     try {
       // Create payment intent
-      const response = await apiRequest("POST", "/api/subscription/create-payment-intent", {
+      const response = await apiRequest("/api/subscription/create-payment-intent", "POST", {
         planId,
         isYearly
       });
