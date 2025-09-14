@@ -96,8 +96,8 @@ export default function Conversation() {
   const isCollectionBased = conversation.type === "collection";
 
   return (
-    <TwitterStyleLayout currentCollectionId={conversation?.collectionId}>
-      <div className={`flex flex-col h-screen ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
+    <TwitterStyleLayout currentCollectionId={conversation?.collectionId || undefined}>
+      <div className={`flex flex-col h-full max-h-screen ${isArtifactOpen ? 'md:mr-[50%]' : ''} transition-all duration-300`}>
         {/* Header */}
         <header className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -111,7 +111,7 @@ export default function Conversation() {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">{conversation.title}</h1>
+                <h1 className="text-base font-medium text-gray-900 truncate max-w-md">{conversation.title}</h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <div className={`w-2 h-2 rounded-full ${
                     isCollectionBased ? "bg-blue-500" : "bg-gray-500"
