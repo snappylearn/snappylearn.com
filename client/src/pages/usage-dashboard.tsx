@@ -19,9 +19,20 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { SubscribeButton } from "@/components/subscription/SubscribeButton";
+import { SubscribeModal } from "@/components/subscription/SubscribeModal";
+import { PaymentModal } from "@/components/subscription/PaymentModal";
 
 export default function UsageDashboard() {
   const [selectedTab, setSelectedTab] = useState("overview");
+  const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{
+    id: string;
+    name: string;
+    price: number;
+    credits: number;
+    isYearly: boolean;
+  } | null>(null);
 
   // Fetch user dashboard data
   const { data: dashboardData, isLoading } = useQuery({
@@ -56,6 +67,37 @@ export default function UsageDashboard() {
       "past_due": "bg-yellow-100 text-yellow-800"
     };
     return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  const planData = {
+    pro: { name: "Pro", price: { monthly: 999, yearly: 9588 }, credits: 1500 },
+    premium: { name: "Premium", price: { monthly: 2900, yearly: 27840 }, credits: 6000 }
+  };
+
+  const handleSelectPlan = (planId: string, isYearly: boolean) => {
+    if (planId === "free") {
+      setIsSubscribeModalOpen(false);
+      return;
+    }
+
+    const plan = planData[planId as keyof typeof planData];
+    if (plan) {
+      const price = isYearly ? plan.price.yearly : plan.price.monthly;
+      setSelectedPlan({
+        id: planId,
+        name: plan.name,
+        price,
+        credits: plan.credits,
+        isYearly
+      });
+      setIsSubscribeModalOpen(false);
+      setIsPaymentModalOpen(true);
+    }
+  };
+
+  const handlePaymentClose = () => {
+    setIsPaymentModalOpen(false);
+    setSelectedPlan(null);
   };
 
   return (
@@ -103,7 +145,11 @@ export default function UsageDashboard() {
                     Next billing: {format(new Date(subscription.currentPeriodEnd), "MMM dd, yyyy")}
                   </p>
                 )}
-                <Button className="w-full" variant="outline">
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  onClick={() => setIsSubscribeModalOpen(true)}
+                >
                   Manage Subscription
                 </Button>
               </CardContent>
@@ -391,6 +437,24 @@ export default function UsageDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <SubscribeModal
+        isOpen={isSubscribeModalOpen}
+        onClose={() => setIsSubscribeModalOpen(false)}
+        onSelectPlan={handleSelectPlan}
+      />
+
+      {selectedPlan && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={handlePaymentClose}
+          planId={selectedPlan.id}
+          planName={selectedPlan.name}
+          price={selectedPlan.price}
+          isYearly={selectedPlan.isYearly}
+          credits={selectedPlan.credits}
+        />
+      )}
     </TwitterStyleLayout>
   );
 }
