@@ -13,8 +13,21 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
+// Configure Supabase client options for Replit environment
+const clientOptions = {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: false
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+}
+
 // Admin client for backend operations (user creation, etc.)
-export const supabase = createClient(supabaseUrl, supabaseServiceKey)
+export const supabase = createClient(supabaseUrl, supabaseServiceKey, clientOptions)
 
 // User client for token validation - uses same keys as frontend
-export const supabaseUser = createClient(supabaseUrl, supabaseAnonKey || supabaseServiceKey)
+export const supabaseUser = createClient(supabaseUrl, supabaseAnonKey || supabaseServiceKey, clientOptions)

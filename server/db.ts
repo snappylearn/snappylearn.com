@@ -4,6 +4,8 @@ import ws from "ws";
 import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
+// Configure to handle SSL certificate issues in Replit environment
+neonConfig.useSecureWebSocket = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
