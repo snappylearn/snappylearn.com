@@ -281,7 +281,6 @@ export const posts = pgTable("posts", {
   content: text("content").notNull(),
   excerpt: text("excerpt"), // Auto-generated or manual excerpt
   authorId: varchar("author_id").notNull(),
-  topicId: integer("topic_id").notNull(),
   communityId: integer("community_id"), // Optional association with community
   type: varchar("type", { length: 20 }).default("text"), // 'text', 'link', 'highlight', 'question'
   metadata: jsonb("metadata").default(null), // For links, highlights, etc.
@@ -291,6 +290,17 @@ export const posts = pgTable("posts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Junction table for many-to-many relationship between posts and topics
+export const postTopics = pgTable("post_topics", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull(),
+  topicId: integer("topic_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_post_topics_post").on(table.postId),
+  index("idx_post_topics_topic").on(table.topicId),
+]);
 
 // Follows table for user connections
 export const follows = pgTable("follows", {

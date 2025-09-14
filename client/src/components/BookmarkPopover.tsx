@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Bookmark, Plus, Folder } from "lucide-react";
+import { Bookmark, Plus, Folder, Lock } from "lucide-react";
 import type { Collection } from "@shared/schema";
 
 interface BookmarkPopoverProps {
@@ -31,17 +31,19 @@ export function BookmarkPopover({
   const [selectedCollections, setSelectedCollections] = useState<number[]>([]);
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
+  const initialized = useRef(false);
+  const userDirty = useRef(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch user's collections
-  const { data: collections = [], isLoading } = useQuery({
+  const { data: collections = [], isLoading } = useQuery<Collection[]>({
     queryKey: ['/api/collections'],
     enabled: open,
   });
 
   // Fetch collections this post is already saved to
-  const { data: existingBookmarks = [] } = useQuery({
+  const { data: existingBookmarks = [] } = useQuery<{ collectionId: number }[]>({
     queryKey: ['/api/bookmarks', postId],
     enabled: open,
   });
@@ -78,6 +80,7 @@ export function BookmarkPopover({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/posts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookmarks', postId] });
       queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
       setOpen(false);
       setSelectedCollections([]);
@@ -97,16 +100,27 @@ export function BookmarkPopover({
 
   // Initialize selected collections when popover opens
   React.useEffect(() => {
-    if (open && Array.isArray(existingBookmarks) && existingBookmarks.length > 0) {
-      const bookmarkedCollections = existingBookmarks.map((b: any) => b.collectionId);
-      setSelectedCollections(bookmarkedCollections);
-    } else if (open) {
-      // Don't pre-select anything - let user choose
+    if (open) {
+      // Reset tracking when popover opens
+      initialized.current = false;
+      userDirty.current = false;
       setSelectedCollections([]);
+    }
+  }, [open]);
+  
+  // Initialize from existing bookmarks only once per open session
+  React.useEffect(() => {
+    if (open && !initialized.current && !userDirty.current && Array.isArray(existingBookmarks)) {
+      if (existingBookmarks.length > 0) {
+        const bookmarkedCollections = existingBookmarks.map(b => b.collectionId);
+        setSelectedCollections(bookmarkedCollections);
+      }
+      initialized.current = true;
     }
   }, [open, existingBookmarks]);
 
   const handleCollectionToggle = (collectionId: number, checked: boolean) => {
+    userDirty.current = true; // Mark as user-modified
     if (checked) {
       setSelectedCollections(prev => [...prev, collectionId]);
     } else {
@@ -188,6 +202,9 @@ export function BookmarkPopover({
                         <div className="flex items-center gap-2">
                           <Folder className="h-4 w-4 text-gray-400" />
                           <span className="text-sm font-medium">{collection.name}</span>
+                          {(collection.visibilityTypeId === 1 || !collection.visibilityTypeId) && (
+                            <Lock className="h-3 w-3 text-gray-400" />
+                          )}
                           {collection.isDefault && (
                             <span className="text-xs text-gray-500">(Personal)</span>
                           )}
