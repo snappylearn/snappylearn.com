@@ -2,16 +2,14 @@ import type { Express } from "express";
 import { db } from "../db";
 import { follows, users, insertFollowSchema } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { jwtAuth, getJwtUserId } from "./auth";
 
 export function registerFollowRoutes(app: Express) {
   
   // Follow/unfollow a user
-  app.post("/api/users/:id/follow", async (req, res) => {
+  app.post("/api/users/:id/follow", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user?.claims?.sub;
-      if (!userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+      const userId = getJwtUserId(req);
 
       const followingId = req.params.id;
 
