@@ -58,7 +58,7 @@ export function Sidebar({ selectedCollectionId, onSelectCollection, onNewChat }:
         {/* Logo/Header */}
         <div className="p-4 border-b border-gray-200">
           <Link href="/" className="flex items-center justify-center">
-            <img src="/snappylearn-sidebar-logo.png" alt="SnappyLearn" className="h-10 w-auto" />
+            <img src="/snappylearn-logo-new.png" alt="SnappyLearn" className="h-10 w-auto" />
           </Link>
         </div>
 

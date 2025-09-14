@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { FileText, MessageSquare, Shield, Github, Mail, BookOpen, Brain, Network, Zap } from "lucide-react";
 import { SiGoogle, SiFacebook, SiX } from "react-icons/si";
-const snappyLearnLogo = "/snappylearn-transparent-logo.png";
+const snappyLearnLogo = "/snappylearn-logo-new.png";
 const snappyLearnIcon = "/snappylearn-icon.png";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";

@@ -5,7 +5,7 @@ import { ArrowRight, Check, FileText, MessageCircle, Search, Zap, Shield, BarCha
 import { useState } from "react";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 
-const snappyLearnLogo = "/snappylearn-transparent-logo.png";
+const snappyLearnLogo = "/snappylearn-logo-new.png";
 
 export default function ModernLanding() {
   const [showSignUp, setShowSignUp] = useState(false);
