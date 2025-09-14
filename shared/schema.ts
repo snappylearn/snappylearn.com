@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, index, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -491,6 +491,7 @@ export const tasks = pgTable("tasks", {
   description: text("description"),
   prompt: text("prompt").notNull(), // AI prompt to execute
   schedule: varchar("schedule"), // Cron expression or schedule
+  startDate: date("start_date"), // When the task should start running
   isActive: boolean("is_active").default(true),
   lastRun: timestamp("last_run"),
   nextRun: timestamp("next_run"),

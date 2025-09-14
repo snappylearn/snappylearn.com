@@ -186,6 +186,8 @@ export function setupAuthRoutes(app: Express) {
         lastName: user.lastName,
         profileImageUrl: user.profileImageUrl,
         role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       });
     } catch (error) {
       console.error("User validation error:", error);

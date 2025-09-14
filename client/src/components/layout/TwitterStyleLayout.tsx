@@ -426,14 +426,25 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {topics.slice(0, 6).map((topic: any) => (
-                      <Badge 
-                        key={topic.id} 
-                        variant="secondary" 
-                        className="cursor-pointer hover:bg-purple-100 hover:text-purple-700"
-                      >
-                        {topic.name}
-                      </Badge>
+                      <Link key={topic.id} href={`/discover?topic=${topic.slug}`}>
+                        <Badge 
+                          variant="secondary" 
+                          className="cursor-pointer hover:bg-purple-100 hover:text-purple-700"
+                        >
+                          {topic.name}
+                        </Badge>
+                      </Link>
                     ))}
+                    {topics.length > 6 && (
+                      <Link href="/discover">
+                        <Badge 
+                          variant="outline" 
+                          className="cursor-pointer hover:bg-purple-100 hover:text-purple-700"
+                        >
+                          Explore More Topics
+                        </Badge>
+                      </Link>
+                    )}
                     {topics.length === 0 && (
                       <p className="text-sm text-gray-500 text-center py-4">
                         No topics available yet.

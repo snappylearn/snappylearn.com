@@ -37,6 +37,7 @@ export default function Tasks() {
     description: "",
     prompt: "",
     schedule: "daily",
+    startDate: new Date().toISOString().split('T')[0], // Default to today
     isActive: true,
   });
 
@@ -68,6 +69,7 @@ export default function Tasks() {
         description: "",
         prompt: "",
         schedule: "daily",
+        startDate: new Date().toISOString().split('T')[0],
         isActive: true,
       });
       toast({
@@ -284,6 +286,15 @@ export default function Tasks() {
                     onChange={(e) => setNewTask(prev => ({ ...prev, prompt: e.target.value }))}
                     placeholder="Enter the AI prompt to execute"
                     rows={3}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={newTask.startDate}
+                    onChange={(e) => setNewTask(prev => ({ ...prev, startDate: e.target.value }))}
                   />
                 </div>
                 <div className="grid gap-2">

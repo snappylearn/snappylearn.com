@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { File, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddDocumentDropdown } from "@/components/add-document-dropdown";
@@ -184,9 +185,19 @@ export default function CollectionDetail() {
           <TabsList className="grid w-full grid-cols-2 bg-gray-100">
             <TabsTrigger value="conversations" className="data-[state=active]:bg-white">
               Conversations
+              {collectionConversations.length > 0 && (
+                <Badge variant="secondary" className="ml-2 bg-purple-100 text-purple-700">
+                  {collectionConversations.length}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="documents" className="data-[state=active]:bg-white">
               Documents
+              {documents.length > 0 && (
+                <Badge variant="secondary" className="ml-2 bg-purple-100 text-purple-700">
+                  {documents.length}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
           
