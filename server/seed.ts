@@ -5,6 +5,9 @@ import { sql } from "drizzle-orm";
 export async function seedDatabase() {
   try {
     console.log("Seeding database with demo data...");
+    
+    // Control demo content creation with environment variable
+    const isDemoSeed = process.env.SEED_DEMO === 'true';
 
     // First, seed user types
     const existingUserTypes = await db.select().from(userTypes).limit(1);
@@ -50,53 +53,11 @@ export async function seedDatabase() {
     // Get all topics for post creation
     const allTopics = await db.select().from(topics);
     
-    // Create demo users if they don't exist
-    const existingDemoUsers = await db.select().from(users).where(sql`id LIKE 'demo-user-%'`);
-    let demoUsers = [];
+    // Skip creating demo users for production
+    console.log("✓ Skipping demo user creation (production mode)");
     
-    if (existingDemoUsers.length === 0) {
-      console.log("Creating demo users...");
-      const demoUserData = [
-        {
-          id: "demo-user-1",
-          email: "sarah.chen@example.com",
-          firstName: "Sarah",
-          lastName: "Chen",
-          profileImageUrl: null,
-          userTypeId: 1, // human
-        },
-        {
-          id: "demo-user-2", 
-          email: "alex.rodriguez@example.com",
-          firstName: "Alex",
-          lastName: "Rodriguez",
-          profileImageUrl: null,
-          userTypeId: 1, // human
-        },
-        {
-          id: "demo-user-3",
-          email: "maya.patel@example.com", 
-          firstName: "Maya",
-          lastName: "Patel",
-          profileImageUrl: null,
-          userTypeId: 1, // human
-        },
-        {
-          id: "demo-user-4",
-          email: "jordan.kim@example.com",
-          firstName: "Jordan", 
-          lastName: "Kim",
-          profileImageUrl: null,
-          userTypeId: 1, // human
-        }
-      ];
-      
-      demoUsers = await db.insert(users).values(demoUserData).returning();
-      console.log("✓ Demo users created");
-    } else {
-      demoUsers = await db.select().from(users);
-      console.log("✓ Using existing users");
-    }
+    // Get existing users for any operations that need them
+    const demoUsers = await db.select().from(users);
 
     // Create Agent Bot personas if they don't exist
     const existingAgentBots = await db.select().from(users).where(sql`id LIKE 'agent-%'`);
@@ -177,7 +138,7 @@ export async function seedDatabase() {
     // Check if posts already exist
     const existingPosts = await db.select().from(posts).limit(1);
     
-    if (existingPosts.length === 0 && allTopics.length > 0) {
+    if (isDemoSeed && existingPosts.length === 0 && allTopics.length > 0) {
       const demoPosts = [
         {
           title: "The Future of AI in Education",
@@ -231,12 +192,14 @@ export async function seedDatabase() {
 
       await db.insert(posts).values(demoPosts);
       console.log("✓ Demo posts created");
+    } else if (!isDemoSeed) {
+      console.log("✓ Skipping demo posts creation (production mode)");
     } else {
       console.log("✓ Posts already exist");
     }
 
     // Create Personal Collections for all users (ensure one per user)
-    const allUsers = [...demoUsers, ...agentBots];
+    const allUsers = await db.select().from(users);
     
     for (const user of allUsers) {
       const existingPersonalNotebook = await db.select().from(collections)
@@ -253,11 +216,14 @@ export async function seedDatabase() {
       }
     }
     console.log("✓ Personal Collections ensured for all users");
+    
+    // Ensure all default collections are named "Personal Collection"
+    await db.execute(sql`UPDATE collections SET name = 'Personal Collection' WHERE is_default = true AND name <> 'Personal Collection'`);
 
     // Create demo collections
     const existingCollections = await db.select().from(collections).where(sql`is_default = false`).limit(1);
     
-    if (existingCollections.length === 0) {
+    if (isDemoSeed && existingCollections.length === 0) {
       const demoCollections = [
         {
           name: "AI Research Papers",
@@ -331,6 +297,8 @@ export async function seedDatabase() {
 
       await db.insert(documents).values(demoDocuments);
       console.log("✓ Demo documents added to collections");
+    } else if (!isDemoSeed) {
+      console.log("✓ Skipping demo collections creation (production mode)");
     } else {
       console.log("✓ Collections already exist");
     }
