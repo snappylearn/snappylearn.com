@@ -9,6 +9,8 @@ import { z } from "zod";
 const signUpSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
 });
 
 const signInSchema = z.object({
@@ -22,7 +24,7 @@ export function setupAuthRoutes(app: Express) {
   // Sign up route - creates user in our database
   app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
-      const { email, password } = signUpSchema.parse(req.body);
+      const { email, password, firstName, lastName } = signUpSchema.parse(req.body);
       
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
@@ -40,6 +42,8 @@ export function setupAuthRoutes(app: Express) {
         id: userId,
         email,
         passwordHash,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
         emailVerified: true, // Auto-verify for development
         role: "user",
         isActive: true,

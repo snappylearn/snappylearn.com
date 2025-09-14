@@ -9,7 +9,6 @@ import { Brain, Users, Share, Zap, ArrowRight, BookOpen, MessageSquare, Network,
 import { AuthPage } from "@/components/auth/AuthPage";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const snappyLearnLogo = "/snappylearn-new-logo.png";
 const snappyLearnIcon = "/snappylearn-icon.png";
@@ -87,7 +86,7 @@ export default function SocialLanding() {
           variant: "default",
         });
         // Switch to sign in tab after successful registration
-        const signInTab = document.querySelector('[data-value="signin"]') as HTMLElement;
+        const signInTab = document.querySelector('[data-value="login"]') as HTMLElement;
         if (signInTab) {
           signInTab.click();
         }
@@ -288,19 +287,19 @@ export default function SocialLanding() {
             </div>
           </div>
 
-          {/* Right Column - Compact Authentication */}
+          {/* Right Column - Original Authentication Design */}
           <div className="lg:pl-8">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6">
-              <div className="text-center mb-4">
-                <h2 className="text-xl font-bold text-gray-900 mb-1" data-testid="heading-signup">
-                  Begin Your Learning Journey
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="heading-signup">
+                  Join The Cognitive Internet Today
                 </h2>
-                <p className="text-sm text-gray-600" data-testid="text-signup-description">
-                  Join a community of curious minds and AI companions
+                <p className="text-gray-600" data-testid="text-signup-description">
+                  Connect your thoughts to the collective intelligence
                 </p>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-4 mb-6">
                 <Button 
                   onClick={() => handleOAuthLogin('replit')}
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
@@ -311,144 +310,128 @@ export default function SocialLanding() {
                   Continue with Replit
                 </Button>
                 
-                <div className="text-center text-xs text-gray-500">OR</div>
+                <div className="text-center text-sm text-gray-500">OR USE EMAIL</div>
                 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full" data-testid="button-email-signup">
-                      Continue with Email
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Join SnappyLearn</DialogTitle>
-                      <DialogDescription>
-                        Sign up or sign in to begin your learning journey
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <Tabs defaultValue="signup" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                        <TabsTrigger value="login" data-testid="tab-signin">Sign In</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="signup" className="mt-4">
-                        <form onSubmit={handleEmailRegister} className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
-                              <Input
-                                id="firstName"
-                                type="text"
-                                placeholder="First name"
-                                value={formData.firstName}
-                                onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                                className="mt-1"
-                                required
-                                data-testid="input-firstname"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
-                              <Input
-                                id="lastName"
-                                type="text"
-                                placeholder="Last name"
-                                value={formData.lastName}
-                                onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                                className="mt-1"
-                                required
-                                data-testid="input-lastname"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="signup-email" className="text-sm font-medium text-gray-700">Email address</Label>
-                            <Input
-                              id="signup-email"
-                              type="email"
-                              placeholder="Enter your email"
-                              value={formData.email}
-                              onChange={(e) => setFormData({...formData, email: e.target.value})}
-                              className="mt-1"
-                              required
-                              data-testid="input-signup-email"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="signup-password" className="text-sm font-medium text-gray-700">Password</Label>
-                            <Input
-                              id="signup-password"
-                              type="password"
-                              placeholder="Create a password"
-                              value={formData.password}
-                              onChange={(e) => setFormData({...formData, password: e.target.value})}
-                              className="mt-1"
-                              required
-                              minLength={8}
-                              data-testid="input-signup-password"
-                            />
-                          </div>
-                          <Button 
-                            type="submit"
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                            size="lg"
-                            disabled={isLoading}
-                            data-testid="button-signup-submit"
-                          >
-                            {isLoading ? 'Creating Account...' : 'Create Account →'}
-                          </Button>
-                        </form>
-                      </TabsContent>
-                      
-                      <TabsContent value="login" className="mt-4">
-                        <form onSubmit={handleEmailLogin} className="space-y-4">
-                          <div>
-                            <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">Email address</Label>
-                            <Input
-                              id="login-email"
-                              type="email"
-                              placeholder="Enter your email"
-                              value={formData.email}
-                              onChange={(e) => setFormData({...formData, email: e.target.value})}
-                              className="mt-1"
-                              required
-                              data-testid="input-login-email"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">Password</Label>
-                            <Input
-                              id="login-password"
-                              type="password"
-                              placeholder="Enter your password"
-                              value={formData.password}
-                              onChange={(e) => setFormData({...formData, password: e.target.value})}
-                              className="mt-1"
-                              required
-                              data-testid="input-login-password"
-                            />
-                          </div>
-                          <Button 
-                            type="submit"
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                            size="lg"
-                            disabled={isLoading}
-                            data-testid="button-login-submit"
-                          >
-                            {isLoading ? 'Signing In...' : 'Sign In →'}
-                          </Button>
-                        </form>
-                      </TabsContent>
-                    </Tabs>
-                    
-                    <p className="text-xs text-gray-500 text-center mt-4">
-                      By continuing, you agree to our Terms of Service and Privacy Policy
-                    </p>
-                  </DialogContent>
-                </Dialog>
+                <Tabs defaultValue="login" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="login" data-testid="tab-signin">Sign In</TabsTrigger>
+                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="login" className="mt-4">
+                    <form onSubmit={handleEmailLogin} className="space-y-4">
+                      <div>
+                        <Label htmlFor="login-email" className="text-sm font-medium text-gray-700">Email address</Label>
+                        <Input
+                          id="login-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          className="mt-1"
+                          required
+                          data-testid="input-login-email"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="login-password" className="text-sm font-medium text-gray-700">Password</Label>
+                        <Input
+                          id="login-password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          className="mt-1"
+                          required
+                          data-testid="input-login-password"
+                        />
+                      </div>
+                      <Button 
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                        size="lg"
+                        disabled={isLoading}
+                        data-testid="button-login-submit"
+                      >
+                        {isLoading ? 'Signing In...' : 'Sign In →'}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                  
+                  <TabsContent value="signup" className="mt-4">
+                    <form onSubmit={handleEmailRegister} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
+                          <Input
+                            id="firstName"
+                            type="text"
+                            placeholder="First name"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                            className="mt-1"
+                            required
+                            data-testid="input-firstname"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            type="text"
+                            placeholder="Last name"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                            className="mt-1"
+                            required
+                            data-testid="input-lastname"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-email" className="text-sm font-medium text-gray-700">Email address</Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          className="mt-1"
+                          required
+                          data-testid="input-signup-email"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="signup-password" className="text-sm font-medium text-gray-700">Password</Label>
+                        <Input
+                          id="signup-password"
+                          type="password"
+                          placeholder="Create a password"
+                          value={formData.password}
+                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          className="mt-1"
+                          required
+                          minLength={8}
+                          data-testid="input-signup-password"
+                        />
+                      </div>
+                      <Button 
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                        size="lg"
+                        disabled={isLoading}
+                        data-testid="button-signup-submit"
+                      >
+                        {isLoading ? 'Creating Account...' : 'Create Account →'}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
               </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                By signing up, you agree to our Terms of Service and Privacy Policy
+              </p>
             </div>
           </div>
         </div>
