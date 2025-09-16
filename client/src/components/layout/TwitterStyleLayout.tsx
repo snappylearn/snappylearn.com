@@ -101,8 +101,8 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
   });
 
   // Filter communities for user's joined vs recommendations
-  const userCommunities = allCommunities.filter((community: any) => community.isJoined);
-  const recommendedCommunities = allCommunities.filter((community: any) => !community.isJoined);
+  const userCommunities = Array.isArray(allCommunities) ? allCommunities.filter((community: any) => community.isJoined) : [];
+  const recommendedCommunities = Array.isArray(allCommunities) ? allCommunities.filter((community: any) => !community.isJoined) : [];
 
   const { data: conversations = [] } = useQuery({
     queryKey: ['/api/conversations'],

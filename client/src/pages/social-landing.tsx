@@ -300,17 +300,7 @@ export default function SocialLanding() {
               </div>
               
               <div className="space-y-4 mb-6">
-                <Button 
-                  onClick={() => handleOAuthLogin('replit')}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                  size="lg"
-                  data-testid="button-replit-signin"
-                >
-                  <img src={snappyLearnIcon} alt="SnappyLearn" className="w-5 h-5 mr-2" />
-                  Continue with Replit
-                </Button>
-                
-                <div className="text-center text-sm text-gray-500">OR USE EMAIL</div>
+                <div className="text-center text-sm text-gray-700 font-medium mb-4">Join with Email</div>
                 
                 <Tabs defaultValue="login" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
