@@ -94,6 +94,18 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     enabled: !!user,
   });
 
+  // Fetch communities data for sidebar cards
+  const { data: allCommunities = [] } = useQuery({
+    queryKey: ['/api/communities'],
+    enabled: !!user,
+  });
+
+  // Fetch user's communities
+  const { data: userCommunities = [] } = useQuery({
+    queryKey: ['/api/user-communities'],
+    enabled: !!user,
+  });
+
   const { data: conversations = [] } = useQuery({
     queryKey: ['/api/conversations'],
     enabled: location === '/chat' || location.startsWith('/conversations/'),
@@ -290,29 +302,41 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </Card>
               )}
 
-              {/* Trending Posts */}
+              {/* Recommended Communities */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold">Trending Posts</CardTitle>
+                  <CardTitle className="text-lg font-semibold">Recommended Communities</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {posts.slice(0, 3).map((post: any, index: number) => (
-                    <Link key={post.id || index} href={`/posts/${post.id}`}>
+                  {allCommunities.slice(0, 3).map((community: any) => (
+                    <Link key={community.id} href={`/communities/${community.id}`}>
                       <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          {post.title || "Interesting discussion about the future of AI"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {post.viewCount || 0} views
-                        </p>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                            <Users className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
+                              {community.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {community.memberCount || 0} members
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   ))}
-                  {posts.length === 0 && (
+                  {allCommunities.length === 0 && (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      No posts yet. Be the first to share something!
+                      No communities yet. Create the first one!
                     </p>
                   )}
+                  <Link href="/communities">
+                    <Button variant="link" className="w-full text-purple-600 text-sm">
+                      View All Communities
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
 
@@ -419,39 +443,55 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </CardContent>
               </Card>
 
-              {/* Recommended Topics */}
+              {/* Your Communities */}
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold">Recommended Topics</CardTitle>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Your Communities
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {topics.slice(0, 6).map((topic: any) => (
-                      <Link key={topic.id} href={`/discover?topic=${topic.slug}`}>
-                        <Badge 
-                          variant="secondary" 
-                          className="cursor-pointer hover:bg-purple-100 hover:text-purple-700"
-                        >
-                          {topic.name}
-                        </Badge>
+                <CardContent className="space-y-3">
+                  {allCommunities.length > 0 ? (
+                    <>
+                      {allCommunities.slice(0, 4).map((community: any) => (
+                        <Link key={community.id} href={`/communities/${community.id}`}>
+                          <div className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                                <Users className="w-4 h-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                                  {community.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {community.memberCount || 0} members
+                                </p>
+                              </div>
+                            </div>
+                            <Button size="sm" variant="outline" className="text-xs">
+                              View
+                            </Button>
+                          </div>
+                        </Link>
+                      ))}
+                      <Link href="/communities">
+                        <Button variant="link" className="w-full text-purple-600 text-sm">
+                          View All Communities
+                        </Button>
                       </Link>
-                    ))}
-                    {topics.length > 6 && (
-                      <Link href="/discover">
-                        <Badge 
-                          variant="outline" 
-                          className="cursor-pointer hover:bg-purple-100 hover:text-purple-700"
-                        >
-                          Explore More Topics
-                        </Badge>
+                    </>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500 mb-2">No communities yet.</p>
+                      <Link href="/communities">
+                        <Button size="sm" variant="outline">
+                          Explore Communities
+                        </Button>
                       </Link>
-                    )}
-                    {topics.length === 0 && (
-                      <p className="text-sm text-gray-500 text-center py-4">
-                        No topics available yet.
-                      </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
