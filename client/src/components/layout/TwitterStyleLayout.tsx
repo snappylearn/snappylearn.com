@@ -100,11 +100,9 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
     enabled: !!user,
   });
 
-  // Fetch user's communities
-  const { data: userCommunities = [] } = useQuery({
-    queryKey: ['/api/user-communities'],
-    enabled: !!user,
-  });
+  // Filter communities for user's joined vs recommendations
+  const userCommunities = allCommunities.filter((community: any) => community.isJoined);
+  const recommendedCommunities = allCommunities.filter((community: any) => !community.isJoined);
 
   const { data: conversations = [] } = useQuery({
     queryKey: ['/api/conversations'],
@@ -308,8 +306,8 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                   <CardTitle className="text-lg font-semibold">Recommended Communities</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {allCommunities.slice(0, 3).map((community: any) => (
-                    <Link key={community.id} href={`/communities/${community.id}`}>
+                  {recommendedCommunities.slice(0, 3).map((community: any) => (
+                    <Link key={community.community.id} href={`/communities/${community.community.id}`}>
                       <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -317,7 +315,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
-                              {community.name}
+                              {community.community.name}
                             </p>
                             <p className="text-xs text-gray-500">
                               {community.memberCount || 0} members
@@ -327,14 +325,14 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                       </div>
                     </Link>
                   ))}
-                  {allCommunities.length === 0 && (
+                  {recommendedCommunities.length === 0 && (
                     <p className="text-sm text-gray-500 text-center py-4">
-                      No communities yet. Create the first one!
+                      All communities joined! Great job exploring.
                     </p>
                   )}
                   <Link href="/communities">
                     <Button variant="link" className="w-full text-purple-600 text-sm">
-                      View All Communities
+                      Discover More Communities
                     </Button>
                   </Link>
                 </CardContent>
@@ -452,10 +450,10 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {allCommunities.length > 0 ? (
+                  {userCommunities.length > 0 ? (
                     <>
-                      {allCommunities.slice(0, 4).map((community: any) => (
-                        <Link key={community.id} href={`/communities/${community.id}`}>
+                      {userCommunities.slice(0, 4).map((community: any) => (
+                        <Link key={community.community.id} href={`/communities/${community.community.id}`}>
                           <div className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
                             <div className="flex items-center space-x-3">
                               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -463,7 +461,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-900 line-clamp-1">
-                                  {community.name}
+                                  {community.community.name}
                                 </p>
                                 <p className="text-xs text-gray-500">
                                   {community.memberCount || 0} members
@@ -478,13 +476,13 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                       ))}
                       <Link href="/communities">
                         <Button variant="link" className="w-full text-purple-600 text-sm">
-                          View All Communities
+                          View All Your Communities
                         </Button>
                       </Link>
                     </>
                   ) : (
                     <div className="text-center py-4">
-                      <p className="text-sm text-gray-500 mb-2">No communities yet.</p>
+                      <p className="text-sm text-gray-500 mb-2">You haven't joined any communities yet.</p>
                       <Link href="/communities">
                         <Button size="sm" variant="outline">
                           Explore Communities
