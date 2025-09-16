@@ -176,6 +176,13 @@ export const postsApi = {
   },
 };
 
+export const categoriesApi = {
+  getAll: async (): Promise<any[]> => {
+    const res = await apiRequest("/api/categories", "GET");
+    return res.json();
+  },
+};
+
 // Topics/Tags API
 export const topicsApi = {
   getAll: async (): Promise<any[]> => {

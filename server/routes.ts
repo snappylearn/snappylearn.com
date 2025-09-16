@@ -76,6 +76,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup subscription routes
   registerSubscriptionRoutes(app);
 
+  // Categories endpoint
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
   // Seed database with demo data
   await seedDatabase();
 
@@ -1063,6 +1074,12 @@ app.post("/api/communities/:id/join", jwtAuth, async (req: any, res) => {
       res.json({ message: "Successfully joined community" });
     } catch (error) {
       console.error("Error joining community:", error);
+      
+      // Check if it's a validation error about being the owner
+      if (error instanceof Error && error.message.includes("cannot join your own community")) {
+        return res.status(400).json({ message: error.message });
+      }
+      
       res.status(500).json({ message: "Failed to join community" });
     }
   });

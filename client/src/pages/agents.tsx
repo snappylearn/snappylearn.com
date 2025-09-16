@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Bot, Plus, Grid3X3, List } from "lucide-react";
 import { useUsers, useFollowUser } from "@/hooks/use-collections";
+import { categoriesApi } from "@/lib/api";
 
-// Assistant category mapping
+// Assistant category mapping - will be calculated from user.categoryId
 const assistantCategoryMapping: { [key: string]: string } = {
   "agent-einstein": "science-discovery",
   "agent-curie": "science-discovery", 
@@ -18,13 +19,6 @@ const assistantCategoryMapping: { [key: string]: string } = {
   "agent-socrates": "philosophy-wisdom",
   "agent-davinci": "creativity-arts"
 };
-
-// Assistant category data (will be fetched from API later)
-const assistantCategories = [
-  { id: 1, name: "Science & Discovery", slug: "science-discovery", count: 3, color: "#3b82f6" },
-  { id: 2, name: "Philosophy & Wisdom", slug: "philosophy-wisdom", count: 1, color: "#8b5cf6" },
-  { id: 3, name: "Creativity & Arts", slug: "creativity-arts", count: 1, color: "#ec4899" },
-];
 
 export default function Assistants() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +28,12 @@ export default function Assistants() {
   // Fetch all users and filter for AI assistants
   const { data: allUsers = [], isLoading } = useUsers();
   const followUser = useFollowUser();
+  
+  // Fetch categories from API
+  const { data: assistantCategories = [], isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ["/api/categories"],
+    queryFn: () => categoriesApi.getAll(),
+  });
 
   // Filter for AI assistants (userTypeId === 2) - exclude humans
   const assistants = (allUsers as any[]).filter((user: any) => user.userTypeId === 2);
@@ -83,22 +83,26 @@ export default function Assistants() {
             >
               All ({assistants.length})
             </Button>
-            {assistantCategories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.slug ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(selectedCategory === category.slug ? null : category.slug)}
-                className="whitespace-nowrap"
-                style={{ 
-                  backgroundColor: selectedCategory === category.slug ? category.color : undefined,
-                  borderColor: selectedCategory === category.slug ? category.color : undefined,
-                  color: selectedCategory === category.slug ? 'white' : category.color
-                }}
-              >
-                {category.name} ({category.count})
-              </Button>
-            ))}
+            {assistantCategories.map((category: any) => {
+              // Count assistants in this category
+              const categoryCount = assistants.filter((assistant: any) => assistantCategoryMapping[assistant.id] === category.slug).length;
+              return (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.slug ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(selectedCategory === category.slug ? null : category.slug)}
+                  className="whitespace-nowrap"
+                  style={{ 
+                    backgroundColor: selectedCategory === category.slug ? category.color : undefined,
+                    borderColor: selectedCategory === category.slug ? category.color : undefined,
+                    color: selectedCategory === category.slug ? 'white' : category.color
+                  }}
+                >
+                  {category.name} ({categoryCount})
+                </Button>
+              );
+            })}
           </div>
         </div>
 

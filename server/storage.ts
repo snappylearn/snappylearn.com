@@ -20,6 +20,7 @@ import {
   communityTags,
   userCommunities,
   tags,
+  categories,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -64,6 +65,7 @@ import {
   type Community,
   type InsertCommunity,
   type CommunityWithStats,
+  type Category,
   type Task,
   type InsertTask,
   type TaskRun,
@@ -159,6 +161,9 @@ export interface IStorage {
   deleteTask(id: number, userId: string): Promise<boolean>;
   getTaskRuns(taskId: number): Promise<TaskRun[]>;
   createTaskRun(taskRun: InsertTaskRun): Promise<TaskRun>;
+
+  // Category methods
+  getCategories(): Promise<Category[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1188,6 +1193,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(tags.name);
   }
 
+  // Categories methods
+  async getCategories(): Promise<Category[]> {
+    return await db.select().from(categories).orderBy(categories.name);
+  }
+
   // Communities methods
   async getCommunitiesWithStats(userId?: string): Promise<CommunityWithStats[]> {
     const query = db
@@ -1272,6 +1282,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async joinCommunity(userId: string, communityId: number): Promise<void> {
+    // Check if the user is the creator of the community
+    const [community] = await db
+      .select()
+      .from(communities)
+      .where(eq(communities.id, communityId));
+    
+    if (!community) {
+      throw new Error("Community not found");
+    }
+    
+    if (community.createdBy === userId) {
+      throw new Error("You cannot join your own community - you are already the owner");
+    }
+    
     await db.insert(userCommunities).values({
       userId,
       communityId,
