@@ -151,6 +151,31 @@ export const communitiesApi = {
   },
 };
 
+// Posts API
+export const postsApi = {
+  getAll: async (params?: { communityId?: number; topicId?: number; page?: number; limit?: number }): Promise<any[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.communityId) queryParams.append('communityId', params.communityId.toString());
+    if (params?.topicId) queryParams.append('topicId', params.topicId.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `/api/posts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const res = await apiRequest(url, "GET");
+    return res.json();
+  },
+
+  getById: async (id: number): Promise<any> => {
+    const res = await apiRequest(`/api/posts/${id}`, "GET");
+    return res.json();
+  },
+
+  create: async (data: any): Promise<any> => {
+    const res = await apiRequest("/api/posts", "POST", data);
+    return res.json();
+  },
+};
+
 // Topics/Tags API
 export const topicsApi = {
   getAll: async (): Promise<any[]> => {

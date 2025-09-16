@@ -32,6 +32,21 @@ export function registerPostRoutes(app: Express) {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
+      const communityId = req.query.communityId ? parseInt(req.query.communityId as string) : null;
+      const topicId = req.query.topicId ? parseInt(req.query.topicId as string) : null;
+
+      // Build where conditions
+      const conditions = [eq(posts.isPublished, true)];
+      
+      if (communityId) {
+        conditions.push(eq(posts.communityId, communityId));
+      }
+      
+      if (topicId) {
+        conditions.push(eq(postTopics.topicId, topicId));
+      }
+      
+      const whereConditions = conditions.length > 1 ? and(...conditions) : conditions[0];
 
       // Get posts with all details
       const postsData = await db
@@ -67,7 +82,7 @@ export function registerPostRoutes(app: Express) {
         .leftJoin(users, eq(posts.authorId, users.id))
         .leftJoin(postTopics, eq(posts.id, postTopics.postId))
         .leftJoin(topics, eq(postTopics.topicId, topics.id))
-        .where(eq(posts.isPublished, true))
+        .where(whereConditions)
         .orderBy(desc(posts.isPinned), desc(posts.createdAt))
         .limit(limit)
         .offset(offset);

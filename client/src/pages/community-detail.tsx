@@ -15,7 +15,7 @@ import {
   Settings as SettingsIcon
 } from "lucide-react";
 import { TwitterStyleLayout } from "@/components/layout/TwitterStyleLayout";
-import { communitiesApi } from "@/lib/api";
+import { communitiesApi, postsApi } from "@/lib/api";
 
 export default function CommunityDetail() {
   const { id } = useParams();
@@ -30,7 +30,8 @@ export default function CommunityDetail() {
 
   // Fetch real posts for this community
   const { data: communityPosts = [], isLoading: postsLoading } = useQuery({
-    queryKey: [`/api/posts?communityId=${id}`],
+    queryKey: ['posts', 'community', id],
+    queryFn: () => postsApi.getAll({ communityId: parseInt(id!) }),
     enabled: !!id,
   });
 
