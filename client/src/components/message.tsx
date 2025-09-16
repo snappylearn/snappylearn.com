@@ -3,6 +3,7 @@ const snappyLearnLogo = "/snappylearn-transparent-logo.png";
 import type { Message } from "@shared/schema";
 import { ArtifactCard } from "./artifact-manager";
 import { useAgents } from "@/hooks/use-agents";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface MessageComponentProps {
   message: Message;
@@ -48,23 +49,34 @@ export function MessageComponent({ message, onViewArtifact }: MessageComponentPr
   const artifactTitle = titleMatch ? titleMatch[1] : 'Interactive Content';
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-2xl ${isUser ? "ml-12" : "mr-12"}`}>
-        {!isUser && agentInfo && (
-          <div className="flex items-center space-x-2 mb-2">
+    <div className={`flex items-start gap-3 ${isUser ? "justify-end" : "justify-start"} mb-6`}>
+      {/* AI Avatar (left side) */}
+      {!isUser && (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarImage 
+            src={isSnappyAgent ? snappyLearnLogo : undefined} 
+            alt={agentInfo?.name || "AI Assistant"} 
+          />
+          <AvatarFallback className={isSnappyAgent ? "bg-purple-100" : "bg-blue-100"}>
             {isSnappyAgent ? (
-              <img src={snappyLearnLogo} alt="SnappyLearn" className="w-6 h-6" />
+              <img src={snappyLearnLogo} alt="SnappyLearn" className="w-5 h-5" />
             ) : (
-              <Bot className="w-6 h-6 text-purple-600" />
+              <Bot className="w-4 h-4 text-purple-600" />
             )}
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-700">
-                {agentInfo.name}
-              </span>
-              {agentInfo.username && (
-                <span className="text-xs text-gray-500">@{agentInfo.username}</span>
-              )}
-            </div>
+          </AvatarFallback>
+        </Avatar>
+      )}
+
+      <div className={`max-w-2xl ${isUser ? "order-first" : ""}`}>
+        {/* Agent Info Header */}
+        {!isUser && agentInfo && (
+          <div className="flex items-center space-x-1 mb-1">
+            <span className="text-sm font-semibold text-gray-900">
+              {agentInfo.name}
+            </span>
+            {agentInfo.username && (
+              <span className="text-xs text-gray-500">@{agentInfo.username}</span>
+            )}
           </div>
         )}
         
@@ -73,8 +85,8 @@ export function MessageComponent({ message, onViewArtifact }: MessageComponentPr
           <div
             className={`rounded-2xl px-4 py-3 ${
               isUser
-                ? "bg-primary text-white rounded-br-md"
-                : "bg-gray-100 text-gray-800 rounded-bl-md"
+                ? "bg-blue-600 text-white rounded-br-sm shadow-md"
+                : "bg-gray-50 border border-gray-200 text-gray-900 rounded-bl-sm shadow-sm"
             }`}
           >
             <div className="whitespace-pre-wrap">{messageContent}</div>
@@ -96,7 +108,7 @@ export function MessageComponent({ message, onViewArtifact }: MessageComponentPr
             
             <span
               className={`text-xs mt-2 block ${
-                isUser ? "text-indigo-200" : "text-gray-500"
+                isUser ? "text-blue-100" : "text-gray-400"
               }`}
             >
               {new Date(message.createdAt).toLocaleTimeString([], {
@@ -117,6 +129,15 @@ export function MessageComponent({ message, onViewArtifact }: MessageComponentPr
           </div>
         )}
       </div>
+
+      {/* User Avatar (right side) */}
+      {isUser && (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarFallback className="bg-blue-600 text-white">
+            <User className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 }
