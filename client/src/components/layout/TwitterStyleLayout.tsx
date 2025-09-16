@@ -36,7 +36,7 @@ interface TwitterStyleLayoutProps {
   currentCollectionId?: number;
 }
 
-const snappyLearnLogo = "/snappylearn-new-logo.png";
+const snappyLearnLogo = "/snappylearn-logo-purple-owl.png";
 
 export function TwitterStyleLayout({ children, currentCollectionId }: TwitterStyleLayoutProps) {
   const [location] = useLocation();

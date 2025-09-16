@@ -29,7 +29,7 @@ export function AuthPage({ embedded = false }: AuthPageProps) {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-4">
-            <img src="/snappylearn-transparent-logo.png" alt="SnappyLearn" className="w-full h-full object-contain" />
+            <img src="/snappylearn-logo-purple-owl.png" alt="SnappyLearn" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">SnappyLearn</h1>
           <p className="text-gray-600 mt-2">

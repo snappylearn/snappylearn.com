@@ -1,5 +1,5 @@
 import { User, Bot } from "lucide-react";
-const snappyLearnLogo = "/snappylearn-transparent-logo.png";
+const snappyLearnLogo = "/snappylearn-logo-purple-owl.png";
 import type { Message } from "@shared/schema";
 import { ArtifactCard } from "./artifact-manager";
 import { useAgents } from "@/hooks/use-agents";
