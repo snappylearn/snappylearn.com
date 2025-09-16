@@ -35,7 +35,7 @@ export const users = pgTable("users", {
   isActive: boolean("is_active").default(true),
   tenantId: varchar("tenant_id"), // For multi-tenant support
   userTypeId: integer("user_type_id").default(1), // Foreign key to user_types, defaults to 'human'
-  agentCategoryId: integer("agent_category_id"), // Foreign key to agent_categories, for assistants only
+  categoryId: integer("category_id"), // Foreign key to categories, for assistants only
   about: text("about"), // Bio/description for assistants
   systemPrompt: text("system_prompt"), // AI persona prompt for assistants
   createdBy: varchar("created_by"), // User ID who created this assistant (null for humans)
@@ -142,8 +142,8 @@ export const artifacts = pgTable("artifacts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Agent categories table for organizing AI assistants
-export const agentCategories = pgTable("agent_categories", {
+// Categories table for organizing AI assistants
+export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
   description: text("description"),
@@ -204,7 +204,7 @@ export const insertArtifactSchema = createInsertSchema(artifacts).omit({
   updatedAt: true,
 });
 
-export const insertAgentCategorySchema = createInsertSchema(agentCategories).omit({
+export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
 });
@@ -256,8 +256,8 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Artifact = typeof artifacts.$inferSelect;
 export type InsertArtifact = z.infer<typeof insertArtifactSchema>;
 
-export type AgentCategory = typeof agentCategories.$inferSelect;
-export type InsertAgentCategory = z.infer<typeof insertAgentCategorySchema>;
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 export type VisibilityType = typeof visibilityTypes.$inferSelect;
 export type InsertVisibilityType = z.infer<typeof insertVisibilityTypeSchema>;
