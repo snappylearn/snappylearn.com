@@ -2,23 +2,13 @@ import type { Express, Request, Response } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
 import { insertTenantSchema } from "@shared/schema";
-import { isAuthenticated } from "../replitAuth";
+import { jwtAuth, getJwtUserId } from "./auth";
 
-// Helper function to get user ID from authenticated request
-function getUserId(req: any): string {
-  if (req.user?.claims?.sub) {
-    return req.user.claims.sub;
-  }
-  if (req.user?.profile?.id) {
-    return req.user.profile.id;
-  }
-  throw new Error("User not authenticated");
-}
 
 // Admin authentication middleware
 export const requireAdmin = async (req: Request, res: Response, next: Function) => {
   try {
-    const userId = getUserId(req);
+    const userId = getJwtUserId(req);
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
@@ -37,7 +27,7 @@ export const requireAdmin = async (req: Request, res: Response, next: Function) 
 
 export function registerAdminRoutes(app: Express) {
   // Admin dashboard stats
-  app.get("/api/admin/dashboard", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/dashboard", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const stats = await storage.getAdminDashboardStats();
       res.json(stats);
@@ -48,7 +38,7 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // Tenant management
-  app.get("/api/admin/tenants", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/tenants", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const tenants = await storage.getTenants();
       res.json(tenants);
@@ -58,14 +48,14 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/tenants", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/admin/tenants", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const tenantData = insertTenantSchema.parse(req.body);
       const tenant = await storage.createTenant(tenantData);
       
       // Log admin action
       await storage.logAdminAction({
-        adminId: getUserId(req),
+        adminId: getJwtUserId(req),
         action: 'create_tenant',
         targetType: 'tenant',
         targetId: tenant.id,
@@ -82,7 +72,7 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.put("/api/admin/tenants/:id", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.put("/api/admin/tenants/:id", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const updates = req.body;
@@ -94,7 +84,7 @@ export function registerAdminRoutes(app: Express) {
       
       // Log admin action
       await storage.logAdminAction({
-        adminId: getUserId(req),
+        adminId: getJwtUserId(req),
         action: 'update_tenant',
         targetType: 'tenant',
         targetId: id,
@@ -108,10 +98,10 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/tenants/:id/activate", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/admin/tenants/:id/activate", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const adminId = getUserId(req);
+      const adminId = getJwtUserId(req);
       const success = await storage.activateTenant(id, adminId);
       
       if (!success) {
@@ -125,10 +115,10 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/tenants/:id/deactivate", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/admin/tenants/:id/deactivate", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const adminId = getUserId(req);
+      const adminId = getJwtUserId(req);
       const success = await storage.deactivateTenant(id, adminId);
       
       if (!success) {
@@ -143,7 +133,7 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // User management
-  app.get("/api/admin/users", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/users", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { tenantId, isActive } = req.query;
       const filters: any = {};
@@ -159,10 +149,10 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/users/:id/activate", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/admin/users/:id/activate", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const adminId = getUserId(req);
+      const adminId = getJwtUserId(req);
       const success = await storage.updateUserStatus(id, true, adminId);
       
       if (!success) {
@@ -176,10 +166,10 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/users/:id/deactivate", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/admin/users/:id/deactivate", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const adminId = getUserId(req);
+      const adminId = getJwtUserId(req);
       const success = await storage.updateUserStatus(id, false, adminId);
       
       if (!success) {
@@ -193,11 +183,11 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/users/:id/role", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.post("/api/admin/users/:id/role", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { role } = req.body;
-      const adminId = getUserId(req);
+      const adminId = getJwtUserId(req);
       
       if (!['user', 'admin', 'super_admin'].includes(role)) {
         return res.status(400).json({ error: "Invalid role" });
@@ -217,7 +207,7 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // Audit logs
-  app.get("/api/admin/audit-logs", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/audit-logs", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { adminId, targetType, limit } = req.query;
       const filters: any = {};
@@ -235,7 +225,7 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // System health check
-  app.get("/api/admin/health", isAuthenticated, requireAdmin, async (req: Request, res: Response) => {
+  app.get("/api/admin/health", jwtAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const stats = await storage.getAdminDashboardStats();
       res.json({

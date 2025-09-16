@@ -2,10 +2,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
-// Handle SSL certificate issues in Replit development environment
-if (process.env.NODE_ENV === "production") {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-  log("SSL certificate verification disabled for Replit environment");
+// Handle SSL certificate issues with proper error handling for Replit environment
+// Note: Only disable TLS verification for known safe internal services if absolutely necessary
+// TODO: Remove this once proper certificates are configured
+if (process.env.NODE_ENV === "development" && process.env.REPLIT_ENVIRONMENT) {
+  // Only log the potential issue, don't disable TLS verification
+  log("Running in Replit development environment - TLS certificates should be properly configured");
 }
 
 // Make Supabase environment variables available for Vite

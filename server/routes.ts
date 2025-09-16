@@ -1,20 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./replitAuth";
-import { isAuthenticated } from "./replitAuth";
 import { jwtAuth, getJwtUserId, setupAuthRoutes } from "./routes/auth";
 
-// Helper function to get user ID from authenticated request
-function getUserId(req: any): string {
-  if (req.user?.claims?.sub) {
-    return req.user.claims.sub;
-  }
-  if (req.user?.profile?.id) {
-    return req.user.profile.id;
-  }
-  throw new Error("User not authenticated");
-}
 import { setupGoogleAuth } from "./routes/googleAuth";
 import { registerAdminRoutes } from "./routes/admin";
 import { 
@@ -85,9 +73,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await seedDatabase();
 
   // Test route to make current user admin (for development)
-  app.post("/api/test/make-admin", isAuthenticated, async (req: any, res) => {
+  app.post("/api/test/make-admin", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       await storage.updateUserRole(userId, 'admin', 'system');
       res.json({ message: "User is now admin" });
     } catch (error) {
@@ -99,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes are handled by setupSupabaseAuth
 
   // Public users endpoint for discover page
-  app.get("/api/users", isAuthenticated, async (req: any, res) => {
+  app.get("/api/users", jwtAuth, async (req: any, res) => {
     try {
       // Get all users with their user type info for discover page
       const users = await storage.getPublicUsers();
@@ -141,9 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Collections endpoints
-  app.get("/api/collections", isAuthenticated, async (req: any, res) => {
+  app.get("/api/collections", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       let collections = await storage.getCollections(userId);
       
       // Ensure user has a Personal Collection (default collection)
@@ -172,10 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/collections/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const collection = await storage.getCollection(id, userId);
       
       if (!collection) {
@@ -189,9 +177,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/collections", isAuthenticated, async (req: any, res) => {
+  app.post("/api/collections", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const validatedData = insertCollectionSchema.parse({
         ...req.body,
         userId,
@@ -205,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/collections/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       const updates = insertCollectionSchema.partial().parse(req.body);
@@ -222,10 +210,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/collections/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/collections/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const success = await storage.deleteCollection(id, userId);
       
       if (!success) {
@@ -240,10 +228,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document endpoints
-  app.get("/api/collections/:id/documents", isAuthenticated, async (req: any, res) => {
+  app.get("/api/collections/:id/documents", jwtAuth, async (req: any, res) => {
     try {
       const collectionId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Verify user owns the collection
       const collection = await storage.getCollection(collectionId, userId);
@@ -259,10 +247,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/collections/:id/documents", isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post("/api/collections/:id/documents", jwtAuth, upload.single('file'), async (req: any, res) => {
     try {
       const collectionId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Verify user owns the collection
       const collection = await storage.getCollection(collectionId, userId);
@@ -308,10 +296,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/documents/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       const success = await storage.deleteDocument(id, userId);
       if (!success) {
@@ -326,9 +314,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Conversations endpoints
-  app.get("/api/conversations", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const conversations = await storage.getConversations(userId);
       res.json(conversations);
     } catch (error) {
@@ -337,10 +325,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const conversation = await storage.getConversation(id, userId);
       
       if (!conversation) {
@@ -378,9 +366,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   });
 
-  app.post("/api/conversations", isAuthenticated, conversationUpload.array('attachments'), async (req: any, res) => {
+  app.post("/api/conversations", jwtAuth, conversationUpload.array('attachments'), async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { message, type, collectionId } = req.body;
       const files = req.files as Express.Multer.File[] || [];
 
@@ -540,10 +528,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/conversations/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/conversations/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const success = await storage.deleteConversation(id, userId);
       
       if (!success) {
@@ -558,10 +546,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Messages endpoints
-  app.get("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+  app.get("/api/conversations/:id/messages", jwtAuth, async (req: any, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Verify user owns the conversation
       const conversation = await storage.getConversation(conversationId, userId);
@@ -577,10 +565,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
+  app.post("/api/conversations/:id/messages", jwtAuth, async (req: any, res) => {
     try {
       const conversationId = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { content } = req.body;
 
       // Verify user owns the conversation
@@ -678,9 +666,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Artifact endpoints
-  app.get("/api/artifacts", isAuthenticated, async (req: any, res) => {
+  app.get("/api/artifacts", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { type, collectionId } = req.query;
       
       const filters: any = {};
@@ -695,10 +683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+  app.get("/api/artifacts/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       const artifact = await storage.getArtifact(id, userId);
       if (!artifact) {
@@ -712,9 +700,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/artifacts", isAuthenticated, async (req: any, res) => {
+  app.post("/api/artifacts", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { title, type, content, description, collectionId, metadata } = req.body;
       
       // Validate collection ownership if provided
@@ -742,10 +730,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/artifacts/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { title, type, content, description, collectionId, metadata } = req.body;
       
       // Verify user owns the artifact
@@ -778,10 +766,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/artifacts/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/artifacts/:id", jwtAuth, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       const success = await storage.deleteArtifact(id, userId);
       if (!success) {
@@ -796,9 +784,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User profile endpoints
-  app.patch("/api/users/profile", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/users/profile", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const { firstName, lastName, email } = req.body;
       
       const updatedUser = await storage.updateUser(userId, {
@@ -827,9 +815,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/users/settings", isAuthenticated, async (req: any, res) => {
+  app.patch("/api/users/settings", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const settings = req.body;
       
       // For now, we'll just return success since we don't have a settings table
@@ -841,9 +829,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/export", isAuthenticated, async (req: any, res) => {
+  app.get("/api/users/export", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Get all user data
       const user = await storage.getUser(userId);
@@ -873,9 +861,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/users/account", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/users/account", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       
       // Delete user and all related data
       // Note: In production, you might want to soft delete or archive data
@@ -912,7 +900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get userId from JWT if authenticated
       let userId: string | undefined;
       try {
-        userId = getUserId(req);
+        userId = getJwtUserId(req);
       } catch (error) {
         // User not authenticated, continue without userId
       }
@@ -953,9 +941,9 @@ app.get("/api/communities/:id", async (req: any, res) => {
 });
 
 // Create a new community (requires authentication)
-app.post("/api/communities", isAuthenticated, async (req: any, res) => {
+app.post("/api/communities", jwtAuth, async (req: any, res) => {
   try {
-    const newCommunity = await storage.createCommunity(req.body, req.user.id);
+    const newCommunity = await storage.createCommunity(req.body, getJwtUserId(req));
     res.status(201).json(newCommunity);
   } catch (error) {
     console.error("Error creating community:", error);
@@ -963,9 +951,9 @@ app.post("/api/communities", isAuthenticated, async (req: any, res) => {
   }
 });
 
-app.post("/api/communities/:id/join", isAuthenticated, async (req: any, res) => {
+app.post("/api/communities/:id/join", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const communityId = parseInt(req.params.id);
       
       await storage.joinCommunity(userId, communityId);
@@ -976,9 +964,9 @@ app.post("/api/communities/:id/join", isAuthenticated, async (req: any, res) => 
     }
   });
 
-  app.delete("/api/communities/:id/leave", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/communities/:id/leave", jwtAuth, async (req: any, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = getJwtUserId(req);
       const communityId = parseInt(req.params.id);
       
       await storage.leaveCommunity(userId, communityId);
