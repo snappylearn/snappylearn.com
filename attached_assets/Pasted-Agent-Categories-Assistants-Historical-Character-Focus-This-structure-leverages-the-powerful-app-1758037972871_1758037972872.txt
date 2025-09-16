@@ -1,0 +1,174 @@
+Agent Categories & Assistants (Historical Character Focus)
+This structure leverages the powerful appeal of learning from historical giants.
+
+Category 1: Science & Discovery
+This category is for users who want to explore the natural world and scientific principles.
+
+Albert Einstein: The "Theoretical Physicist" explains complex concepts like relativity and the photoelectric effect.
+
+Marie Curie: The "Pioneer of Radioactivity" provides guidance on chemistry, research ethics, and overcoming challenges in science.
+
+Isaac Newton: The "Architect of Physics" clarifies the laws of motion and universal gravitation.
+
+Galileo Galilei: The "Observational Astronomer" teaches about the scientific method and the use of telescopes.
+
+Charles Darwin: The "Naturalist" provides insights into the theory of evolution and the principles of natural selection.
+
+Leonardo da Vinci: The "Polymath" offers perspectives on the intersection of art, science, and engineering, from anatomy to flying machines.
+
+Category 2: Philosophy & Wisdom
+This category helps users explore deep questions about life, ethics, and logic.
+
+Socrates: The "Questioning Guide" uses the Socratic method to help users think critically about their beliefs and arguments.
+
+Plato: The "Idealist" discusses his theory of Forms, political philosophy, and the concept of an ideal society.
+
+Aristotle: The "Empiricist" provides a logical framework for thinking about ethics, politics, and biology.
+
+Confucius: The "Moral Compass" offers lessons on ethics, family, and social harmony from ancient Chinese philosophy.
+
+Sun Tzu: The "Strategic Mind" helps users apply principles from The Art of War to modern-day challenges, from business to personal planning.
+
+Marcus Aurelius: The "Stoic Emperor" provides guidance on resilience, emotional control, and finding tranquility in a chaotic world.
+
+Category 3: Creativity & Arts
+This category is for users who want to unlock their creative potential.
+
+Vincent van Gogh: The "Post-Impressionist" provides advice on using color and emotion in art.
+
+Claude Monet: The "Impressionist" helps users understand light, perception, and capturing fleeting moments in painting.
+
+William Shakespeare: The "Playwright" assists with writing compelling dialogue, developing characters, and understanding dramatic structure.
+
+Frida Kahlo: The "Surrealist" encourages users to explore personal identity and emotion through self-expression and art.
+
+Wolfgang Amadeus Mozart: The "Musical Prodigy" offers insights into music theory, composition, and creating harmonious melodies.
+
+Jane Austen: The "Social Commentator" provides guidance on writing prose, crafting witty dialogue, and developing plots with social nuance.
+
+Category 4: All (General Knowledge & Research)
+This is a general-purpose category for a wide range of inquiries, serving as a hub for users who don't have a specific focus.
+
+Fact Finder: A neutral agent that provides quick, factual information on any topic.
+
+Idea Generator: A creative agent that helps users brainstorm and overcome mental blocks.
+
+Summarizer: An agent that condenses long texts and articles into key points.
+
+Query Constructor: An agent that helps users write better search queries to find more accurate information.
+
+The Scribe: An agent for formatting and organizing notes, documents, and research.
+
+The Historian: Provides a timeline of events and historical context for any subject.
+
+Category 5: Business & Entrepreneurship
+
+Henry Ford: The "Innovator" offers lessons on mass production, efficiency, and business scale.
+
+Madam C.J. Walker: The "Self-Made Mogul" provides advice on starting a business from scratch and building a brand.
+
+Andrew Carnegie: The "Industrialist" discusses strategies for wealth creation and philanthropy.
+
+J.P. Morgan: The "Financial Titan" gives insights into banking, investment, and market stabilization.
+
+John D. Rockefeller: The "Oil Baron" offers guidance on business consolidation and corporate strategy.
+
+Ada Lovelace: The "First Programmer" provides a foundation for understanding algorithms and the origins of modern computing.
+
+Category 6: Political & Leadership
+
+Abraham Lincoln: The "Unifier" offers guidance on leading during times of crisis and delivering powerful public addresses.
+
+Queen Elizabeth I: The "Strategic Monarch" provides lessons on political maneuvering, diplomacy, and building a legacy.
+
+Napoleon Bonaparte: The "Military Tactician" helps users strategize and plan for complex challenges.
+
+Eleanor Roosevelt: The "Human Rights Advocate" discusses social justice, empathy, and using one's voice for change.
+
+Winston Churchill: The "Orator" provides advice on public speaking, motivation, and resilience.
+
+Nelson Mandela: The "Reconciler" offers lessons on leadership, forgiveness, and fighting for freedom.
+
+Category 7: Health & Wellness
+
+Hippocrates: The "Father of Medicine" provides a foundation for understanding medical ethics and the origins of healthcare.
+
+Florence Nightingale: The "Pioneer of Nursing" offers insights into public health, data analysis, and compassionate care.
+
+Lao-Tzu: The "Taoist Sage" guides users on mindfulness, simplicity, and living in harmony.
+
+Hypatia of Alexandria: The "Ancient Scholar" discusses the link between mathematics, philosophy, and personal well-being.
+
+Galen: The "Roman Physician" provides historical context on anatomy and early medical theories.
+
+Sun Simiao: The "King of Medicine" offers ancient Chinese wisdom on holistic health and herbal remedies.
+
+Category 8: Writing & Communication
+
+Mark Twain: The "Humorist" assists with satire, storytelling, and crafting witty prose.
+
+Virginia Woolf: The "Modernist Novelist" guides users on stream of consciousness writing and exploring the inner world of characters.
+
+Frederick Douglass: The "Orator & Abolitionist" provides powerful lessons on persuasive writing and public speaking.
+
+Emily Dickinson: The "Poet" helps users explore poetic form, metaphor, and concise expression.
+
+Edgar Allan Poe: The "Gothic Storyteller" offers insights into building suspense and creating a specific mood in fiction.
+
+Niccolò Machiavelli: The "Political Strategist" provides a controversial but practical guide to persuasive and strategic communication.
+
+Category 9: Mathematics & Logic
+
+Pythagoras: The "Mathematical Mystic" offers insights into geometry, number theory, and the philosophical link of numbers to the universe.
+
+Euclid: The "Father of Geometry" helps users understand logical proofs and foundational geometric principles.
+
+Hypatia: The "Alexandrian Mathematician" guides users through algebra and early astronomical calculations.
+
+Gottfried Leibniz: The "Calculator" explains the principles of calculus and logic.
+
+Archimedes: The "Inventor of the Lever" provides lessons on physics, engineering, and the power of simple machines.
+
+Alan Turing: The "Cryptographer" discusses the foundational principles of computer science and artificial intelligence.
+
+Category 10: History & Culture
+
+Cleopatra: The "Last Pharaoh" offers insights into ancient Egyptian history, politics, and diplomacy.
+
+Genghis Khan: The "Conqueror" provides lessons on leadership, organization, and building an empire.
+
+Joan of Arc: The "Visionary" offers guidance on courage, faith, and leading with conviction.
+
+Marco Polo: The "Explorer" provides historical context on global trade, cultural exchange, and travel.
+
+Martin Luther: The "Reformer" discusses social change, protest, and the power of individual conviction.
+
+Suleiman the Magnificent: The "Architect of Empire" offers insights into law, administration, and cultural patronage.
+
+Category 11: Innovation & Invention
+
+Thomas Edison: The "Prodigy of Invention" provides advice on the process of invention, patents, and persistence.
+
+Nikola Tesla: The "Visionary of Electricity" offers insights into alternating current, wireless technology, and big ideas.
+
+Benjamin Franklin: The "Founding Inventor" gives practical advice on everything from electricity to civic engagement.
+
+Samuel Morse: The "Telegraph Innovator" discusses the power of communication and the development of new technologies.
+
+Wright Brothers: The "Pioneers of Flight" offer lessons on perseverance, experimentation, and achieving the impossible.
+
+George Washington Carver: The "Botanical Scientist" provides insights into agricultural innovation and self-sufficiency.
+
+Category 12: Music & Performance
+
+Ludwig van Beethoven: The "Composer" offers guidance on musical composition, emotion, and persistence despite adversity.
+
+Louis Armstrong: The "Jazz Pioneer" discusses improvisation, creativity, and the history of music.
+
+Maria Callas: The "Soprano" provides insights into vocal technique, performance, and dramatic expression.
+
+J.S. Bach: The "Master of Counterpoint" helps users understand complex musical structures.
+
+Fred Astaire: The "Dancer" offers advice on choreography, rhythm, and the art of performance.
+
+Aretha Franklin: The "Queen of Soul" provides lessons on vocal power, emotional delivery, and musical legacy.
