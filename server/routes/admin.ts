@@ -2,7 +2,18 @@ import type { Express, Request, Response } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
 import { insertTenantSchema } from "@shared/schema";
-import { isAuthenticated, getUserId } from "../supabaseAuth";
+import { isAuthenticated } from "../replitAuth";
+
+// Helper function to get user ID from authenticated request
+function getUserId(req: any): string {
+  if (req.user?.claims?.sub) {
+    return req.user.claims.sub;
+  }
+  if (req.user?.profile?.id) {
+    return req.user.profile.id;
+  }
+  throw new Error("User not authenticated");
+}
 
 // Admin authentication middleware
 export const requireAdmin = async (req: Request, res: Response, next: Function) => {

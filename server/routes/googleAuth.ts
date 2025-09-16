@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { supabase } from "../lib/supabase";
+// Google Auth setup - no longer using Supabase
 import { storage } from "../storage";
 
 export function setupGoogleAuth(app: Express) {

@@ -83,6 +83,7 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
+    "passport-twitter": "^1.0.4",
     "pdf-parse": "^1.1.1",
     "postgres": "^3.4.7",
     "posthog-js": "^1.257.0",
