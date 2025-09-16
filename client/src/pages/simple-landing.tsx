@@ -30,13 +30,10 @@ export default function SimpleLanding() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={() => window.location.href = '/api/login'}
-                className="w-full"
-                size="lg"
-              >
-                Sign in with Replit
-              </Button>
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                <p className="mb-2">Authentication temporarily unavailable</p>
+                <p className="text-sm">Browse the features below to learn more about SnappyLearn</p>
+              </div>
             </CardContent>
           </Card>
         </div>

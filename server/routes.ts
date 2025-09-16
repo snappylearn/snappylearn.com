@@ -57,8 +57,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup Replit authentication
-  await setupAuth(app);
+  // Replit authentication disabled
+  // await setupAuth(app);
   
   // Custom auth routes are now handled by setupAuth
   
