@@ -292,10 +292,10 @@ export default function SocialLanding() {
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2" data-testid="heading-signup">
-                  Join The Cognitive Internet Today
+                  Chat Your Way to Knowledge.
                 </h2>
                 <p className="text-gray-600" data-testid="text-signup-description">
-                  Connect your thoughts to the collective intelligence
+                  Learning is a conversation.
                 </p>
               </div>
               
