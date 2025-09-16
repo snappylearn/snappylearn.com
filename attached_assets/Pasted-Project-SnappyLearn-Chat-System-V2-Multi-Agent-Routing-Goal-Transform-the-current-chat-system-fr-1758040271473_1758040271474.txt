@@ -1,0 +1,49 @@
+Project: SnappyLearn Chat System V2 - Multi-Agent Routing
+Goal: Transform the current chat system from a single-agent experience into a dynamic, multi-agent conversational platform. This will allow users to directly engage with specialized AI agents and create richer, more relevant learning experiences.
+
+Phase 1: Foundation for Multi-Party Conversations
+The current chat system is built for one-on-one conversations. To support conversations with multiple AI agents, we need a way to track all participants in a single chat thread. This is the only database-level change required.
+
+Instructions for Replit:
+
+Create a New Table: Implement a new table called conversation_users. Its sole purpose is to link a conversation to every user (both human and AI agent) who is a part of it. This will allow the system to know who is "in the room" for any given chat.
+
+No Changes to Existing Tables: The users table is already in a good state. The user_type=2 column is the perfect way for the system to identify agents, so no changes are needed there.
+
+Phase 2: The AI "Coordinator" and Intelligent Routing
+This is the most critical enhancement. The SnappyLearn agent (the default assistant) will now become an intelligent chat coordinator. Its role will change from a general-purpose helper to a smart router that directs conversations to the right expert.
+
+Instructions for Replit:
+
+Introduce the Coordinator Logic: When a user sends a message, the system must first check if they have mentioned any specific agents using the @ symbol (e.g., @einstein, @mariecurie).
+
+The Two Modes of Operation:
+
+Default Mode (No Mentions): If the user does not mention anyone, the system will operate as it does today. The default SnappyLearn agent will handle the query directly, providing a general-purpose response.
+
+Coordinator Mode (Mentions Detected): If the user mentions one or more agents (e.g., @einstein @newton), the system will do a two-step process:
+
+Step 2a (The Intelligent Selection): The system will make a very fast, lightweight call to a special "Coordinator" AI. This AI's only job is to analyze the user's message and the recent conversation history (the last 12 messages are sufficient to provide context and manage token costs). It will then recommend the single best-placed agent from the mentioned group to respond. The Coordinator's response will be just the name of that agent.
+
+Step 2b (The Expert Response): Once an agent is selected, the system will make a second, dedicated call. It will use the selected agent's specific system prompt and personality (e.g., "You are Albert Einstein, the renowned theoretical physicist...") to generate the final, expert response.
+
+Phase 3: The User Experience
+The goal of this new system is to feel intuitive and seamless for the user.
+
+Instructions for Replit:
+
+Simple Mentioning: The user should be able to type @ and see a list of available agents for easy selection. This is a crucial UI/UX detail.
+
+Clear Chat Flow: The chat screen should feel natural. The user sends a message, and the most relevant agent's response appears directly below it, just like a human participant in a group chat.
+
+Handling Multiple Mentions: When a user mentions multiple agents (e.g., @einstein @newton), the system should still only produce one response. The Coordinator AI is responsible for intelligently choosing the most relevant agent from that group to avoid clutter and confusion.
+
+Summary of Deliverables:
+
+A new conversation_users table to track chat participants.
+
+A change in backend logic to support a two-step LLM call process for routed messages.
+
+The creation of a specialized, lightweight "Coordinator" AI prompt whose sole purpose is to select the right agent.
+
+The ability for the system to identify mentioned agents in a user's message and trigger the routing process.
