@@ -4,6 +4,7 @@ import {
   documents,
   collectionDocuments,
   conversations,
+  conversationUsers,
   messages,
   artifacts,
   tenants,
@@ -28,6 +29,8 @@ import {
   type InsertDocument,
   type Conversation,
   type InsertConversation,
+  type ConversationUser,
+  type InsertConversationUser,
   type Message,
   type InsertMessage,
   type Artifact,
@@ -80,6 +83,13 @@ export interface IStorage {
   getPublicUsers(): Promise<User[]>;
   getSuggestedUsers(userId: string): Promise<User[]>;
   getUserProfile(targetUserId: string, currentUserId: string): Promise<any>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getAgentsByUsernames(usernames: string[]): Promise<User[]>;
+  getSnappyAgent(): Promise<User | undefined>;
+
+  // Conversation User methods  
+  addConversationParticipant(conversationId: number, userId: string, role?: string): Promise<ConversationUser>;
+  getConversationParticipants(conversationId: number): Promise<User[]>;
 
   // Collection methods
   getCollections(userId: string): Promise<CollectionWithStats[]>;
@@ -323,6 +333,67 @@ export class DatabaseStorage implements IStorage {
       isFollowing: !!followStatus,
       bio: user.about || null
     };
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getAgentsByUsernames(usernames: string[]): Promise<User[]> {
+    if (usernames.length === 0) return [];
+    
+    const agents = await db
+      .select()
+      .from(users)
+      .where(and(
+        inArray(users.username, usernames),
+        eq(users.userTypeId, 2) // Only AI assistants
+      ));
+    return agents;
+  }
+
+  async getSnappyAgent(): Promise<User | undefined> {
+    const [snappyAgent] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, 'snappy'));
+    return snappyAgent || undefined;
+  }
+
+  async addConversationParticipant(conversationId: number, userId: string, role: string = 'participant'): Promise<ConversationUser> {
+    const [participant] = await db
+      .insert(conversationUsers)
+      .values({
+        conversationId,
+        userId,
+        role,
+      })
+      .returning();
+    return participant;
+  }
+
+  async getConversationParticipants(conversationId: number): Promise<User[]> {
+    const participants = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        userTypeId: users.userTypeId,
+        categoryId: users.categoryId,
+        about: users.about,
+        systemPrompt: users.systemPrompt,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(conversationUsers)
+      .innerJoin(users, eq(conversationUsers.userId, users.id))
+      .where(eq(conversationUsers.conversationId, conversationId));
+    
+    return participants;
   }
 
   // Collection methods

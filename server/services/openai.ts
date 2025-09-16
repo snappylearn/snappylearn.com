@@ -198,3 +198,117 @@ export async function generateConversationTitle(firstMessage: string): Promise<s
     return 'New Conversation';
   }
 }
+
+// Multi-agent chat functions
+export function extractMentionedAgents(message: string): string[] {
+  // Extract @username mentions from the message
+  const mentionPattern = /@(\w+)/g;
+  const mentions: string[] = [];
+  let match;
+  
+  while ((match = mentionPattern.exec(message)) !== null) {
+    mentions.push(match[1].toLowerCase());
+  }
+  
+  return Array.from(new Set(mentions)); // Remove duplicates
+}
+
+export async function selectBestAgent(
+  message: string, 
+  mentionedAgents: any[], 
+  conversationHistory?: any[]
+): Promise<string> {
+  try {
+    const agentOptions = mentionedAgents.map(agent => 
+      `- ${agent.username}: ${agent.firstName} ${agent.lastName} - ${agent.about || 'AI assistant'}`
+    ).join('\n');
+    
+    const historyContext = conversationHistory?.slice(-6).map(msg => 
+      `${msg.role}: ${msg.content}`
+    ).join('\n') || '';
+
+    const coordinatorPrompt = `You are a coordinator AI that selects the best expert from a group of mentioned AI agents to respond to a user's message.
+
+Available agents:
+${agentOptions}
+
+${historyContext ? `Recent conversation history:\n${historyContext}\n` : ''}
+
+User's message: "${message}"
+
+Based on the user's message content and the available agents' expertise, select the single most appropriate agent to respond. Consider:
+1. The topic and subject matter of the message
+2. The expertise areas of each agent
+3. The conversation context
+
+Respond with ONLY the username of the selected agent (no @ symbol, just the username).`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a coordinator AI that selects the most appropriate expert agent to respond to user messages. Respond only with the agent's username."
+        },
+        {
+          role: "user",
+          content: coordinatorPrompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 10,
+    });
+
+    const selectedUsername = response.choices[0].message.content?.trim().toLowerCase() || '';
+    
+    // Validate the selected agent exists in the mentioned list
+    const validAgent = mentionedAgents.find(agent => 
+      agent.username.toLowerCase() === selectedUsername
+    );
+    
+    return validAgent ? validAgent.username : mentionedAgents[0].username;
+  } catch (error) {
+    console.error('Error selecting best agent:', error);
+    return mentionedAgents[0]?.username || 'snappy';
+  }
+}
+
+export async function generateAgentResponse(
+  message: string,
+  agent: any,
+  conversationHistory?: any[]
+): Promise<string> {
+  try {
+    const historyContext = conversationHistory?.slice(-12).map(msg => 
+      `${msg.role}: ${msg.content}`
+    ).join('\n') || '';
+
+    const systemPrompt = agent.systemPrompt || `You are ${agent.firstName} ${agent.lastName}, a helpful AI assistant.`;
+    
+    const contextualSystemPrompt = `${systemPrompt}
+
+${historyContext ? `Previous conversation context:\n${historyContext}\n` : ''}
+
+Respond as ${agent.firstName} ${agent.lastName} in character, using your expertise and personality.`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: contextualSystemPrompt
+        },
+        {
+          role: "user", 
+          content: message
+        }
+      ],
+      temperature: 0.7,
+    });
+
+    return response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
+  } catch (error) {
+    console.error('Error generating agent response:', error);
+    return "I'm experiencing technical difficulties. Please try again later.";
+  }
+}

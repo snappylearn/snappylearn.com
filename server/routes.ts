@@ -13,7 +13,14 @@ import {
   insertCommunitySchema
 } from "@shared/schema";
 import { z } from "zod";
-import { generateIndependentResponse, generateCollectionResponse, generateConversationTitle } from "./services/openai";
+import { 
+  generateIndependentResponse, 
+  generateCollectionResponse, 
+  generateConversationTitle,
+  extractMentionedAgents,
+  selectBestAgent,
+  generateAgentResponse
+} from "./services/openai";
 import { registerPostRoutes } from "./routes/posts";
 import { registerNotificationRoutes } from "./routes/notifications";
 import { registerTopicRoutes } from "./routes/topics";
@@ -430,10 +437,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const conversation = await storage.createConversation(conversationData);
 
+      // Add human user as conversation participant
+      await storage.addConversationParticipant(conversation.id, userId, 'creator');
+
       // Create user message
       const userMessage = await storage.createMessage({
         content: fullMessage,
         role: "user",
+        senderId: userId,
         conversationId: conversation.id,
       });
 
@@ -446,16 +457,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate AI response asynchronously (don't await)
       (async () => {
         try {
-          // Generate AI response
+          // Check for agent mentions in the message
+          const mentionedUsernames = extractMentionedAgents(fullMessage);
           let aiResponse;
-          if (type === "collection" && parsedCollectionId) {
-            const documents = await storage.getDocuments(parsedCollectionId, userId);
-            const collection = await storage.getCollection(parsedCollectionId, userId);
-            const collectionName = collection?.name || "Collection";
-            aiResponse = await generateCollectionResponse(fullMessage, documents, collectionName);
-          } else {
-            const content = await generateIndependentResponse(fullMessage);
-            aiResponse = { content, sources: null };
+          let selectedAgent = null;
+
+          if (mentionedUsernames.length > 0) {
+            // Multi-agent mode: Get mentioned agents and select the best one
+            const mentionedAgents = await storage.getAgentsByUsernames(mentionedUsernames);
+            
+            if (mentionedAgents.length > 0) {
+              const selectedUsername = await selectBestAgent(fullMessage, mentionedAgents);
+              selectedAgent = mentionedAgents.find(agent => agent.username === selectedUsername);
+              
+              if (selectedAgent) {
+                // Add selected agent as conversation participant
+                await storage.addConversationParticipant(conversation.id, selectedAgent.id, 'agent');
+                
+                // Generate response using selected agent's persona
+                const content = await generateAgentResponse(fullMessage, selectedAgent);
+                aiResponse = { content, sources: null };
+              }
+            }
+          }
+
+          // If no agents were mentioned or found, use default logic
+          if (!selectedAgent) {
+            // Use Snappy Agent as default
+            const snappyAgent = await storage.getSnappyAgent();
+            if (snappyAgent) {
+              await storage.addConversationParticipant(conversation.id, snappyAgent.id, 'agent');
+              selectedAgent = snappyAgent;
+            }
+
+            // Generate AI response based on conversation type
+            if (type === "collection" && parsedCollectionId) {
+              const documents = await storage.getDocuments(parsedCollectionId, userId);
+              const collection = await storage.getCollection(parsedCollectionId, userId);
+              const collectionName = collection?.name || "Collection";
+              aiResponse = await generateCollectionResponse(fullMessage, documents, collectionName);
+            } else {
+              // Use Snappy Agent's system prompt or fall back to generic response
+              if (selectedAgent) {
+                const content = await generateAgentResponse(fullMessage, selectedAgent);
+                aiResponse = { content, sources: null };
+              } else {
+                const content = await generateIndependentResponse(fullMessage);
+                aiResponse = { content, sources: null };
+              }
+            }
           }
 
           // Ensure aiResponse has content
@@ -506,6 +556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createMessage({
             content: aiResponse.content,
             role: "assistant",
+            senderId: selectedAgent?.id || null,
             conversationId: conversation.id,
             sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
             artifactData: artifactData ? JSON.stringify(artifactData) : null,
@@ -581,6 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userMessage = await storage.createMessage({
         content,
         role: "user",
+        senderId: userId,
         conversationId,
       });
 
@@ -591,16 +643,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: msg.content
       }));
 
-      // Generate AI response
+      // Check for agent mentions in the message
+      const mentionedUsernames = extractMentionedAgents(content);
       let aiResponse;
-      if (conversation.type === "collection" && conversation.collectionId) {
-        const documents = await storage.getDocuments(conversation.collectionId, userId);
-        const collection = await storage.getCollection(conversation.collectionId, userId);
-        const collectionName = collection?.name || "Collection";
-        aiResponse = await generateCollectionResponse(content, documents, collectionName, conversationHistory);
-      } else {
-        const responseContent = await generateIndependentResponse(content);
-        aiResponse = { content: responseContent, sources: null };
+      let selectedAgent: any = null;
+
+      if (mentionedUsernames.length > 0) {
+        // Multi-agent mode: Get mentioned agents and select the best one
+        const mentionedAgents = await storage.getAgentsByUsernames(mentionedUsernames);
+        
+        if (mentionedAgents.length > 0) {
+          const selectedUsername = await selectBestAgent(content, mentionedAgents, conversationHistory);
+          selectedAgent = mentionedAgents.find(agent => agent.username === selectedUsername);
+          
+          if (selectedAgent) {
+            // Add selected agent as conversation participant if not already present
+            const currentParticipants = await storage.getConversationParticipants(conversationId);
+            const isParticipantAlready = currentParticipants.some(p => p.id === selectedAgent.id);
+            
+            if (!isParticipantAlready) {
+              await storage.addConversationParticipant(conversationId, selectedAgent.id, 'agent');
+            }
+            
+            // Generate response using selected agent's persona
+            const responseContent = await generateAgentResponse(content, selectedAgent, conversationHistory);
+            aiResponse = { content: responseContent, sources: null };
+          }
+        }
+      }
+
+      // If no agents were mentioned or found, use default logic
+      if (!selectedAgent) {
+        // Check if Snappy Agent is already in the conversation, otherwise add
+        const currentParticipants = await storage.getConversationParticipants(conversationId);
+        let snappyAgent = currentParticipants.find(p => p.username === 'snappy');
+        
+        if (!snappyAgent) {
+          snappyAgent = await storage.getSnappyAgent();
+          if (snappyAgent) {
+            await storage.addConversationParticipant(conversationId, snappyAgent.id, 'agent');
+          }
+        }
+
+        selectedAgent = snappyAgent || null;
+
+        // Generate AI response based on conversation type
+        if (conversation.type === "collection" && conversation.collectionId) {
+          const documents = await storage.getDocuments(conversation.collectionId, userId);
+          const collection = await storage.getCollection(conversation.collectionId, userId);
+          const collectionName = collection?.name || "Collection";
+          aiResponse = await generateCollectionResponse(content, documents, collectionName, conversationHistory);
+        } else {
+          // Use Snappy Agent's system prompt or fall back to generic response
+          if (selectedAgent) {
+            const responseContent = await generateAgentResponse(content, selectedAgent, conversationHistory);
+            aiResponse = { content: responseContent, sources: null };
+          } else {
+            const responseContent = await generateIndependentResponse(content);
+            aiResponse = { content: responseContent, sources: null };
+          }
+        }
       }
 
       // Ensure aiResponse has content
@@ -653,6 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const aiMessage = await storage.createMessage({
         content: aiResponse.content,
         role: "assistant",
+        senderId: selectedAgent?.id || null,
         conversationId,
         sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
         artifactData: artifactData ? JSON.stringify(artifactData) : null,
