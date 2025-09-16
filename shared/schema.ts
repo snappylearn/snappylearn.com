@@ -115,10 +115,23 @@ export const conversations = pgTable("conversations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Junction table for tracking all participants in a conversation (humans + AI agents)
+export const conversationUsers = pgTable("conversation_users", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull(),
+  userId: varchar("user_id").notNull(), // Can be human user or AI agent
+  role: varchar("role", { length: 20 }).default("participant"), // 'creator', 'participant', 'agent'
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_conversation_users_conversation").on(table.conversationId),
+  index("idx_conversation_users_user").on(table.userId),
+]);
+
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   content: text("content").notNull(),
   role: text("role").notNull(), // 'user' or 'assistant'
+  senderId: varchar("sender_id"), // ID of the user/agent who sent this message
   conversationId: integer("conversation_id").notNull(),
   sources: jsonb("sources").default(null), // For collection-based responses with document references
   artifactData: jsonb("artifact_data").default(null), // For storing artifact metadata
@@ -193,6 +206,11 @@ export const insertConversationSchema = createInsertSchema(conversations).omit({
   updatedAt: true,
 });
 
+export const insertConversationUserSchema = createInsertSchema(conversationUsers).omit({
+  id: true,
+  joinedAt: true,
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true,
@@ -249,6 +267,9 @@ export type InsertCollectionDocument = z.infer<typeof insertCollectionDocumentSc
 
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
+
+export type ConversationUser = typeof conversationUsers.$inferSelect;
+export type InsertConversationUser = z.infer<typeof insertConversationUserSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
