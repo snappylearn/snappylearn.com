@@ -1,0 +1,150 @@
+# Notifications System
+
+---
+
+# 📩 Instructions: Add a Notifications System
+
+### 1. Core Concepts
+
+- **Unified notifications table** → all notifications go through the same pipeline, regardless of channel.
+- **Multi-channel support** → email, SMS, push, in-app. [We can first implement email ].
+- **Pluggable providers** → can swap SendGrid ↔ Postmark for email, Twilio ↔ Vonage for SMS, Firebase ↔ OneSignal for push. But for now lets create a Custom Inbuilt Provider [custom_inbuilt_notification_provider] that sends mail since we have eveyrthing
+
+[11:18, 16/09/2025] MMG Josiah: Hello , Titan Account [hello@snappylearn.com](mailto:hello@snappylearn.com) - Username : snappylearn  Password: SnappyLearn123???
+[11:22, 16/09/2025] Martin: Whata the smtp domain
+[11:30, 16/09/2025] MMG Josiah: smtp.titan.email
+
+- **Asynchronous delivery** → notifications are queued and sent by background workers.
+- **Tenant-aware** → notifications are scoped by tenant_id.
+
+---
+
+### 2. Database Schema
+
+**`notifications`**
+
+- `id` (PK)
+- `tenant_id` (FK → tenants.id, nullable if system-wide)
+- `user_id` (FK → users.id, nullable for broadcast)
+- `channel` (enum: `email`, `sms`, `push`, `in_app`)
+- `payload` (JSON → subject, body, template, metadata)
+- `status` (enum: `pending`, `sent`, `failed`)
+- `provider` (string → e.g., "sendgrid", "twilio")
+- `error_message` (string, nullable)
+- `created_at`
+- `sent_at` (nullable)
+
+---
+
+### 3. Logic & Flow
+
+### Notification Creation
+
+1. Application calls `NotificationsService.send()` with params:
+    
+    ```json
+    {
+      "tenant_id": "t_123",
+      "user_id": "u_456",
+      "channel": "email",
+      "payload": {
+        "subject": "Welcome!",
+        "body": "Thanks for joining Martin's App 🎉"
+      }
+    }
+    
+    ```
+    
+2. Entry is inserted into `notifications` table with `status = pending`.
+3. Job queue worker picks up pending notifications.
+
+### Notification Delivery
+
+- Worker selects provider based on:
+    - Default system provider for channel (e.g., SendGrid for email).
+    - Tenant override (tenants may configure their own keys).
+- Sends via provider SDK.
+- Updates status → `sent` or `failed` (logs `error_message`).
+
+---
+
+### 4. Provider Abstraction
+
+- Define a **Provider Interface**:
+    
+    ```tsx
+    interface NotificationProvider {
+      send(notification: Notification): Promise<void>;
+    }
+    
+    ```
+    
+- Implementations:
+    - `SendGridProvider` (email)
+    - `TwilioProvider` (sms)
+    - `FirebaseProvider` (push)
+    - `InAppProvider` (saves in DB + emits websocket event)
+- Configuration stored in DB or `.env`:
+    - `tenant_notification_settings` → e.g., SendGrid API key per tenant.
+
+---
+
+### 5. API Endpoints
+
+- **POST /notifications** → queue a notification.
+- **GET /notifications** → list tenant/user notifications.
+- **PATCH /notifications/:id/retry** → retry failed notification.
+
+---
+
+### 6. Best Practices
+
+- Use **background jobs** (e.g., BullMQ, Sidekiq, Celery) to avoid blocking API.
+- Store **templates** (email HTML, SMS copy, push JSON) in DB or template service.
+- Allow **tenant overrides** → e.g., a tenant brings their own SendGrid account.
+- Log **audit trail** of notifications (who received what, when).
+- For in-app → store in DB + use WebSockets or polling to deliver to clients.
+
+---
+
+### 7. Example
+
+**Notification Row (email)**
+
+```json
+{
+  "id": "n_001",
+  "tenant_id": "t_123",
+  "user_id": "u_456",
+  "channel": "email",
+  "payload": {
+    "subject": "Your invoice is ready",
+    "body": "Click here to view your invoice."
+  },
+  "status": "pending",
+  "provider": "sendgrid"
+}
+
+```
+
+**Notification Row (in_app)**
+
+```json
+{
+  "id": "n_002",
+  "tenant_id": "t_123",
+  "user_id": "u_456",
+  "channel": "in_app",
+  "payload": {
+    "title": "Welcome 🎉",
+    "body": "You’ve been added to Martin’s Organization."
+  },
+  "status": "sent",
+  "provider": "in_app"
+}
+
+```
+
+---
+
+⚡ With this, your system has a **multi-channel, tenant-aware, provider-pluggable notifications system** (just like Stripe, Firebase, or Twilio).

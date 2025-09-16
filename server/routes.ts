@@ -15,6 +15,7 @@ import {
 import { z } from "zod";
 import { generateIndependentResponse, generateCollectionResponse, generateConversationTitle } from "./services/openai";
 import { registerPostRoutes } from "./routes/posts";
+import { registerNotificationRoutes } from "./routes/notifications";
 import { registerTopicRoutes } from "./routes/topics";
 import { registerFollowRoutes } from "./routes/follows";
 import { registerTaskRoutes } from "./routes/tasks";
@@ -61,6 +62,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerTopicRoutes(app);
   registerFollowRoutes(app);
   registerTaskRoutes(app);
+  
+  // Setup notification routes
+  registerNotificationRoutes(app);
   
   // Setup subscription routes
   registerSubscriptionRoutes(app);

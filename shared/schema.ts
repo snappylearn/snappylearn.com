@@ -797,6 +797,26 @@ export const creditGifts = pgTable("credit_gifts", {
   index("idx_credit_gifts_from_user").on(table.fromUserId),
 ]);
 
+// Notifications table for multi-channel notification system
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  tenantId: varchar("tenant_id"), // FK to tenants.id, nullable for system-wide notifications
+  userId: varchar("user_id"), // FK to users.id, nullable for broadcast notifications
+  channel: varchar("channel", { length: 20 }).notNull(), // 'email', 'sms', 'push', 'in_app'
+  payload: jsonb("payload").notNull(), // subject, body, template, metadata
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'sent', 'failed'
+  provider: varchar("provider", { length: 50 }).default("custom_inbuilt"), // 'sendgrid', 'twilio', 'custom_inbuilt'
+  errorMessage: text("error_message"), // nullable error details
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  sentAt: timestamp("sent_at"), // nullable, set when successfully sent
+}, (table) => [
+  index("idx_notifications_user").on(table.userId),
+  index("idx_notifications_tenant").on(table.tenantId),
+  index("idx_notifications_status").on(table.status),
+  index("idx_notifications_channel").on(table.channel),
+  index("idx_notifications_created").on(table.createdAt),
+]);
+
 // Insert schemas for subscription tables
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
   id: true,
@@ -826,6 +846,13 @@ export const insertCreditGiftSchema = createInsertSchema(creditGifts).omit({
   acceptedAt: true,
 });
 
+// Insert schema for notifications
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  sentAt: true,
+});
+
 // Types for subscription tables
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
@@ -841,6 +868,9 @@ export type InsertUserCredits = z.infer<typeof insertUserCreditsSchema>;
 
 export type CreditGift = typeof creditGifts.$inferSelect;
 export type InsertCreditGift = z.infer<typeof insertCreditGiftSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Enhanced types for subscription management
 export type UserSubscriptionWithPlan = UserSubscription & {
