@@ -29,7 +29,6 @@ export function MainLayout({ children }: MainLayoutProps) {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "My Collections", href: "/my-collections", icon: FolderOpen },
-    { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
     { name: "Subscriptions", href: "/billing", icon: CreditCard },
   ];
