@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./replitAuth";
 import { isAuthenticated } from "./replitAuth";
+import { jwtAuth, getJwtUserId } from "./routes/auth";
 
 // Helper function to get user ID from authenticated request
 function getUserId(req: any): string {
@@ -961,26 +962,7 @@ app.post("/api/communities", isAuthenticated, async (req: any, res) => {
   }
 });
 
-    try {
-      const userId = getUserId(req);
-      
-      const validatedData = insertCommunitySchema.extend({
-        tagIds: z.array(z.number()),
-      }).parse(req.body);
-
-      const community = await storage.createCommunity(validatedData, userId);
-      res.status(201).json(community);
-    } catch (error) {
-      console.error("Error creating community:", error);
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ message: "Invalid data", errors: error.errors });
-      } else {
-        res.status(500).json({ message: "Failed to create community" });
-      }
-    }
-  });
-
-  app.post("/api/communities/:id/join", isAuthenticated, async (req: any, res) => {
+app.post("/api/communities/:id/join", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserId(req);
       const communityId = parseInt(req.params.id);
