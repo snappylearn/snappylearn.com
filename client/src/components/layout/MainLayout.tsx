@@ -28,9 +28,14 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
-    { name: "My Collections", href: "/my-collections", icon: FolderOpen },
+    { name: "Discover", href: "/discover", icon: Compass },
     { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Subscriptions", href: "/billing", icon: CreditCard },
+    { name: "Assistants", href: "/assistants", icon: User },
+    { name: "Collections", href: "/collections", icon: FolderOpen },
+    { name: "Communities", href: "/communities", icon: User },
+    { name: "Tasks", href: "/tasks", icon: Settings },
+    { name: "Profile", href: "/profile", icon: User },
+    { name: "Subscriptions", href: "/subscriptions", icon: CreditCard },
   ];
 
   const isActiveRoute = (href: string) => {
