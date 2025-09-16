@@ -248,13 +248,20 @@ export default function Chat() {
     return timeBasedCopy.lateNight; // 12-4 AM
   };
 
-  // Get random header and description for current time
-  const currentTimeCopy = getTimeBasedContent();
-  const randomHeaderIndex = Math.floor(Math.random() * currentTimeCopy.headers.length);
-  const randomDescIndex = Math.floor(Math.random() * currentTimeCopy.descriptions.length);
+  // Get random header and description for current time - only calculate once on mount
+  const [timeBasedContent] = useState(() => {
+    const currentTimeCopy = getTimeBasedContent();
+    const randomHeaderIndex = Math.floor(Math.random() * currentTimeCopy.headers.length);
+    const randomDescIndex = Math.floor(Math.random() * currentTimeCopy.descriptions.length);
+    
+    return {
+      header: currentTimeCopy.headers[randomHeaderIndex],
+      description: currentTimeCopy.descriptions[randomDescIndex]
+    };
+  });
   
-  const dynamicHeader = currentTimeCopy.headers[randomHeaderIndex];
-  const dynamicDescription = currentTimeCopy.descriptions[randomDescIndex];
+  const dynamicHeader = timeBasedContent.header;
+  const dynamicDescription = timeBasedContent.description;
 
   // Example prompts for new chats
   const examplePrompts = [
