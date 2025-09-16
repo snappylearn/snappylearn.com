@@ -132,6 +132,11 @@ export const communitiesApi = {
     return res.json();
   },
 
+  getById: async (id: number): Promise<any> => {
+    const res = await apiRequest(`/api/communities/${id}`, "GET");
+    return res.json();
+  },
+
   create: async (data: { name: string; description: string; visibility: string; tagIds: number[] }): Promise<any> => {
     const res = await apiRequest("/api/communities", "POST", data);
     return res.json();

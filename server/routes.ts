@@ -909,6 +909,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/communities/:id", async (req: any, res) => {
+    try {
+      const communityId = parseInt(req.params.id);
+      
+      // Get userId from JWT if authenticated
+      let userId: string | undefined;
+      try {
+        userId = getJwtUserId(req);
+      } catch (error) {
+        // User not authenticated, continue without userId
+      }
+      
+      const communities = await storage.getCommunitiesWithStats(userId);
+      const community = communities.find(c => c.id === communityId);
+      
+      if (!community) {
+        return res.status(404).json({ message: "Community not found" });
+      }
+      
+      res.json(community);
+    } catch (error) {
+      console.error("Error fetching community:", error);
+      res.status(500).json({ message: "Failed to fetch community" });
+    }
+  });
+
   app.post("/api/communities", jwtAuth, async (req: any, res) => {
     try {
       const userId = getJwtUserId(req);
