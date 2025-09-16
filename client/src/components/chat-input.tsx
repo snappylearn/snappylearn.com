@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Shield, Paperclip, X } from "lucide-react";
+import { Send, Shield, Paperclip, X, Bot } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAgents } from "@/hooks/use-agents";
 
 interface ChatInputProps {
   onSend: (message: string, attachments?: File[]) => void;
@@ -14,6 +15,10 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anything...", value, onChange }: ChatInputProps) {
   const [message, setMessage] = useState("");
+  const [showAgentSuggestions, setShowAgentSuggestions] = useState(false);
+  const [agentQuery, setAgentQuery] = useState("");
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const { data: agents = [] } = useAgents();
   
   // Use controlled value if provided, otherwise use local state
   const inputValue = value !== undefined ? value : message;
@@ -22,6 +27,20 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
       onChange(newValue);
     } else {
       setMessage(newValue);
+    }
+    
+    // Check for agent mentions
+    const cursorPos = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = newValue.substring(0, cursorPos);
+    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+    
+    if (mentionMatch) {
+      setAgentQuery(mentionMatch[1]);
+      setShowAgentSuggestions(true);
+      setCursorPosition(cursorPos);
+    } else {
+      setShowAgentSuggestions(false);
+      setAgentQuery("");
     }
   };
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -90,10 +109,51 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
     fileInputRef.current?.click();
   };
 
+  const filteredAgents = agents.filter(agent => 
+    agent.username.toLowerCase().includes(agentQuery.toLowerCase()) ||
+    agent.firstName.toLowerCase().includes(agentQuery.toLowerCase()) ||
+    agent.lastName.toLowerCase().includes(agentQuery.toLowerCase())
+  ).slice(0, 5);
+
+  const selectAgent = (agent: any) => {
+    const currentText = inputValue;
+    const cursorPos = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = currentText.substring(0, cursorPos);
+    const textAfterCursor = currentText.substring(cursorPos);
+    
+    // Replace the @query with @username
+    const mentionMatch = textBeforeCursor.match(/(.*)@\w*$/);
+    if (mentionMatch) {
+      const newText = `${mentionMatch[1]}@${agent.username} ${textAfterCursor}`;
+      handleInputChange(newText);
+      setShowAgentSuggestions(false);
+      
+      // Set cursor position after the mention
+      setTimeout(() => {
+        const newPos = mentionMatch[1].length + agent.username.length + 2; // +2 for @space
+        textareaRef.current?.setSelectionRange(newPos, newPos);
+        textareaRef.current?.focus();
+      }, 0);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (showAgentSuggestions && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter")) {
+      // Handle agent selection navigation - simplified for now
+      if (e.key === "Enter" && filteredAgents.length > 0) {
+        e.preventDefault();
+        selectAgent(filteredAgents[0]);
+        return;
+      }
+    }
+    
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+    }
+    
+    if (e.key === "Escape") {
+      setShowAgentSuggestions(false);
     }
   };
 
@@ -127,6 +187,33 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
         </div>
       )}
 
+      {/* Agent Suggestions Dropdown */}
+      {showAgentSuggestions && filteredAgents.length > 0 && (
+        <div className="mb-2">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+            {filteredAgents.map((agent) => (
+              <button
+                key={agent.id}
+                className="flex items-center w-full p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 text-left"
+                onClick={() => selectAgent(agent)}
+                data-testid={`agent-suggestion-${agent.username}`}
+              >
+                <Bot className="w-5 h-5 mr-3 text-purple-600" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">
+                      {agent.firstName} {agent.lastName}
+                    </span>
+                    <span className="text-sm text-gray-500">@{agent.username}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 truncate">{agent.about}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="relative">
         {/* Hidden File Input */}
         <input
@@ -143,10 +230,11 @@ export function ChatInput({ onSend, disabled = false, placeholder = "Ask me anyt
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={`${placeholder} Type @ to mention an AI expert...`}
           disabled={disabled}
           className="w-full p-4 pl-12 pr-20 border-2 border-gray-200 rounded-xl resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all min-h-[60px] max-h-32"
           rows={1}
+          data-testid="chat-input"
         />
         
         {/* Attachment Button - Inside chatbox, left side */}

@@ -1,7 +1,8 @@
-import { User } from "lucide-react";
+import { User, Bot } from "lucide-react";
 const snappyLearnLogo = "/snappylearn-transparent-logo.png";
 import type { Message } from "@shared/schema";
 import { ArtifactCard } from "./artifact-manager";
+import { useAgents } from "@/hooks/use-agents";
 
 interface MessageComponentProps {
   message: Message;
@@ -10,11 +11,27 @@ interface MessageComponentProps {
 
 export function MessageComponent({ message, onViewArtifact }: MessageComponentProps) {
   const isUser = message.role === "user";
+  const { data: agents = [] } = useAgents({ includeSnappy: true }); // Include Snappy for attribution
+  
   const sources = message.sources as Array<{
     documentId: number;
     documentName: string;
     excerpt: string;
   }> | null;
+
+  // Find the agent who sent this message (for AI responses)
+  const sender = !isUser && message.senderId ? 
+    agents.find(agent => agent.id === message.senderId) : null;
+  
+  // Check if this is from Snappy Agent (default agent)
+  const isSnappyAgent = !isUser && (!message.senderId || sender?.username === 'snappy');
+  
+  // Get agent display info
+  const agentInfo = !isUser ? {
+    name: isSnappyAgent ? 'SnappyLearn AI' : (sender ? `${sender.firstName} ${sender.lastName}` : 'SnappyLearn AI'),
+    username: isSnappyAgent ? null : (sender ? sender.username : null),
+    about: sender?.about || null
+  } : null;
 
   // Check if message contains artifact
   const artifactMatch = message.content.match(/\[ARTIFACT_START\]([\s\S]*?)\[ARTIFACT_END\]/);
@@ -33,10 +50,21 @@ export function MessageComponent({ message, onViewArtifact }: MessageComponentPr
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div className={`max-w-2xl ${isUser ? "ml-12" : "mr-12"}`}>
-        {!isUser && (
+        {!isUser && agentInfo && (
           <div className="flex items-center space-x-2 mb-2">
-            <img src={snappyLearnLogo} alt="SnappyLearn" className="w-6 h-6" />
-            <span className="text-sm font-medium text-gray-700">SnappyLearn AI</span>
+            {isSnappyAgent ? (
+              <img src={snappyLearnLogo} alt="SnappyLearn" className="w-6 h-6" />
+            ) : (
+              <Bot className="w-6 h-6 text-purple-600" />
+            )}
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-700">
+                {agentInfo.name}
+              </span>
+              {agentInfo.username && (
+                <span className="text-xs text-gray-500">@{agentInfo.username}</span>
+              )}
+            </div>
           </div>
         )}
         
