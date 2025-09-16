@@ -307,7 +307,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {recommendedCommunities.slice(0, 3).map((community: any) => (
-                    <Link key={community.community.id} href={`/communities/${community.community.id}`}>
+                    <Link key={community.id} href={`/communities/${community.id}`}>
                       <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
@@ -315,7 +315,7 @@ export function TwitterStyleLayout({ children, currentCollectionId }: TwitterSty
                           </div>
                           <div className="flex-1">
                             <p className="text-sm font-medium text-gray-900 line-clamp-1 mb-1">
-                              {community.community.name}
+                              {community.name}
                             </p>
                             <p className="text-xs text-gray-500">
                               {community.memberCount || 0} members
