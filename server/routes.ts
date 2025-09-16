@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./replitAuth";
 import { isAuthenticated } from "./replitAuth";
-import { jwtAuth, getJwtUserId } from "./routes/auth";
+import { jwtAuth, getJwtUserId, setupAuthRoutes } from "./routes/auth";
 
 // Helper function to get user ID from authenticated request
 function getUserId(req: any): string {
@@ -60,7 +60,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Replit authentication disabled
   // await setupAuth(app);
   
-  // Custom auth routes are now handled by setupAuth
+  // Setup JWT authentication routes
+  setupAuthRoutes(app);
   
   // Google OAuth is now handled by setupAuth (Replit authentication)
   // setupGoogleAuth(app);
