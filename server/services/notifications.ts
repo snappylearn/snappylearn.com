@@ -40,31 +40,39 @@ export interface NotificationProvider {
 
 // Custom inbuilt email provider using Titan SMTP
 export class TitanEmailProvider implements NotificationProvider {
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
+  private isConfigured: boolean = false;
 
   constructor() {
-    // SECURITY: Fail fast if required environment variables are missing
+    // SECURITY: Check for environment variables but don't fail if missing during migration
     const emailUser = process.env.TITAN_EMAIL_USER;
     const emailPass = process.env.TITAN_EMAIL_PASSWORD;
     
-    if (!emailUser || !emailPass) {
-      throw new Error('TITAN_EMAIL_USER and TITAN_EMAIL_PASSWORD environment variables must be set');
+    if (emailUser && emailPass) {
+      this.transporter = nodemailer.createTransport({
+        host: 'smtp.titan.email',
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: emailUser,
+          pass: emailPass,
+        },
+      });
+      this.isConfigured = true;
+    } else {
+      console.warn('TITAN_EMAIL_USER and TITAN_EMAIL_PASSWORD environment variables not set. Email notifications will be disabled.');
+      this.isConfigured = false;
     }
-
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.titan.email',
-      port: 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
-    });
   }
 
   async send(notification: Notification): Promise<void> {
     if (notification.channel !== 'email') {
       throw new Error(`TitanEmailProvider can only send email notifications, got ${notification.channel}`);
+    }
+
+    if (!this.isConfigured || !this.transporter) {
+      console.warn(`Email notification ${notification.id} skipped - email service not configured`);
+      return;
     }
 
     if (!notification.userId) {
