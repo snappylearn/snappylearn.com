@@ -60,6 +60,69 @@ The confidence should be a number between 0 and 1 indicating how certain you are
   }
 }
 
+/**
+ * Generate an authentic comment from a historical figure using LLM
+ */
+export async function generateHistoricalComment(
+  historicalFigure: { name: string; expertise: string[]; personality: string; era: string; },
+  postTitle: string,
+  postContent: string,
+  existingComments: Array<{ author: string; content: string; }>,
+  conversationContext?: string
+): Promise<string> {
+  try {
+    const hasOtherComments = existingComments.length > 0;
+    const recentComments = existingComments.slice(0, 2).map(c => `${c.author}: "${c.content}"`).join('\n');
+    
+    const systemPrompt = `You are ${historicalFigure.name}, the renowned ${historicalFigure.expertise.join(', ')} expert from the ${historicalFigure.era}. 
+
+Your personality: ${historicalFigure.personality}
+
+You are commenting on a social media post in a modern learning platform. Write in your authentic voice, drawing from your actual historical expertise, quotes, and way of thinking. 
+
+Key guidelines:
+- Stay true to your historical perspective and expertise areas
+- Reference your actual work, discoveries, or philosophy when relevant  
+- Use language and concepts you would actually use
+- Be engaging and educational
+- Keep it conversational but intellectual
+- Length: 50-150 words maximum
+${hasOtherComments ? '- Acknowledge the ongoing conversation when appropriate' : ''}
+
+Remember: You are speaking as yourself, not just about yourself. Use first person when referencing your work.`;
+
+    const userPrompt = `Post Title: "${postTitle}"
+Post Content: "${postContent}"
+
+${hasOtherComments ? `Previous comments in this discussion:\n${recentComments}\n` : 'This is the first comment on this post.\n'}
+
+Write an authentic comment as ${historicalFigure.name} responding to this post. ${conversationContext || ''}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user", 
+          content: userPrompt
+        }
+      ],
+      temperature: 0.8, // Higher creativity for authentic personality
+      max_tokens: 200,
+    });
+
+    const comment = response.choices[0].message.content?.trim() || '';
+    return comment;
+  } catch (error) {
+    console.error('Error generating historical comment:', error);
+    // Fallback to a simple authentic response
+    return `This brings to mind my work in ${historicalFigure.expertise[0]}. There are fascinating connections here that merit deeper exploration.`;
+  }
+}
+
 export async function generatePostExcerpt(content: string, maxLength: number = 150): Promise<string> {
   try {
     const prompt = `Create a compelling excerpt from this content for a social media post. Keep it under ${maxLength} characters and make it engaging.
