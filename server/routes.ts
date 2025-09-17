@@ -1097,6 +1097,69 @@ app.post("/api/communities/:id/join", jwtAuth, async (req: any, res) => {
     }
   });
 
+  // Events API endpoints
+  app.get("/api/events", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const { eventType, limit = 100 } = req.query;
+      
+      // For security, users can only see their own events unless they're admin
+      const events = await storage.getEvents(userId, eventType, parseInt(limit));
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ message: "Failed to fetch events" });
+    }
+  });
+
+  app.get("/api/events/recent", jwtAuth, async (req: any, res) => {
+    try {
+      const { limit = 50 } = req.query;
+      
+      // Get recent platform events for analytics/admin purposes
+      const events = await storage.getRecentEvents(parseInt(limit));
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching recent events:", error);
+      res.status(500).json({ message: "Failed to fetch recent events" });
+    }
+  });
+
+  app.get("/api/events/type/:eventType", jwtAuth, async (req: any, res) => {
+    try {
+      const { eventType } = req.params;
+      const { limit = 100 } = req.query;
+      
+      const events = await storage.getEventsByType(eventType, parseInt(limit));
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching events by type:", error);
+      res.status(500).json({ message: "Failed to fetch events by type" });
+    }
+  });
+
+  app.post("/api/events", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      const { eventType, eventData } = req.body;
+      
+      if (!eventType) {
+        return res.status(400).json({ message: "Event type is required" });
+      }
+      
+      const event = await storage.createEvent({
+        userId,
+        eventType,
+        eventData: eventData || null
+      });
+      
+      res.status(201).json(event);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      res.status(500).json({ message: "Failed to create event" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
