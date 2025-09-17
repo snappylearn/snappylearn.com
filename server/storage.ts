@@ -70,6 +70,18 @@ import {
   type Event,
   type InsertEvent,
   events,
+  autonomousJobs,
+  autonomousAgentEvaluations,
+  autonomousWorkflowExecutions,
+  autonomousExecutionLocks,
+  type AutonomousJob,
+  type InsertAutonomousJob,
+  type AutonomousAgentEvaluation,
+  type InsertAutonomousAgentEvaluation,
+  type AutonomousWorkflowExecution,
+  type InsertAutonomousWorkflowExecution,
+  type AutonomousExecutionLock,
+  type InsertAutonomousExecutionLock,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, sql, and, ilike, inArray, gte, notInArray } from "drizzle-orm";
@@ -171,6 +183,29 @@ export interface IStorage {
   getUserEvents(userId: string, limit?: number): Promise<Event[]>;
   getEventsByType(eventType: string, limit?: number): Promise<Event[]>;
   getRecentEvents(limit?: number): Promise<Event[]>;
+
+  // Autonomous workflow methods
+  createAutonomousJob(job: InsertAutonomousJob): Promise<AutonomousJob>;
+  updateAutonomousJob(id: number, updates: Partial<InsertAutonomousJob>): Promise<AutonomousJob | undefined>;
+  getAutonomousJob(id: number): Promise<AutonomousJob | undefined>;
+  getAutonomousJobs(status?: string, limit?: number): Promise<AutonomousJob[]>;
+  getPendingAutonomousJobs(): Promise<AutonomousJob[]>;
+  
+  createAutonomousAgentEvaluation(evaluation: InsertAutonomousAgentEvaluation): Promise<AutonomousAgentEvaluation>;
+  updateAutonomousAgentEvaluation(id: number, updates: Partial<InsertAutonomousAgentEvaluation>): Promise<AutonomousAgentEvaluation | undefined>;
+  getAutonomousAgentEvaluations(jobId: number): Promise<AutonomousAgentEvaluation[]>;
+  getAutonomousAgentEvaluation(id: number): Promise<AutonomousAgentEvaluation | undefined>;
+  
+  createAutonomousWorkflowExecution(execution: InsertAutonomousWorkflowExecution): Promise<AutonomousWorkflowExecution>;
+  updateAutonomousWorkflowExecution(id: number, updates: Partial<InsertAutonomousWorkflowExecution>): Promise<AutonomousWorkflowExecution | undefined>;
+  getAutonomousWorkflowExecutions(jobId: number): Promise<AutonomousWorkflowExecution[]>;
+  getAutonomousWorkflowExecution(id: number): Promise<AutonomousWorkflowExecution | undefined>;
+  
+  createAutonomousExecutionLock(lock: InsertAutonomousExecutionLock): Promise<AutonomousExecutionLock>;
+  getAutonomousExecutionLock(lockKey: string): Promise<AutonomousExecutionLock | undefined>;
+  deleteExpiredAutonomousExecutionLocks(): Promise<number>;
+  acquireAutonomousExecutionLock(lockKey: string, lockedBy: string, expiresInMs: number): Promise<boolean>;
+  releaseAutonomousExecutionLock(lockKey: string, lockedBy: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1448,6 +1483,187 @@ export class DatabaseStorage implements IStorage {
       .from(events)
       .orderBy(desc(events.createdAt))
       .limit(limit);
+  }
+
+  // Autonomous workflow methods
+  async createAutonomousJob(job: InsertAutonomousJob): Promise<AutonomousJob> {
+    const [newJob] = await db
+      .insert(autonomousJobs)
+      .values(job)
+      .returning();
+    return newJob;
+  }
+
+  async updateAutonomousJob(id: number, updates: Partial<InsertAutonomousJob>): Promise<AutonomousJob | undefined> {
+    const [job] = await db
+      .update(autonomousJobs)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(autonomousJobs.id, id))
+      .returning();
+    return job || undefined;
+  }
+
+  async getAutonomousJob(id: number): Promise<AutonomousJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(autonomousJobs)
+      .where(eq(autonomousJobs.id, id));
+    return job || undefined;
+  }
+
+  async getAutonomousJobs(status?: string, limit?: number): Promise<AutonomousJob[]> {
+    let query = db.select().from(autonomousJobs);
+    
+    if (status) {
+      query = query.where(eq(autonomousJobs.status, status));
+    }
+    
+    query = query.orderBy(desc(autonomousJobs.priority), desc(autonomousJobs.createdAt));
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
+  }
+
+  async getPendingAutonomousJobs(): Promise<AutonomousJob[]> {
+    return await db
+      .select()
+      .from(autonomousJobs)
+      .where(eq(autonomousJobs.status, "pending"))
+      .orderBy(desc(autonomousJobs.priority), autonomousJobs.scheduledAt);
+  }
+
+  async createAutonomousAgentEvaluation(evaluation: InsertAutonomousAgentEvaluation): Promise<AutonomousAgentEvaluation> {
+    const [newEvaluation] = await db
+      .insert(autonomousAgentEvaluations)
+      .values(evaluation)
+      .returning();
+    return newEvaluation;
+  }
+
+  async updateAutonomousAgentEvaluation(id: number, updates: Partial<InsertAutonomousAgentEvaluation>): Promise<AutonomousAgentEvaluation | undefined> {
+    const [evaluation] = await db
+      .update(autonomousAgentEvaluations)
+      .set(updates)
+      .where(eq(autonomousAgentEvaluations.id, id))
+      .returning();
+    return evaluation || undefined;
+  }
+
+  async getAutonomousAgentEvaluations(jobId: number): Promise<AutonomousAgentEvaluation[]> {
+    return await db
+      .select()
+      .from(autonomousAgentEvaluations)
+      .where(eq(autonomousAgentEvaluations.jobId, jobId))
+      .orderBy(desc(autonomousAgentEvaluations.overallReadinessScore));
+  }
+
+  async getAutonomousAgentEvaluation(id: number): Promise<AutonomousAgentEvaluation | undefined> {
+    const [evaluation] = await db
+      .select()
+      .from(autonomousAgentEvaluations)
+      .where(eq(autonomousAgentEvaluations.id, id));
+    return evaluation || undefined;
+  }
+
+  async createAutonomousWorkflowExecution(execution: InsertAutonomousWorkflowExecution): Promise<AutonomousWorkflowExecution> {
+    const [newExecution] = await db
+      .insert(autonomousWorkflowExecutions)
+      .values(execution)
+      .returning();
+    return newExecution;
+  }
+
+  async updateAutonomousWorkflowExecution(id: number, updates: Partial<InsertAutonomousWorkflowExecution>): Promise<AutonomousWorkflowExecution | undefined> {
+    const [execution] = await db
+      .update(autonomousWorkflowExecutions)
+      .set(updates)
+      .where(eq(autonomousWorkflowExecutions.id, id))
+      .returning();
+    return execution || undefined;
+  }
+
+  async getAutonomousWorkflowExecutions(jobId: number): Promise<AutonomousWorkflowExecution[]> {
+    return await db
+      .select()
+      .from(autonomousWorkflowExecutions)
+      .where(eq(autonomousWorkflowExecutions.jobId, jobId))
+      .orderBy(desc(autonomousWorkflowExecutions.createdAt));
+  }
+
+  async getAutonomousWorkflowExecution(id: number): Promise<AutonomousWorkflowExecution | undefined> {
+    const [execution] = await db
+      .select()
+      .from(autonomousWorkflowExecutions)
+      .where(eq(autonomousWorkflowExecutions.id, id));
+    return execution || undefined;
+  }
+
+  async createAutonomousExecutionLock(lock: InsertAutonomousExecutionLock): Promise<AutonomousExecutionLock> {
+    const [newLock] = await db
+      .insert(autonomousExecutionLocks)
+      .values(lock)
+      .returning();
+    return newLock;
+  }
+
+  async getAutonomousExecutionLock(lockKey: string): Promise<AutonomousExecutionLock | undefined> {
+    const [lock] = await db
+      .select()
+      .from(autonomousExecutionLocks)
+      .where(eq(autonomousExecutionLocks.lockKey, lockKey));
+    return lock || undefined;
+  }
+
+  async deleteExpiredAutonomousExecutionLocks(): Promise<number> {
+    try {
+      const deletedRows = await db
+        .delete(autonomousExecutionLocks)
+        .where(sql`${autonomousExecutionLocks.expiresAt} < NOW()`)
+        .returning({ id: autonomousExecutionLocks.id });
+      return deletedRows.length;
+    } catch (error) {
+      console.error('Error deleting expired autonomous execution locks:', error);
+      return 0;
+    }
+  }
+
+  async acquireAutonomousExecutionLock(lockKey: string, lockedBy: string, expiresInMs: number): Promise<boolean> {
+    try {
+      const expiresAt = new Date(Date.now() + expiresInMs);
+      await db
+        .insert(autonomousExecutionLocks)
+        .values({
+          lockKey,
+          lockedBy,
+          expiresAt,
+        });
+      return true;
+    } catch (error) {
+      // Lock already exists or other constraint violation
+      return false;
+    }
+  }
+
+  async releaseAutonomousExecutionLock(lockKey: string, lockedBy: string): Promise<boolean> {
+    try {
+      const deletedRows = await db
+        .delete(autonomousExecutionLocks)
+        .where(and(
+          eq(autonomousExecutionLocks.lockKey, lockKey),
+          eq(autonomousExecutionLocks.lockedBy, lockedBy)
+        ))
+        .returning({ id: autonomousExecutionLocks.id });
+      return deletedRows.length > 0;
+    } catch (error) {
+      console.error('Error releasing autonomous execution lock:', error);
+      return false;
+    }
   }
 }
 
