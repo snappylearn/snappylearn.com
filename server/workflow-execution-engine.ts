@@ -723,7 +723,12 @@ export class WorkflowExecutionEngine {
       }
 
       const selectedPost = postsToComment[Math.floor(Math.random() * postsToComment.length)];
-      const commentContent = this.generateComment(context.agent);
+      
+      // Get existing comments for context-aware commenting
+      const existingComments = await storage.getCommentsForPost(selectedPost.id);
+      
+      // Generate authentic, context-aware comment
+      const commentContent = await this.generateAuthenticComment(context.agent, selectedPost, existingComments);
 
       // Actually create the comment in the database
       const newComment = await storage.createComment({
@@ -1009,18 +1014,255 @@ I would be delighted to engage in dialogue about how we might honor the wisdom o
     return `${agent.firstName} shares insights from their unique perspective on ${this.getAgentPerspective(agent)}, connecting historical wisdom with contemporary understanding.`;
   }
 
-  private generateComment(agent: User): string {
-    const comments = [
-      `This resonates deeply with my understanding of ${this.getAgentPerspective(agent)}...`,
-      `From my perspective, this connects to broader themes in ${this.getAgentPerspective(agent)}...`,
-      `I find this particularly interesting when viewed through the lens of ${this.getAgentPerspective(agent)}...`,
-      `This reminds me of similar patterns I've observed in ${this.getAgentPerspective(agent)}...`
-    ];
-    return comments[Math.floor(Math.random() * comments.length)];
+  private async generateAuthenticComment(agent: User, post: any, existingComments: any[]): Promise<string> {
+    // Get the agent's specific character profile
+    const agentProfile = this.getAgentProfile(agent);
+    
+    // Analyze the post content for context
+    const postTitle = post.title || '';
+    const postContent = post.content || '';
+    const postTopic = this.extractMainTopic(postTitle, postContent);
+    
+    // Check if others have commented (for conversational flow)
+    const hasOtherComments = existingComments.length > 0;
+    const recentComments = existingComments.slice(0, 2); // Consider last 2 comments
+    
+    // Generate character-specific authentic comment
+    return this.createCharacterSpecificComment(agentProfile, postTopic, postTitle, hasOtherComments, recentComments);
+  }
+
+  private getAgentProfile(agent: User): any {
+    const profiles: { [key: string]: any } = {
+      'agent-einstein': {
+        name: 'Albert Einstein',
+        expertise: ['physics', 'relativity', 'philosophy of science', 'mathematics'],
+        style: 'thoughtful, questioning, seeks deeper understanding',
+        phrases: ['In my experience with theoretical physics', 'This brings to mind my work on', 'I have long believed that', 'The fundamental question here', 'As I discovered in my research'],
+        interests: ['curiosity', 'imagination', 'scientific method', 'unity of knowledge', 'cosmic perspective'],
+        personality: 'contemplative, humble, intellectually curious'
+      },
+      'agent-tesla': {
+        name: 'Nikola Tesla',
+        expertise: ['electricity', 'invention', 'wireless technology', 'mechanical engineering'],
+        style: 'visionary, intense, focused on practical applications',
+        phrases: ['In my laboratory work with', 'The future of this technology', 'I have envisioned', 'My experiments have shown', 'The practical applications here'],
+        interests: ['innovation', 'wireless communication', 'electrical phenomena', 'future technology', 'efficiency'],
+        personality: 'passionate, forward-thinking, detail-oriented'
+      },
+      'agent-curie': {
+        name: 'Marie Curie',
+        expertise: ['radioactivity', 'chemistry', 'physics', 'scientific methodology'],
+        style: 'precise, methodical, pioneering',
+        phrases: ['My research into', 'Through careful observation', 'The data suggests', 'In the laboratory, I found', 'Scientific rigor demands'],
+        interests: ['scientific discovery', 'perseverance', 'breaking barriers', 'methodical research', 'education'],
+        personality: 'determined, meticulous, groundbreaking'
+      },
+      'agent-socrates': {
+        name: 'Socrates',
+        expertise: ['philosophy', 'ethics', 'logic', 'critical thinking'],
+        style: 'questioning, dialectical, seeks truth through inquiry',
+        phrases: ['But what do we really mean when we say', 'I must ask you to consider', 'Perhaps we should examine', 'Do we truly understand', 'Let us question this assumption'],
+        interests: ['truth-seeking', 'self-knowledge', 'virtue', 'critical examination', 'dialogue'],
+        personality: 'inquisitive, humble about knowledge, provocative'
+      },
+      'agent-davinci': {
+        name: 'Leonardo da Vinci',
+        expertise: ['art', 'engineering', 'anatomy', 'invention', 'observation'],
+        style: 'interdisciplinary, observational, connects art and science',
+        phrases: ['Through my studies of', 'I observe that', 'The connection between art and science', 'In my notebooks, I have noted', 'Nature teaches us'],
+        interests: ['observation', 'interdisciplinary learning', 'natural patterns', 'innovation', 'artistic expression'],
+        personality: 'curious, holistic thinker, observant'
+      }
+    };
+
+    // Default profile for other historical figures
+    return profiles[agent.id] || {
+      name: `${agent.firstName} ${agent.lastName}`,
+      expertise: ['philosophy', 'history', 'human knowledge'],
+      style: 'thoughtful, historically informed',
+      phrases: ['In my time', 'From my historical perspective', 'I have observed', 'This reminds me of', 'Through my experience'],
+      interests: ['wisdom', 'understanding', 'historical context', 'learning', 'human nature'],
+      personality: 'wise, experienced, reflective'
+    };
+  }
+
+  private extractMainTopic(title: string, content: string): string {
+    const text = (title + ' ' + content).toLowerCase();
+    
+    const topics = {
+      'science': ['science', 'research', 'discovery', 'experiment', 'theory', 'physics', 'chemistry', 'biology'],
+      'technology': ['technology', 'innovation', 'invention', 'engineering', 'digital', 'artificial intelligence'],
+      'philosophy': ['philosophy', 'think', 'meaning', 'truth', 'wisdom', 'existence', 'knowledge', 'ethical'],
+      'education': ['education', 'learning', 'teaching', 'student', 'knowledge', 'understanding', 'enrichment'],
+      'art': ['art', 'creative', 'expression', 'beauty', 'artistic', 'culture', 'aesthetic'],
+      'history': ['history', 'past', 'ancient', 'tradition', 'heritage', 'historical', 'century'],
+      'human_nature': ['human', 'nature', 'behavior', 'society', 'psychology', 'emotion', 'character']
+    };
+    
+    for (const [topic, keywords] of Object.entries(topics)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        return topic;
+      }
+    }
+    
+    return 'general';
+  }
+
+  private createCharacterSpecificComment(profile: any, topic: string, postTitle: string, hasOtherComments: boolean, recentComments: any[]): string {
+    const relevantPhrase = profile.phrases[Math.floor(Math.random() * profile.phrases.length)];
+    const interest = profile.interests[Math.floor(Math.random() * profile.interests.length)];
+    
+    // Create topic-specific insights based on the character
+    let insight = '';
+    let connection = '';
+    
+    if (profile.name === 'Albert Einstein') {
+      if (topic === 'science') {
+        insight = 'the interconnectedness of all scientific phenomena reminds me of the unity underlying physical laws.';
+        connection = 'Everything in the universe is connected - from the smallest quantum interaction to the grandest cosmic dance.';
+      } else if (topic === 'philosophy') {
+        insight = 'the relationship between imagination and knowledge. As I often say, imagination is more important than knowledge.';
+        connection = 'We must never stop questioning - it is curiosity that drives all human progress.';
+      } else if (topic === 'education') {
+        insight = 'how vital it is to nurture the natural curiosity every child possesses. Education should kindle wonder, not extinguish it.';
+        connection = 'The important thing is not to stop questioning. Curiosity has its own reason for existing.';
+      } else {
+        insight = 'how this reflects the fundamental interconnectedness I see throughout nature and human understanding.';
+        connection = 'There is beauty in simplicity, and profound truth often lies beneath apparent complexity.';
+      }
+    } else if (profile.name === 'Nikola Tesla') {
+      if (topic === 'technology') {
+        insight = 'the tremendous potential this holds for advancing human civilization through practical innovation.';
+        connection = 'The future will judge us not by our theories, but by what we build to benefit humanity.';
+      } else if (topic === 'science') {
+        insight = 'how this could be applied to solve real problems. My work has always focused on practical applications.';
+        connection = 'True progress comes when we harness natural forces to serve human needs.';
+      } else {
+        insight = 'the patterns here that mirror the electrical phenomena I have studied - there are connections everywhere.';
+        connection = 'Innovation requires both vision and the persistence to make that vision real.';
+      }
+    } else if (profile.name === 'Marie Curie') {
+      if (topic === 'science') {
+        insight = 'the importance of methodical investigation. My work with radioactive elements taught me that patient research reveals truth.';
+        connection = 'Science demands both intellectual courage and meticulous attention to detail.';
+      } else if (topic === 'education') {
+        insight = 'how crucial it is to provide equal opportunities for all to pursue knowledge, regardless of background.';
+        connection = 'Knowledge belongs to humanity, and we must ensure it remains accessible to all who seek it.';
+      } else {
+        insight = 'the dedication required to push beyond conventional boundaries - something I experienced firsthand in my research.';
+        connection = 'Progress requires us to challenge assumptions and persist despite obstacles.';
+      }
+    } else if (profile.name === 'Socrates') {
+      if (topic === 'philosophy') {
+        insight = 'we must examine our assumptions. What do we truly know about this topic?';
+        connection = 'The unexamined life is not worth living - and the unexamined idea is not worth believing.';
+      } else if (topic === 'education') {
+        insight = 'the teacher\'s role is not to fill empty vessels, but to help students discover wisdom within themselves.';
+        connection = 'True learning occurs when we recognize how much we do not yet understand.';
+      } else {
+        insight = 'we should question our first impressions. What deeper truths might lie beneath the surface?';
+        connection = 'I know that I know nothing - and this knowledge opens the door to genuine inquiry.';
+      }
+    } else if (profile.name === 'Leonardo da Vinci') {
+      if (topic === 'art') {
+        insight = 'the profound connection between artistic expression and scientific understanding. Art and science are not separate realms.';
+        connection = 'Observe everything - nature is the supreme teacher of both beauty and function.';
+      } else if (topic === 'science') {
+        insight = 'how observation of natural patterns can illuminate both artistic and scientific principles.';
+        connection = 'The eye sees what the mind is prepared to comprehend - we must train both.';
+      } else {
+        insight = 'the interdisciplinary connections here. My studies of anatomy, mechanics, and painting all inform each other.';
+        connection = 'All knowledge is connected - the artist must be a scientist, and the scientist must see with an artist\'s eye.';
+      }
+    }
+    
+    // Build conversational element if there are other comments
+    let conversationalOpener = '';
+    if (hasOtherComments && recentComments.length > 0) {
+      const lastComment = recentComments[0];
+      if (lastComment.authorId !== profile.agentId) {
+        conversationalOpener = `Building on what has been shared here, `;
+      }
+    }
+    
+    // Construct the final authentic comment
+    let comment = '';
+    if (Math.random() < 0.5) {
+      // Insight-focused comment
+      comment = `${conversationalOpener}${relevantPhrase}, ${insight} ${connection}`;
+    } else {
+      // Connection-focused comment
+      comment = `${conversationalOpener}${connection} ${relevantPhrase}, I find ${interest} particularly relevant to this discussion.`;
+    }
+    
+    return comment.charAt(0).toUpperCase() + comment.slice(1);
   }
 
   private generateShareReason(agent: User): string {
     return `This content aligns with ${agent.firstName}'s expertise in ${this.getAgentPerspective(agent)} and would benefit the community`;
+  }
+
+  /**
+   * Update all existing generic comments with authentic character-specific ones
+   */
+  async updateExistingCommentsToAuthentic(): Promise<void> {
+    console.log('🔄 Updating existing comments to be more authentic...');
+    
+    try {
+      const storage = await this.getStorage();
+      
+      // Get all existing comments
+      const allComments = await storage.getAllComments();
+      
+      for (const comment of allComments) {
+        // Skip if this already looks like an authentic comment
+        if (!this.isGenericComment(comment.content)) {
+          continue;
+        }
+        
+        // Get the agent who wrote this comment
+        const agent = await storage.getUser(comment.authorId);
+        if (!agent || !agent.id.startsWith('agent-')) {
+          continue; // Skip non-agent comments
+        }
+        
+        // Get the post this comment is on
+        const post = await storage.getPost(comment.postId);
+        if (!post) {
+          continue;
+        }
+        
+        // Get other comments on this post (excluding this one)
+        const existingComments = (await storage.getCommentsForPost(comment.postId))
+          .filter(c => c.id !== comment.id);
+        
+        // Generate authentic comment
+        const authenticContent = await this.generateAuthenticComment(agent, post, existingComments);
+        
+        // Update the comment
+        await storage.updateComment(comment.id, { content: authenticContent });
+        
+        console.log(`✅ Updated comment ${comment.id} by ${agent.firstName} ${agent.lastName}`);
+      }
+      
+      console.log('🎉 Finished updating all generic comments to authentic ones!');
+    } catch (error) {
+      console.error('❌ Error updating comments:', error);
+    }
+  }
+  
+  /**
+   * Check if a comment is generic/templated
+   */
+  private isGenericComment(content: string): boolean {
+    const genericPhrases = [
+      'This resonates deeply with my understanding',
+      'From my perspective, this connects to broader themes',
+      'I find this particularly interesting when viewed through the lens',
+      'This reminds me of similar patterns I\'ve observed'
+    ];
+    
+    return genericPhrases.some(phrase => content.includes(phrase));
   }
 
   private generateShareContext(agent: User): string {

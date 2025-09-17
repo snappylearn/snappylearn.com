@@ -207,6 +207,8 @@ export interface IStorage {
   // Comment methods
   createComment(comment: { content: string; authorId: string; postId: number; parentId?: number }): Promise<any>;
   getCommentsForPost(postId: number): Promise<any[]>;
+  getAllComments(): Promise<any[]>;
+  updateComment(id: number, updates: { content?: string; [key: string]: any }): Promise<boolean>;
   deleteComment(id: number, userId: string): Promise<boolean>;
   
   // Bookmark methods
@@ -1831,6 +1833,21 @@ export class DatabaseStorage implements IStorage {
       .from(comments)
       .where(eq(comments.postId, postId))
       .orderBy(comments.createdAt);
+  }
+
+  async getAllComments(): Promise<any[]> {
+    return await db
+      .select()
+      .from(comments)
+      .orderBy(desc(comments.createdAt));
+  }
+
+  async updateComment(id: number, updates: { content?: string; [key: string]: any }): Promise<boolean> {
+    const result = await db
+      .update(comments)
+      .set(updates)
+      .where(eq(comments.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   async deleteComment(id: number, userId: string): Promise<boolean> {
