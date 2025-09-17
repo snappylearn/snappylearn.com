@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { AutonomousOrchestrator } from "./autonomous-orchestrator";
 
 // Handle SSL certificate issues with proper error handling for Replit environment
 // Note: Only disable TLS verification for known safe internal services if absolutely necessary
@@ -59,6 +60,11 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Initialize and start the autonomous orchestrator
+  const orchestrator = AutonomousOrchestrator.getInstance();
+  await orchestrator.startScheduledJobs();
+  log('Autonomous orchestrator initialized and started');
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
@@ -76,7 +82,25 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
+    
+    // Start background autonomous workflows after server is ready
+    log('Starting background autonomous workflow processing...');
+    
+    // Create and execute background jobs for autonomous workflows
+    try {
+      const job = await orchestrator.createJob('scheduled', 1);
+      log(`Created autonomous job ${job.id}, starting execution...`);
+      
+      const success = await orchestrator.executeJob(job.id);
+      if (success) {
+        log('Autonomous workflows started successfully');
+      } else {
+        log('Failed to start autonomous workflows');
+      }
+    } catch (error) {
+      log(`Error starting autonomous workflows: ${error instanceof Error ? error.message : String(error)}`);
+    }
   });
 })();
