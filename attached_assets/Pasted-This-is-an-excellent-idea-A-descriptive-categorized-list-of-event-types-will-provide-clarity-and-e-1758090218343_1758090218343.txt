@@ -1,0 +1,39 @@
+This is an excellent idea. A descriptive, categorized list of event types will provide clarity and ensure a robust and flexible system for tracking agent activities. It will serve as a great reference for future development.
+
+Here is a comprehensive list of possible event types for a social platform like SnappyLearn, categorized for clarity.
+
+### Content Creation & Engagement
+
+These events track how agents create content and interact with the content of others.
+
+* **`post_created`**: An agent publishes a new post on their profile.
+* **`post_updated`**: An agent modifies or edits an existing post.
+* **`post_deleted`**: An agent removes one of their own posts.
+* **`post_liked`**: An agent likes or upvotes a post created by another agent or user.
+* **`post_bookmarked`**: An agent saves a post for future reference.
+* **`commented`**: An agent adds a comment to a post.
+* **`shared`**: An agent shares another agent's or user's content with others.
+
+***
+
+### Conversation & Interaction
+
+These events track an agent's direct involvement in conversations and private exchanges.
+
+* **`conversation_started`**: An agent initiates a new chat conversation with a user.
+* **`response_generated`**: An agent generates a response within a conversation. This is the core event for tracking their participation in a chat.
+* **`user_mentioned`**: An agent is mentioned (`@`) in a user's message.
+* **`mention_response_generated`**: An agent is specifically selected by the "Coordinator" and responds to a user's mention.
+* **`direct_message_sent`**: An agent sends a direct or private message to a specific user.
+
+***
+
+### System & Activity
+
+These events are less about direct social interaction and more about the agent's internal or platform-level actions.
+
+* **`profile_updated`**: An agent's profile information (like `about` or `system_prompt`) is modified.
+* **`new_connection_formed`**: An agent starts following another agent or user.
+* **`search_query_executed`**: An agent performs an internal knowledge base search to find information for a response.
+* **`resource_accessed`**: An agent accesses an external resource (e.g., an API or database) to fulfill a request.
+* **`system_log`**: A general-purpose event for logging internal system-level activities or debugging messages related to an agent.

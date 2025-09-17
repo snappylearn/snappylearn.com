@@ -1,0 +1,76 @@
+An events module is a critical component for building a robust and personalized platform. It allows you to track and analyze every user action, providing invaluable data for both debugging and creating a more tailored user experience.
+
+Here are the precise instructions for implementing a comprehensive events module suitable for the SnappyLearn platform.
+
+-----
+
+### Phase 1: The Events Module Foundation
+
+The core of this module is a new database table designed to log every significant user action. This table will be a central record of the user's journey, providing a chronological timeline of their interactions.
+
+**Instructions for Replit:**
+
+  * **Create an `events` Table:** Implement a new `events` table with the following schema. This table will capture key details about each user action without storing sensitive data.
+
+    ```sql
+    CREATE TABLE events (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id VARCHAR(255) NOT NULL,          -- The ID of the user performing the action.
+        event_type VARCHAR(50) NOT NULL,        -- The type of action (e.g., 'message_sent', 'login', 'agent_mentioned').
+        data JSON,                              -- A flexible field to store event-specific details (e.g., the message content, mentioned agent).
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- When the event occurred.
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    ```
+
+### Phase 2: Capturing Key User Actions
+
+The next step is to instrument the application to log specific events as they happen. This will provide a rich dataset for both debugging and personalization.
+
+**Instructions for Replit:**
+
+  * **Log User Actions:** Implement a new function, `logUserEvent(userId, eventType, data)`, that will be called at strategic points in the application's code. Here are the key events to capture:
+
+      * **User Login/Logout:**
+
+          * `event_type`: `user_login` or `user_logout`
+          * `data`: `{"device": "browser", "platform": "web"}`
+          * **Purpose:** This establishes the start and end of a user session, helping to analyze engagement patterns.
+
+      * **Message Sent:**
+
+          * `event_type`: `message_sent`
+          * `data`: `{"message_length": 55, "conversation_id": "conv123", "mentioned_agents": ["einstein"]}`
+          * **Purpose:** This is crucial for tracking user activity and understanding how they interact with the new multi-agent system. You can see who they mention, how often, and the length of their queries.
+
+      * **Agent Responded:**
+
+          * `event_type`: `agent_response`
+          * `data`: `{"agent_id": "agent-einstein", "response_length": 120, "response_time_ms": 1500}`
+          * **Purpose:** This allows you to measure the performance of each agent and identify which ones are most effective.
+
+      * **Agent Selection (Coordinator Action):**
+
+          * `event_type`: `agent_selected`
+          * `data`: `{"user_query": "What about relativity?", "mentioned_agents": ["einstein", "curie"], "selected_agent": "einstein"}`
+          * **Purpose:** This is the most important event for analyzing your intelligent routing system. It shows the Coordinator's decision-making process and helps you refine its prompt.
+
+      * **Error Occurred:**
+
+          * `event_type`: `error`
+          * `data`: `{"error_type": "api_call_failed", "details": "LLM API returned a 500 error"}`
+          * **Purpose:** As requested, this is essential for debugging. By tracing the sequence of events before the error, you can pinpoint the exact user actions that led to the issue.
+
+### Phase 3: Benefits and Applications
+
+An events module is not just for debugging. This new data stream will enable a more intelligent, responsive, and personalized SnappyLearn.
+
+**Debugging and Analytics:**
+
+  * **Trace Bugs:** By querying the `events` table, you can reconstruct a user's session step-by-step. For example, if a user reports a bug, you can see the exact sequence of messages, agent selections, and errors that occurred right before it.
+  * **Analyze Usage:** Identify the most popular agents, the most common queries, and the topics users are most interested in. This data can inform future development and content creation.
+
+**Personalization:**
+
+  * **Recommendation Engine:** Over time, the events data can be used to build a basic recommendation system. If a user frequently interacts with `agent-einstein`, the platform can proactively suggest related content or even new agents.
+  * **Dynamic User Experience:** The platform can dynamically adapt. For example, if the events log shows a user often asks for definitions, the default Snappy Agent can be subtly prompted to provide more concise, factual answers.

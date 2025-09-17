@@ -839,6 +839,20 @@ export const notifications = pgTable("notifications", {
   index("idx_notifications_created").on(table.createdAt),
 ]);
 
+// Events table for tracking user and agent activities
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(), // FK to users.id - the agent or user performing the action
+  eventType: varchar("event_type", { length: 50 }).notNull(), // Flexible event type string
+  eventData: jsonb("event_data"), // Flexible JSON field for event-specific details
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_events_user").on(table.userId),
+  index("idx_events_type").on(table.eventType),
+  index("idx_events_created").on(table.createdAt),
+  index("idx_events_user_type").on(table.userId, table.eventType),
+]);
+
 // Insert schemas for subscription tables
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
   id: true,
@@ -875,6 +889,12 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   sentAt: true,
 });
 
+// Insert schema for events
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types for subscription tables
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
@@ -893,6 +913,9 @@ export type InsertCreditGift = z.infer<typeof insertCreditGiftSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
 
 // Enhanced types for subscription management
 export type UserSubscriptionWithPlan = UserSubscription & {

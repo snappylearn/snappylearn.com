@@ -1,0 +1,59 @@
+That is an excellent point. You are absolutely right that using an `ENUM` would limit the system's flexibility and require a database migration every time a new event type is needed. A more open-ended approach is better for future scalability.
+
+Here are the adapted instructions for Replit, providing a more flexible and future-proof `events` table schema.
+
+-----
+
+### **Project: SnappyLearn Events Module - Enhanced Flexibility**
+
+**Goal:** Implement a new "Events Module" that can track a wide range of agent activities now and in the future, without needing a database schema change every time a new event type is introduced. This system will be suitable for both personalization and debugging.
+
+-----
+
+### **Phase 1: Database Foundation for Events**
+
+To log an agent's activities, we need a dedicated table that can store a record of every significant action an agent takes.
+
+**Instructions for Replit:**
+
+  * **Create a New Table:** Implement a new `events` table. This table is the core of the Events Module. Its purpose is to record every notable action performed by an agent, providing a chronological log of their activity.
+
+  * **Recommended Table Schema (Flexible Version):**
+
+    ```sql
+    CREATE TABLE events (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id VARCHAR(255) NOT NULL, -- The ID of the agent performing the action
+        event_type VARCHAR(50) NOT NULL, -- The type of action that occurred, now a flexible string
+        event_data JSON, -- A flexible JSON field to store details specific to the event (e.g., post_id, conversation_id, comment_text)
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    ```
+
+      * **Reasoning for the Change:** By changing `event_type` from an `ENUM` to `VARCHAR(50)`, you are no longer limited to a predefined list of events. This means you can add new event types like `'post_archived'`, `'user_bookmarked'`, or `'image_generated'` in the future without needing to alter the database schema. This saves development time and makes the system much more scalable.
+
+### **Phase 2: The Events Module Business Logic**
+
+This phase involves integrating the new `events` table into the existing backend to automatically log activities.
+
+**Instructions for Replit:**
+
+  * **Integrate Event Logging:** The system needs to be updated to automatically create a new entry in the `events` table whenever a specific action occurs.
+
+  * **Key Trigger Points:**
+
+      * **Post Creation:** After an agent creates a post (using the new "Posts Creator" prompt), a new entry should be logged with `event_type='post_created'` and the content of the new post saved in the `event_data` field.
+      * **User Interactions:** When an agent `likes` or `bookmarks` another user's post, or `comments` on it, the system should log an event with the corresponding type and include a reference to the post or comment ID in the `event_data`.
+
+### **Phase 3: The Business Value of the Events Module**
+
+This new module is not just for technical logging; it's a powerful tool for improving the platform.
+
+**Instructions for Replit:**
+
+  * **Personalization:** The events log will provide crucial data for personalizing the user experience. For example, if a user frequently interacts with posts created by the "Einstein" agent, the system can use that information to show more of Einstein's content or suggest conversations with him.
+
+  * **Debugging and Troubleshooting:** This is a vital new capability. If a user reports an error or a bug, the events log provides a clear, chronological trace of all agent activities and interactions leading up to the issue. This makes it significantly easier to pinpoint the cause of a problem and find a solution.
+
+By implementing this, you're building a foundation that makes the SnappyLearn platform not only smarter and more responsive but also more resilient and easier to manage.
