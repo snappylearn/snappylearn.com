@@ -221,7 +221,7 @@ export interface IStorage {
   deleteComment(id: number, userId: string): Promise<boolean>;
   
   // Bookmark methods
-  bookmarkPost(userId: string, postId: number, collectionId: number): Promise<any>;
+  bookmarkPost(userId: string, postId: number, collectionId?: number): Promise<any>;
   unbookmarkPost(userId: string, postId: number): Promise<boolean>;
   getBookmarksByUser(userId: string): Promise<any[]>;
   
@@ -300,6 +300,32 @@ export class DatabaseStorage implements IStorage {
           .insert(users)
           .values(userData)
           .returning();
+
+        // Auto-create default threshold preferences for new user
+        try {
+          await this.createUserThresholdPreferences({
+            userId: user.id,
+            // Comment Workflow Thresholds
+            minCommentLengthThreshold: 20,
+            conversationDepthThreshold: 2,
+            coherenceScoreThreshold: 80,
+            // Like Workflow Thresholds  
+            relevanceScoreThreshold: 70,
+            engagementFrequencyCap: 10,
+            authorFamiliarityThreshold: 50,
+            // Share Workflow Thresholds
+            qualityScoreThreshold: 90,
+            followerInterestThreshold: 60,
+            // Post Creator Workflow Thresholds
+            uniquenessThreshold: 75,
+            sentimentScoreThreshold: 20,
+            creativeLengthThreshold: 150
+          });
+        } catch (error) {
+          console.warn(`Failed to create default threshold preferences for user ${user.id}:`, error);
+          // Don't fail user creation if threshold preferences fail
+        }
+
         return user;
       }
     } catch (error) {
@@ -1520,7 +1546,10 @@ export class DatabaseStorage implements IStorage {
 
   // Event methods
   async createEvent(event: InsertEvent): Promise<Event> {
-    const [newEvent] = await db.insert(events).values(event).returning();
+    // Strip undefined values to prevent UNDEFINED_VALUE database errors
+    const cleanedEvent = this.stripUndefined(event);
+    
+    const [newEvent] = await db.insert(events).values(cleanedEvent).returning();
     return newEvent;
   }
 
@@ -1660,18 +1689,35 @@ export class DatabaseStorage implements IStorage {
     return evaluation || undefined;
   }
 
+  // Helper to strip undefined values from objects to prevent DB errors
+  private stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+    const cleaned: Partial<T> = {};
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value !== undefined) {
+        cleaned[key as keyof T] = value;
+      }
+    });
+    return cleaned;
+  }
+
   async createAutonomousWorkflowExecution(execution: InsertAutonomousWorkflowExecution): Promise<AutonomousWorkflowExecution> {
+    // Strip undefined values to prevent UNDEFINED_VALUE database errors
+    const cleanedExecution = this.stripUndefined(execution);
+    
     const [newExecution] = await db
       .insert(autonomousWorkflowExecutions)
-      .values(execution)
+      .values(cleanedExecution)
       .returning();
     return newExecution;
   }
 
   async updateAutonomousWorkflowExecution(id: number, updates: Partial<InsertAutonomousWorkflowExecution>): Promise<AutonomousWorkflowExecution | undefined> {
+    // Strip undefined values to prevent UNDEFINED_VALUE database errors
+    const cleanedUpdates = this.stripUndefined(updates);
+    
     const [execution] = await db
       .update(autonomousWorkflowExecutions)
-      .set(updates)
+      .set(cleanedUpdates)
       .where(eq(autonomousWorkflowExecutions.id, id))
       .returning();
     return execution || undefined;
@@ -1904,20 +1950,55 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Bookmark methods
-  async bookmarkPost(userId: string, postId: number, collectionId: number): Promise<any> {
-    // Validate that the collection belongs to the user
-    const collection = await this.getCollection(collectionId);
-    if (!collection || collection.userId !== userId) {
-      throw new Error('Collection not found or access denied');
+  async bookmarkPost(userId: string, postId: number, collectionId?: number): Promise<any> {
+    // Validate inputs
+    if (!userId || !postId) {
+      throw new Error('Invalid bookmark inputs: userId and postId are required');
     }
 
+    let targetCollectionId = collectionId;
+
+    // If no collectionId provided, find or create a default "Bookmarks" collection
+    if (!targetCollectionId) {
+      // Look for an existing "Bookmarks" collection for this user
+      const userCollections = await this.getCollections(userId);
+      let bookmarksCollection = userCollections.find(c => c.name === 'Bookmarks');
+      
+      if (!bookmarksCollection) {
+        // Create a default "Bookmarks" collection
+        bookmarksCollection = await this.createCollection({
+          name: 'Bookmarks',
+          description: 'My saved posts and content',
+          userId,
+          isPublic: false
+        });
+      }
+      
+      targetCollectionId = bookmarksCollection.id;
+    } else {
+      // Validate that the provided collection belongs to the user
+      const collection = await this.getCollection(targetCollectionId);
+      if (!collection || collection.userId !== userId) {
+        throw new Error('Collection not found or access denied');
+      }
+    }
+
+    // Build insert payload with only defined columns to prevent UNDEFINED_VALUE
+    const insertValues = {
+      userId,
+      postId,
+      ...(targetCollectionId != null ? { collectionId: targetCollectionId } : {})
+    };
+    
+    // Deep sanitization to ensure no undefined values reach the database
+    const cleanValues = this.stripUndefined(insertValues);
+    
+    // Defensive logging (remove after verification)
+    console.log('Bookmark insert values:', JSON.stringify(cleanValues));
+    
     const [newBookmark] = await db
       .insert(bookmarks)
-      .values({
-        userId,
-        postId,
-        collectionId,
-      })
+      .values(cleanValues)
       .returning();
     return newBookmark;
   }

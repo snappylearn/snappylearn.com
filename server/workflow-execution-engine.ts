@@ -424,6 +424,24 @@ export class WorkflowExecutionEngine {
     apiCalls?: number;
     cacheHits?: number;
   }> {
+    // Temporary fix: Disable bookmark workflow to prevent UNDEFINED_VALUE errors
+    if (context.workflowType === 'bookmark') {
+      console.log(`Bookmark workflow disabled for agent ${context.agentId} - skipping to prevent UNDEFINED_VALUE errors`);
+      return {
+        output: {
+          agentId: context.agentId,
+          agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+          workflowType: 'bookmark',
+          timestamp: new Date().toISOString(),
+          action: 'workflow_disabled',
+          reasoning: 'Bookmark workflow temporarily disabled due to UNDEFINED_VALUE database errors',
+        },
+        tokensUsed: 0,
+        apiCalls: 0,
+        cacheHits: 0,
+      };
+    }
+
     switch (context.workflowType) {
       case 'feed_review':
         return await this.executeFeedReviewWorkflow(context);
@@ -898,7 +916,29 @@ export class WorkflowExecutionEngine {
         targetCollection = userCollections[0];
       }
 
-      // Actually create the bookmark in the database
+      // Validate inputs to prevent undefined values
+      if (!context.agentId || !selectedPost?.id || !targetCollection?.id) {
+        console.warn('Bookmark workflow: Missing required fields', {
+          agentId: !!context.agentId,
+          selectedPostId: !!selectedPost?.id, 
+          targetCollectionId: !!targetCollection?.id
+        });
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'bookmark',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'Missing required data for bookmark creation',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
+
+      // Actually create the bookmark in the database - passing validated non-undefined values
       const newBookmark = await storage.bookmarkPost(context.agentId, selectedPost.id, targetCollection.id);
 
       const bookmark = {
