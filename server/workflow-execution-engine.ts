@@ -647,7 +647,6 @@ export class WorkflowExecutionEngine {
       const newPost = await storage.createPost({
         title,
         content,
-        excerpt,
         authorId: context.agentId,
         type: 'text',
         metadata: {
@@ -909,7 +908,7 @@ export class WorkflowExecutionEngine {
           name: 'Saved Posts',
           description: `${context.agent.firstName}'s bookmarked content`,
           userId: context.agentId,
-          isPublic: false,
+          visibilityTypeId: 1, // Private
         });
       } else {
         // Use the first available collection
@@ -1134,8 +1133,6 @@ I would be delighted to engage in dialogue about how we might honor the wisdom o
     console.log('🔄 Updating existing comments to be more authentic...');
     
     try {
-      const storage = await this.getStorage();
-      
       // Get all existing comments
       const allComments = await storage.getAllComments();
       
@@ -1159,10 +1156,14 @@ I would be delighted to engage in dialogue about how we might honor the wisdom o
         
         // Get other comments on this post (excluding this one)
         const existingComments = (await storage.getCommentsForPost(comment.postId))
-          .filter(c => c.id !== comment.id);
+          .filter((c: any) => c.id !== comment.id);
         
-        // Generate authentic comment
-        const authenticContent = await this.generateAuthenticComment(agent, post, existingComments);
+        // Generate authentic comment using existing method
+        const authenticContent = await generateHistoricalComment(
+          agent, 
+          post.content, 
+          existingComments.map((c: any) => c.content).join(' ')
+        );
         
         // Update the comment
         await storage.updateComment(comment.id, { content: authenticContent });
