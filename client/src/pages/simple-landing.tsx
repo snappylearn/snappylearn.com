@@ -16,10 +16,10 @@ export default function SimpleLanding() {
             />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            SnappyLearn
+            The Curiosity Engine
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-            Your intelligent knowledge management platform. Upload documents, create collections, and chat with AI about your content.
+            Learning is a conversation. Chat Your Way to Knowledge.
           </p>
           
           <Card className="max-w-md mx-auto">
