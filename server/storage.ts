@@ -67,6 +67,9 @@ import {
   type InsertTask,
   type TaskRun,
   type InsertTaskRun,
+  type Event,
+  type InsertEvent,
+  events,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, count, sql, and, ilike, inArray, gte, notInArray } from "drizzle-orm";
@@ -161,6 +164,13 @@ export interface IStorage {
 
   // Category methods
   getCategories(): Promise<CategoryWithCount[]>;
+
+  // Event methods
+  createEvent(event: InsertEvent): Promise<Event>;
+  getEvents(userId?: string, eventType?: string, limit?: number): Promise<Event[]>;
+  getUserEvents(userId: string, limit?: number): Promise<Event[]>;
+  getEventsByType(eventType: string, limit?: number): Promise<Event[]>;
+  getRecentEvents(limit?: number): Promise<Event[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1382,6 +1392,62 @@ export class DatabaseStorage implements IStorage {
       .values(taskRun)
       .returning();
     return newTaskRun;
+  }
+
+  // Event methods
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const [newEvent] = await db.insert(events).values(event).returning();
+    return newEvent;
+  }
+
+  async getEvents(userId?: string, eventType?: string, limit?: number): Promise<Event[]> {
+    let query = db.select().from(events);
+    
+    const conditions = [];
+    if (userId) {
+      conditions.push(eq(events.userId, userId));
+    }
+    if (eventType) {
+      conditions.push(eq(events.eventType, eventType));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    query = query.orderBy(desc(events.createdAt));
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return await query;
+  }
+
+  async getUserEvents(userId: string, limit = 100): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(eq(events.userId, userId))
+      .orderBy(desc(events.createdAt))
+      .limit(limit);
+  }
+
+  async getEventsByType(eventType: string, limit = 100): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .where(eq(events.eventType, eventType))
+      .orderBy(desc(events.createdAt))
+      .limit(limit);
+  }
+
+  async getRecentEvents(limit = 100): Promise<Event[]> {
+    return await db
+      .select()
+      .from(events)
+      .orderBy(desc(events.createdAt))
+      .limit(limit);
   }
 }
 
