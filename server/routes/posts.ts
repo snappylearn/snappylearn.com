@@ -22,6 +22,16 @@ import {
 import { jwtAuth, getJwtUserId } from "../routes/auth";
 import { eq, desc, and, sql, inArray } from "drizzle-orm";
 import { generateTopicFromContent, generatePostExcerpt } from "../services/openai";
+import { 
+  logPostCreated, 
+  logLikeCreated, 
+  logLikeDeleted, 
+  logCommentCreated, 
+  logBookmarkCreated, 
+  logShareCreated,
+  logApiCallMade,
+  logPageViewed 
+} from "../events";
 
 export function registerPostRoutes(app: Express) {
   
@@ -265,6 +275,18 @@ export function registerPostRoutes(app: Express) {
           });
       }
 
+      // Log post creation event
+      try {
+        await logPostCreated(
+          userId,
+          post.id,
+          content.length,
+          communityId
+        );
+      } catch (eventError) {
+        console.warn('Failed to log post creation event:', eventError);
+      }
+
       res.json(post);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -302,6 +324,19 @@ export function registerPostRoutes(app: Express) {
             eq(likes.targetType, 'post'),
             eq(likes.targetId, postId)
           ));
+        // Log like deletion event
+        try {
+          await logLikeDeleted(
+            userId,
+            postId,
+            'post',
+            '', // We don't have post author here, would need to fetch
+            undefined // Duration not tracked yet
+          );
+        } catch (eventError) {
+          console.warn('Failed to log like deletion event:', eventError);
+        }
+        
         res.json({ liked: false });
       } else {
         // Like
@@ -312,6 +347,19 @@ export function registerPostRoutes(app: Express) {
             targetType: 'post',
             targetId: postId,
           });
+        // Log like creation event
+        try {
+          await logLikeCreated(
+            userId,
+            postId,
+            'post',
+            '', // We don't have post author here, would need to fetch
+            undefined // First like not tracked yet
+          );
+        } catch (eventError) {
+          console.warn('Failed to log like creation event:', eventError);
+        }
+        
         res.json({ liked: true });
       }
     } catch (error) {
@@ -348,6 +396,19 @@ export function registerPostRoutes(app: Express) {
             eq(bookmarks.userId, userId),
             eq(bookmarks.postId, postId)
           ));
+        // Log bookmark deletion event
+        try {
+          await logBookmarkCreated(
+            userId,
+            postId,
+            '', // Post author not available here
+            'Personal Collection', // Default collection name
+            'bookmark_removed'
+          );
+        } catch (eventError) {
+          console.warn('Failed to log bookmark deletion event:', eventError);
+        }
+        
         res.json({ bookmarked: false });
       } else {
         // Get user's Personal Collection (default collection)
@@ -372,6 +433,19 @@ export function registerPostRoutes(app: Express) {
             postId,
             collectionId: personalCollection.id,
           });
+        // Log bookmark creation event
+        try {
+          await logBookmarkCreated(
+            userId,
+            postId,
+            '', // Post author not available here
+            'Personal Collection',
+            'bookmark_added'
+          );
+        } catch (eventError) {
+          console.warn('Failed to log bookmark creation event:', eventError);
+        }
+        
         res.json({ bookmarked: true });
       }
     } catch (error) {
@@ -734,6 +808,17 @@ export function registerPostRoutes(app: Express) {
         })
         .returning();
 
+      // Log comment creation event
+      try {
+        await logCommentCreated(
+          userId,
+          postId,
+          content.length
+        );
+      } catch (eventError) {
+        console.warn('Failed to log comment creation event:', eventError);
+      }
+      
       res.json(comment);
     } catch (error) {
       console.error("Error creating comment:", error);
