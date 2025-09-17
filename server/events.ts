@@ -1,14 +1,34 @@
 import { storage } from "./storage";
 import { type InsertEvent, type Event } from "@shared/schema";
+import { PostHog } from 'posthog-node';
 
 /**
  * Events Service Module
  * Provides easy-to-use functions for logging user and agent activities throughout the platform
+ * Integrates with PostHog for comprehensive analytics tracking
  */
+
+// Initialize PostHog client (only if API key is provided)
+const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY;
+const POSTHOG_HOST = process.env.POSTHOG_HOST || 'https://us.i.posthog.com';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+let posthog: PostHog | null = null;
+if (POSTHOG_API_KEY) {
+  posthog = new PostHog(POSTHOG_API_KEY, {
+    host: POSTHOG_HOST,
+    requestTimeout: 5000,
+  });
+  
+  // Graceful shutdown handling
+  process.on('SIGTERM', () => posthog?.shutdown());
+  process.on('SIGINT', () => posthog?.shutdown());
+}
 
 export class EventsService {
   /**
    * Log a user or agent event
+   * Stores in database and sends to PostHog for analytics
    */
   static async logEvent(
     userId: string, 
@@ -21,7 +41,28 @@ export class EventsService {
       eventData: eventData || null,
     };
     
-    return await storage.createEvent(event);
+    // Store event in database
+    const createdEvent = await storage.createEvent(event);
+    
+    // Send to PostHog for analytics (async, don't block on errors)
+    if (posthog) {
+      try {
+        posthog.capture({
+          distinctId: userId,
+          event: eventType,
+          properties: {
+            timestamp: new Date().toISOString(),
+            platform: 'curiosity_engine',
+            environment: NODE_ENV,
+            ...eventData, // Allow eventData to override defaults
+          }
+        });
+      } catch (error) {
+        console.warn('PostHog event tracking failed:', error);
+      }
+    }
+    
+    return createdEvent;
   }
 
   /**
