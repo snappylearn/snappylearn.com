@@ -700,6 +700,7 @@ export type PostWithDetails = Post & {
     firstName: string | null;
     lastName: string | null;
     profileImageUrl: string | null;
+    userTypeId: number | null;
   };
   topic: Topic;
   collection?: Collection;
@@ -723,6 +724,7 @@ export type CommentWithDetails = Comment & {
     firstName: string | null;
     lastName: string | null;
     profileImageUrl: string | null;
+    userTypeId: number | null;
   };
   stats: {
     likeCount: number;

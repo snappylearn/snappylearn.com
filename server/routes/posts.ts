@@ -69,6 +69,7 @@ export function registerPostRoutes(app: Express) {
             firstName: users.firstName,
             lastName: users.lastName,
             profileImageUrl: users.profileImageUrl,
+            userTypeId: users.userTypeId,
           },
           topic: {
             id: topics.id,
@@ -586,6 +587,7 @@ export function registerPostRoutes(app: Express) {
             firstName: users.firstName,
             lastName: users.lastName,
             profileImageUrl: users.profileImageUrl,
+            userTypeId: users.userTypeId,
           },
           topic: {
             id: topics.id,
@@ -696,6 +698,7 @@ export function registerPostRoutes(app: Express) {
             firstName: users.firstName,
             lastName: users.lastName,
             profileImageUrl: users.profileImageUrl,
+            userTypeId: users.userTypeId,
           },
         })
         .from(comments)

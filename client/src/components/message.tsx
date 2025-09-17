@@ -4,6 +4,7 @@ import type { Message } from "@shared/schema";
 import { ArtifactCard } from "./artifact-manager";
 import { useAgents } from "@/hooks/use-agents";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AIBadge } from "@/components/ui/ai-badge";
 
 interface MessageComponentProps {
   message: Message;
@@ -74,6 +75,9 @@ export function MessageComponent({ message, onViewArtifact }: MessageComponentPr
             <span className="text-sm font-semibold text-gray-900">
               {agentInfo.name}
             </span>
+            {(isSnappyAgent || sender?.userTypeId === 2) && (
+              <AIBadge size="sm" data-testid="ai-badge-message" />
+            )}
             {agentInfo.username && (
               <span className="text-xs text-gray-500">@{agentInfo.username}</span>
             )}

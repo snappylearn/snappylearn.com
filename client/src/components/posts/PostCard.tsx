@@ -25,6 +25,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import type { PostWithDetails } from "@shared/schema";
 import { BookmarkPopover } from "@/components/BookmarkPopover";
+import { AIBadge } from "@/components/ui/ai-badge";
 
 interface PostCardProps {
   post: PostWithDetails;
@@ -117,6 +118,9 @@ export function PostCard({ post }: PostCardProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-sm">{displayName}</h3>
+                {post.author?.userTypeId === 2 && (
+                  <AIBadge size="sm" data-testid="ai-badge-post" />
+                )}
                 {post.userActions?.isFollowing && (
                   <Badge variant="secondary" className="text-xs px-2 py-0">
                     Following
