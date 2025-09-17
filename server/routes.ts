@@ -29,6 +29,7 @@ import { registerTaskRoutes } from "./routes/tasks";
 import { seedDatabase } from "./seed";
 import { registerSubscriptionRoutes } from "./routes/subscription";
 import multer from "multer";
+import { EventsService } from "./events";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -459,6 +460,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversation.id,
       });
 
+      // Log conversation started and message sent events
+      try {
+        await EventsService.logConversationStarted(userId, conversation.id);
+        await EventsService.logMessageSent(userId, conversation.id, fullMessage.length);
+      } catch (eventError) {
+        console.error("Failed to log conversation/message events:", eventError);
+        // Don't fail the request if event logging fails
+      }
+
       // Return conversation immediately - no AI response yet
       res.status(201).json({
         conversation,
@@ -485,9 +495,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Add selected agent as conversation participant
                 await storage.addConversationParticipant(conversation.id, selectedAgent.id, 'agent');
                 
+                // Log agent selection and mentions
+                try {
+                  await EventsService.logAgentSelected(userId, fullMessage, mentionedUsernames, selectedAgent.username || selectedAgent.id);
+                  await EventsService.logAgentMentioned(selectedAgent.id, conversation.id, userId);
+                } catch (eventError) {
+                  console.error("Failed to log agent selection events:", eventError);
+                }
+                
                 // Generate response using selected agent's persona
+                const startTime = Date.now();
                 const content = await generateAgentResponse(fullMessage, selectedAgent);
-                aiResponse = { content, sources: null };
+                const responseTime = Date.now() - startTime;
+                aiResponse = { content, sources: null, responseTime };
               }
             }
           }
@@ -502,6 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             // Generate AI response based on conversation type
+            const startTime = Date.now();
             if (type === "collection" && parsedCollectionId) {
               const documents = await storage.getDocuments(parsedCollectionId, userId);
               const collection = await storage.getCollection(parsedCollectionId, userId);
@@ -516,6 +537,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const content = await generateIndependentResponse(fullMessage);
                 aiResponse = { content, sources: null };
               }
+            }
+            const responseTime = Date.now() - startTime;
+            if (aiResponse) {
+              aiResponse = { ...aiResponse, responseTime };
             }
           }
 
@@ -572,6 +597,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sources: aiResponse.sources ? JSON.stringify(aiResponse.sources) : null,
             artifactData: artifactData ? JSON.stringify(artifactData) : null,
           });
+
+          // Log agent response event
+          if (selectedAgent) {
+            try {
+              const responseTimeMs = aiResponse.responseTime || 0;
+              await EventsService.logAgentResponse(
+                selectedAgent.id, 
+                conversation.id, 
+                aiResponse.content.length, 
+                responseTimeMs
+              );
+            } catch (eventError) {
+              console.error("Failed to log agent response event:", eventError);
+            }
+          }
 
         } catch (error) {
           console.error("Error generating AI response:", error);

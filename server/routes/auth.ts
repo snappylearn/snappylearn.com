@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { storage } from "../storage";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import { EventsService } from "../events";
 
 const signUpSchema = z.object({
   email: z.string().email(),
@@ -120,6 +121,18 @@ export function setupAuthRoutes(app: Express) {
 
       console.log("User signed in successfully:", user.email);
 
+      // Log successful login event
+      try {
+        await EventsService.logUserLogin(user.id, {
+          email: user.email,
+          userAgent: req.headers['user-agent'] || 'unknown',
+          ip: req.ip || req.connection.remoteAddress || 'unknown'
+        });
+      } catch (eventError) {
+        console.error("Failed to log login event:", eventError);
+        // Don't fail the login if event logging fails
+      }
+
       res.json({ 
         success: true,
         token,
@@ -197,9 +210,30 @@ export function setupAuthRoutes(app: Express) {
 
   // Sign out route (for completeness)
   app.post("/api/auth/signout", async (req: Request, res: Response) => {
-    // With JWT, we don't need to do anything server-side for logout
-    // The client will simply remove the token
-    res.json({ success: true, message: "Signed out successfully" });
+    try {
+      // Try to get user ID from token if present for logging
+      const authHeader = req.headers.authorization;
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.split(' ')[1];
+          const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string; role: string };
+          
+          // Log logout event
+          await EventsService.logUserLogout(decoded.userId);
+        } catch (error) {
+          // Token might be invalid/expired, but still allow logout
+          console.log("Could not log logout event - invalid token");
+        }
+      }
+      
+      // With JWT, we don't need to do anything server-side for logout
+      // The client will simply remove the token
+      res.json({ success: true, message: "Signed out successfully" });
+    } catch (error) {
+      console.error("Signout error:", error);
+      // Still return success since logout should work even if logging fails
+      res.json({ success: true, message: "Signed out successfully" });
+    }
   });
 }
 
