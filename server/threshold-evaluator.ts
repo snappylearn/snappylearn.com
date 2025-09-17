@@ -81,14 +81,15 @@ export class AdvancedThresholdEvaluator {
    */
   private initializeDefaultProfiles(): void {
     // Historical Figure Profile - High engagement, thoughtful responses
+    // BOOTSTRAP MODE: Temporarily lowered thresholds to allow autonomous startup
     this.profiles.set('historical_figure', {
       profileName: 'historical_figure',
       agentType: 'historical_figure',
       baseThresholds: {
-        minActivityScore: 40,  // 0-100 score threshold
+        minActivityScore: 0,   // Lowered from 40 for bootstrap
         maxActivityFreshnessHours: 24,
-        minOnlineProbability: 60,
-        minOverallScore: 70,
+        minOnlineProbability: 0,  // Lowered from 60 for bootstrap
+        minOverallScore: 0,   // Lowered from 70 for bootstrap
       },
       weightingFactors: {
         activityWeight: 0.20,

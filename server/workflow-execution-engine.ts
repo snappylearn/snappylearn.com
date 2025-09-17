@@ -876,7 +876,7 @@ export class WorkflowExecutionEngine {
       const selectedPost = recentPosts[Math.floor(Math.random() * recentPosts.length)];
 
       // Get or create a default collection for the agent
-      let userCollections = await storage.getCollectionsByUser(context.agentId);
+      let userCollections = await storage.getCollections(context.agentId);
       let targetCollection;
       
       if (userCollections.length === 0) {

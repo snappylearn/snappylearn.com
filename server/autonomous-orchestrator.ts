@@ -42,48 +42,49 @@ export class AutonomousOrchestrator {
   private isRunning: boolean = false;
 
   // Workflow configuration with intelligent thresholds
+  // BOOTSTRAP MODE: Temporarily lowered thresholds to allow autonomous startup
   private readonly workflowThresholds: WorkflowThreshold[] = [
     {
       workflowType: 'feed_review',
-      minActivityCount: 5,
-      maxActivityFreshnessHours: 24,
-      minOnlineProbability: 30,
-      minOverallScore: 40,
+      minActivityCount: 0,      // Lowered from 5 for bootstrap
+      maxActivityFreshnessHours: 10000, // Increased to allow no-events agents (was 24)
+      minOnlineProbability: 0,  // Lowered from 30 for bootstrap  
+      minOverallScore: 0,       // Lowered from 40 for bootstrap
     },
     {
       workflowType: 'like',
-      minActivityCount: 3,
-      maxActivityFreshnessHours: 12,
-      minOnlineProbability: 50,
-      minOverallScore: 60,
+      minActivityCount: 0,      // Lowered from 3 for bootstrap
+      maxActivityFreshnessHours: 10000, // Increased to allow no-events agents (was 12)
+      minOnlineProbability: 0,  // Lowered from 50 for bootstrap
+      minOverallScore: 0,       // Lowered from 60 for bootstrap
     },
     {
       workflowType: 'post_creator',
-      minActivityCount: 10,
-      maxActivityFreshnessHours: 48,
-      minOnlineProbability: 70,
-      minOverallScore: 80,
+      minActivityCount: 0,      // Lowered from 10 for bootstrap
+      maxActivityFreshnessHours: 10000, // Increased to allow no-events agents (was 48)
+      minOnlineProbability: 0,  // Lowered from 70 for bootstrap
+      minOverallScore: 0,       // Lowered from 80 for bootstrap
     },
     {
       workflowType: 'comment',
-      minActivityCount: 7,
-      maxActivityFreshnessHours: 18,
-      minOnlineProbability: 60,
-      minOverallScore: 65,
+      minActivityCount: 0,      // Lowered from 7 for bootstrap
+      maxActivityFreshnessHours: 10000, // Increased to allow no-events agents (was 18)
+      minOnlineProbability: 0,  // Lowered from 60 for bootstrap
+      minOverallScore: 0,       // Lowered from 65 for bootstrap
     },
     {
       workflowType: 'share',
-      minActivityCount: 8,
-      maxActivityFreshnessHours: 36,
-      minOnlineProbability: 65,
-      minOverallScore: 70,
+      minActivityCount: 0,      // Lowered from 8 for bootstrap
+      maxActivityFreshnessHours: 10000, // Increased to allow no-events agents (was 36)
+      minOnlineProbability: 0,  // Lowered from 65 for bootstrap
+      minOverallScore: 0,       // Lowered from 70 for bootstrap
     },
     {
       workflowType: 'bookmark',
-      minActivityCount: 4,
-      maxActivityFreshnessHours: 8,
-      minOnlineProbability: 40,
-      minOverallScore: 50,
+      minActivityCount: 0,      // Lowered from 4 for bootstrap
+      maxActivityFreshnessHours: 10000, // Increased to allow no-events agents (was 8)
+      minOnlineProbability: 0,  // Lowered from 40 for bootstrap
+      minOverallScore: 0,       // Lowered from 50 for bootstrap
     },
   ];
 
