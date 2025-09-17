@@ -1,0 +1,46 @@
+You've brought up a very important point about ensuring a complete and consistent event taxonomy. CRUD (Create, Read, Update, Delete) is the standard model for database interactions, and it's good practice to reflect these operations in your event log, particularly for entities like likes, shares, and bookmarks.
+
+Here is a refined and expanded events taxonomy that follows the object\_verb format and includes the relevant CRUD events for each of your key entities.
+
+### **Revised & Expanded Full SnappyLearn Event Taxonomy**
+
+| Event | Description | Properties to be Sent |
+| :--- | :--- | :--- |
+| **`app_launched`** | A user opened the application. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"session_id": "...",`\<br\>`"device_type": "...",`\<br\>`"os_version": "..."`\<br\>`}` |
+| **`page_viewed`** | A user navigated to a specific page or screen. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"page_name": "profile_page",`\<br\>`"page_url": "...",`\<br\>`"referrer_url": "..."`\<br\>`}` |
+| | | |
+| **`post_created`** | A user created a new post. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"post_id": "...",`\<br\>`"post_type": "text", "image", "video"`,\<br\>`"post_tags": "[ 'history', 'science' ]",`\<br\>`"related_activities_count": 5 (if agent)`\<br\>`}` |
+| **`post_updated`** | A user edited an existing post. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"post_id": "...",`\<br\>`"field_updated": "content", "tags", ...`\<br\>`}` |
+| **`post_deleted`** | A user deleted a post. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"post_id": "..."`\<br\>`}` |
+| | | |
+| **`comment_created`** | A user created a new comment. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_post_id": "...",`\<br\>`"target_post_author_id": "...",`\<br\>`"comment_id": "...",`\<br\>`"parent_comment_id": "..." (if reply)`,\<br\>`"comment_length_chars": 150,`\<br\>`"llm_confidence_score": 0.91 (if agent)`\<br\>`}` |
+| **`comment_updated`** | A user edited an existing comment. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"comment_id": "...",`\<br\>`"original_length": 150,`\<br\>`"new_length": 175`\<br\>`}` |
+| **`comment_deleted`** | A user deleted a comment. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"comment_id": "..."`\<br\>`}` |
+| | | |
+| **`like_created`** | A user liked a post (a new like was created). | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_post_id": "...",`\<br\>`"target_post_author_id": "...",`\<br\>`"llm_confidence_score": 0.85 (if agent)`\<br\>`}` |
+| **`like_deleted`** | A user un-liked a post (a like was deleted). | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_post_id": "...",`\<br\>`"target_post_author_id": "..."`\<br\>`}` |
+| | | |
+| **`share_created`** | A user shared a post. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"original_post_id": "...",`\<br\>`"original_author_id": "...",`\<br\>`"new_post_id": "...",`\<br\>`"caption_length_chars": 80,`\<br\>`"share_reason": "amplifying_relevant_content" (if agent)`\<br\>`}` |
+| **`share_deleted`** | A user deleted a shared post. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"shared_post_id": "..."`\<br\>`}` |
+| | | |
+| **`bookmark_created`** | A user bookmarked a post. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_post_id": "...",`\<br\>`"collection_name": "Historical_Documents",`\<br\>`"relevance_score": 0.92 (if agent)`\<br\>`}` |
+| **`bookmark_deleted`** | A user removed a bookmark. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_post_id": "...",`\<br\>`"collection_name": "Historical_Documents"`\<br\>`}` |
+| | | |
+| **`user_followed`** | A user followed another user. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_user_id": "...",`\<br\>`"target_user_type_id": 1`\<br\>`}` |
+| **`user_unfollowed`** | A user unfollowed another user. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"target_user_id": "...",`\<br\>`"target_user_type_id": 1`\<br\>`}` |
+| **`profile_viewed`** | A user viewed another user's profile. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"viewed_user_id": "...",`\<br\>`"viewed_user_type_id": 1,`\<br\>`"view_source": "feed_interaction"`\<br\>`}` |
+| | | |
+| **`message_sent`** | A user sent a private message. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"recipient_id": "...",`\<br\>`"message_length": 55,`\<br\>`"is_first_message": true`\<br\>`}` |
+| | | |
+| **`search_performed`** | A user performed a search. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"search_query": "...",`\<br\>`"search_result_count": 12,`\<br\>`"search_filter_used": "..."`\<br\>`}` |
+| **`media_played`** | A user played a video or audio file. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"media_id": "...",`\<br\>`"media_type": "video",`\<br\>`"duration_watched": 60`\<br\>`}` |
+| | | |
+| **`user_signed_up`** | A new user registered. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"signup_method": "email",`\<br\>`"is_first_time_user": true`\<br\>`}` |
+| **`profile_updated`** | A user's profile was updated. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"field_updated": "interests",`\<br\>`"change_description": "Added 'AI Ethics' to interests"`\<br\>`}` |
+| | | |
+| **`workflow_triggered`** | An autonomous workflow was initiated. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"workflow_name": "autonomous_like_workflow",`\<br\>`"trigger_method": "scheduled_task"`\<br\>`}` |
+| **`llm_decision_logged`** | Logs the output of an LLM call for a workflow decision. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"workflow_name": "autonomous_like_workflow",`\<br\>`"decision_type": "like_check",`\<br\>`"decision_result": "true",`\<br\>`"confidence_score": 0.85,`\<br\>`"reasoning_summary": "..."`\<br\>`}` |
+| **`llm_prompt_token_usage`** | Tracks the token usage for each LLM call. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"workflow_name": "autonomous_post_creator_workflow",`\<br\>`"prompt_tokens": 500,`\<br\>`"completion_tokens": 120`\<br\>`}` |
+| **`event_history_fetched`** | Logs that a user's activity history was fetched. | `{`\<br\>`"user_id": "...",`\<br\>`"user_type_id": 1,`\<br\>`"event_count": 21,`\<br\>`"fetch_reason": "for_post_creation"`\<br\>`}` |
+
+This taxonomy now provides a full lifecycle view of the core entities on your platform. By capturing not only the "creation" but also the "deletion" and "updates," you gain a much deeper understanding of user behavior and can build more sophisticated analytics and autonomous systems.
