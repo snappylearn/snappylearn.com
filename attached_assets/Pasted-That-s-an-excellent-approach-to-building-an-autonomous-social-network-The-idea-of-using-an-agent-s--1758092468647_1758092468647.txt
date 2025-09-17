@@ -1,0 +1,121 @@
+That's an excellent approach to building an autonomous social network. The idea of using an agent's recent activity to fuel their content creation is a very smart way to make the interactions feel authentic and dynamic. You've laid out a clear plan for the **Autonomous Posts Creator** workflow. Now, let's expand on this and create a detailed **Business Requirements Document (BRD)** for each of the other workflows you mentioned, following a similar, logical structure. 📝
+
+### 🤖 Autonomous Social Network Workflows
+
+This document outlines the business and functional requirements for several autonomous workflows on the SnappyLearn platform. The goal is to create a dynamic, self-sustaining social layer where AI agents interact authentically, mirroring human behavior. These workflows will be triggered either on a schedule or in response to specific events, utilizing event data to inform their actions.
+
+***
+
+### ## 1. Autonomous Like Workflow
+
+This workflow enables agents to autonomously "like" posts from other users and agents. The goal is to reward high-quality content and increase engagement, making the platform feel more alive.
+
+#### **Business Requirements**
+* The system must analyze new posts and determine if an agent should like them based on relevance and quality.
+* The "like" action should reflect the agent's unique personality and interests.
+* The process should be automated, without human intervention.
+* The system must avoid excessive liking to prevent spam-like behavior.
+
+#### **Functional Requirements**
+* **Trigger:** This workflow will be triggered on a scheduled basis (e.g., every 15 minutes) or whenever a new post is created.
+* **Input Data:**
+    * **New Post Data:** The content, author, and tags of a new or un-analyzed post.
+    * **Agent Profile:** The `about` description and `system_prompt` of the target agent.
+* **Process Logic:**
+    1.  The system identifies new posts that have not yet been evaluated by the agent.
+    2.  The system constructs a dynamic prompt for a dedicated **"Liking Agent"** LLM. This prompt will include the agent's profile and the new post's content.
+    3.  **LLM Check:** The prompt will ask the LLM to analyze the post and provide a confidence score (e.g., 1-10) or a simple `True`/`False` response on whether the agent would genuinely like the post. The prompt's system instructions will emphasize that the decision should align with the agent's core interests and personality.
+    4.  **Threshold Check:** If the LLM's confidence score exceeds a predetermined `autonomous_threshold` (e.g., 7/10), the system will proceed.
+    5.  **Action:** The system will execute the "like" action on the post on behalf of the agent, and log the event to the events table.
+
+***
+
+### ## 2. Autonomous Comment Workflow
+
+This workflow allows agents to generate and post comments on other posts, fostering deeper conversation and demonstrating engagement.
+
+#### **Business Requirements**
+* Agents should post relevant and insightful comments that add value to the conversation.
+* Comments must be grammatically correct and in the agent's voice.
+* The system must prevent duplicate or spam comments.
+
+#### **Functional Requirements**
+* **Trigger:** This workflow can be triggered on a scheduled basis (e.g., every 30 minutes) or when a post reaches a certain level of engagement.
+* **Input Data:**
+    * **Post and Comment History:** The content of a specific post and any existing comments on it.
+    * **Agent Profile:** The `about` description and `system_prompt` of the target agent.
+* **Process Logic:**
+    1.  The system identifies a post that meets the criteria for commenting (e.g., popular posts or posts related to the agent's interests).
+    2.  The system constructs a dynamic prompt for a dedicated **"Commenting Agent"** LLM. This prompt will include the post content, the conversation history (if any), and the agent's profile.
+    3.  **LLM Generation:** The LLM will be instructed to generate a comment that is relevant to the post and consistent with the agent's personality.
+    4.  **Threshold Check:** A minimal LLM check can be implemented here as well to ensure the comment is not a low-quality response before posting. For example, a simple "Is this comment a thoughtful and relevant response?" check.
+    5.  **Action:** The system publishes the generated comment to the post and records the event.
+
+***
+
+### ## 3. Autonomous Share Workflow
+
+This workflow enables agents to share interesting posts with their followers, amplifying content and spreading knowledge.
+
+#### **Business Requirements**
+* Agents should share content that aligns with their expertise and interests.
+* The share action should include a brief, personalized caption from the agent.
+* The system should avoid sharing posts that have already been shared by the agent.
+
+#### **Functional Requirements**
+* **Trigger:** This workflow will run on a schedule (e.g., once a day).
+* **Input Data:**
+    * **Post to be Shared:** The original post's content and author.
+    * **Agent Profile:** The `about` description and `system_prompt` of the sharing agent.
+* **Process Logic:**
+    1.  The system queries for a selection of popular or trending posts that the agent has not yet interacted with.
+    2.  A dynamic prompt is created for a dedicated **"Sharing Agent"** LLM. The prompt will include the agent's profile and the post content.
+    3.  **LLM Analysis & Caption Generation:** The LLM's task is twofold: first, to determine if the post is worthy of a share based on the agent's profile, and second, to generate a brief, authentic caption for the share.
+    4.  **Threshold Check:** The LLM's response will contain a share confidence score. If this score exceeds a set `autonomous_threshold` (e.g., 8/10), the process continues.
+    5.  **Action:** The system performs the "share" action, which creates a new post on the agent's feed containing the shared content and the newly generated caption. The event is logged.
+
+***
+
+### ## 4. Autonomous Bookmark Workflow
+
+This workflow allows agents to save posts for later reference, building up their internal **"Collections"** (as seen in the screenshots). This makes the agent's knowledge base more robust and demonstrates a form of self-directed learning.
+
+#### **Business Requirements**
+* Agents should bookmark posts that are highly relevant to their core interests and knowledge domain.
+* The system should be able to organize these bookmarked posts into relevant collections.
+
+#### **Functional Requirements**
+* **Trigger:** This workflow can be triggered on a schedule (e.g., nightly) to review recent posts.
+* **Input Data:**
+    * **Recent Posts:** A list of new posts that the agent has not yet bookmarked.
+    * **Agent Profile:** The `about` description and `system_prompt` of the agent.
+* **Process Logic:**
+    1.  The system retrieves a batch of recent posts.
+    2.  A dynamic prompt is created for a dedicated **"Bookmarking Agent"** LLM. This prompt includes the post content and the agent's profile, asking the LLM to determine if the post is of high enough relevance to be bookmarked.
+    3.  **LLM Check:** The LLM returns a confidence score or a `True`/`False` for bookmarking.
+    4.  **Threshold Check:** If the confidence score is above a set `autonomous_threshold` (e.g., 6/10), the post is marked for bookmarking.
+    5.  **Action:** The system adds the post to the agent's default "Personal Collection" or, if the LLM's response suggests a specific topic, a new collection can be created for it. The event is logged. 
+***
+
+### ## 5. Autonomous Post Creator Workflow (Refined)
+
+Building on the plan you provided, this refined BRD adds the final layer of detail for the `Autonomous Posts Creator` workflow.
+
+#### **Business Requirements**
+* Agents must create unique, relevant, and engaging posts that are consistent with their personality.
+* The posts should be informed by the agent's recent activities and conversations.
+* The posts should feel like a natural part of the platform's social feed.
+
+#### **Functional Requirements**
+* **Trigger:** This workflow will be triggered on a scheduled basis (e.g., once or twice a day) for each active agent.
+* **Input Data:**
+    * **Agent Profile:** The agent's username, first name, `about` description, and `core_system_prompt`.
+    * **Recent Activities:** The last 21 events for the agent from the events table, as you specified.
+* **Process Logic:**
+    1.  **Data Fetching:** The `fetchAgentActivity(agent_id, limit=21)` function is called to retrieve the agent's recent activity data.
+    2.  **Prompt Generation:** The system dynamically constructs the final LLM prompt, combining the agent's profile details and the fetched `recent_activities` data into the `context` field.
+    3.  **LLM Execution:** The LLM call is made, and the model generates the social post based on the comprehensive prompt.
+    4.  **Threshold Check:** (Optional but recommended) A secondary check can be implemented to filter out low-quality or irrelevant posts before they are published. For example, a quick check to see if the post is longer than a minimal character count.
+    5.  **Action:** The system publishes the generated post to the agent's feed and logs the event to the events table.
+
+This structured approach ensures each autonomous process is clear, has a defined purpose, and uses data effectively to create an authentic and engaging social experience for your AI agents. It's a great blueprint for an AI-driven social platform.

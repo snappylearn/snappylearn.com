@@ -1,0 +1,512 @@
+# Autonomous Workflow Orchestration System - Enhanced Architecture
+
+## Overview
+A robust orchestration layer that manages autonomous workflow execution across all active agents with intelligent scheduling, threshold evaluation, and execution tracking.
+
+## Database Schema
+
+### 1. autonomous_jobs
+**Purpose**: Master job control and scheduling
+```sql
+CREATE TABLE autonomous_jobs (
+    id SERIAL PRIMARY KEY,
+    job_type ENUM('scheduled', 'manual', 'triggered') DEFAULT 'scheduled',
+    status ENUM('pending', 'running', 'completed', 'failed') DEFAULT 'pending',
+    priority INT DEFAULT 1, -- Higher number = higher priority
+    scheduled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    total_agents_processed INT DEFAULT 0,
+    total_workflows_evaluated INT DEFAULT 0,
+    total_workflows_executed INT DEFAULT 0,
+    execution_time_ms INT DEFAULT 0,
+    error_message TEXT NULL,
+    metadata JSON NULL, -- Store job-specific config
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### 2. autonomous_agent_evaluations
+**Purpose**: Track threshold evaluations for each agent per job
+```sql
+CREATE TABLE autonomous_agent_evaluations (
+    id SERIAL PRIMARY KEY,
+    job_id INT NOT NULL,
+    agent_id INT NOT NULL,
+    evaluation_status ENUM('pending', 'completed', 'skipped', 'error') DEFAULT 'pending',
+    last_activity_count INT DEFAULT 0,
+    activity_freshness_hours DECIMAL(5,2) DEFAULT 0,
+    agent_online_probability DECIMAL(3,2) DEFAULT 0, -- 0.00 to 1.00
+    overall_readiness_score DECIMAL(3,2) DEFAULT 0, -- 0.00 to 1.00
+    workflows_eligible JSON NULL, -- Array of workflow names that passed threshold
+    evaluation_time_ms INT DEFAULT 0,
+    evaluated_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (job_id) REFERENCES autonomous_jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_job_agent (job_id, agent_id)
+);
+```
+
+### 3. autonomous_workflow_executions
+**Purpose**: Track individual workflow executions
+```sql
+CREATE TABLE autonomous_workflow_executions (
+    id SERIAL PRIMARY KEY,
+    job_id INT NOT NULL,
+    agent_evaluation_id INT NOT NULL,
+    agent_id INT NOT NULL,
+    workflow_type ENUM(
+        'feed_review', 'like', 'post_creator', 
+        'comment', 'share', 'bookmark'
+    ) NOT NULL,
+    execution_status ENUM('queued', 'running', 'completed', 'failed', 'skipped') DEFAULT 'queued',
+    threshold_score DECIMAL(3,2) NOT NULL, -- The score that triggered execution
+    input_data JSON NULL, -- Context data for the workflow
+    output_data JSON NULL, -- Results from the workflow
+    llm_tokens_used INT DEFAULT 0,
+    execution_time_ms INT DEFAULT 0,
+    error_message TEXT NULL,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (job_id) REFERENCES autonomous_jobs(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_evaluation_id) REFERENCES autonomous_agent_evaluations(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES agents(id) ON DELETE CASCADE,
+    
+    INDEX idx_job_workflow (job_id, workflow_type),
+    INDEX idx_agent_workflow_time (agent_id, workflow_type, created_at)
+);
+```
+
+### 4. autonomous_execution_locks
+**Purpose**: Prevent concurrent execution conflicts
+```sql
+CREATE TABLE autonomous_execution_locks (
+    id SERIAL PRIMARY KEY,
+    lock_key VARCHAR(255) NOT NULL UNIQUE,
+    locked_by VARCHAR(255) NOT NULL, -- Process/server identifier
+    locked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    metadata JSON NULL,
+    
+    INDEX idx_expires (expires_at)
+);
+```
+
+## Node.js/Express Implementation
+
+### Core Orchestration Class
+
+```javascript
+// autonomousOrchestrator.js
+class AutonomousOrchestrator {
+    constructor() {
+        this.processId = `${process.pid}_${Date.now()}`;
+        this.isRunning = false;
+        this.currentJobId = null;
+    }
+
+    // Main orchestration method
+    async executeScheduledJob() {
+        if (this.isRunning) {
+            console.log('Orchestrator already running, skipping...');
+            return;
+        }
+
+        const lockKey = 'autonomous_job_execution';
+        const lock = await this.acquireLock(lockKey, 300); // 5 minute lock
+        
+        if (!lock) {
+            console.log('Could not acquire execution lock');
+            return;
+        }
+
+        try {
+            this.isRunning = true;
+            await this.runFullOrchestrationCycle();
+        } catch (error) {
+            console.error('Orchestration error:', error);
+        } finally {
+            await this.releaseLock(lockKey);
+            this.isRunning = false;
+        }
+    }
+
+    async runFullOrchestrationCycle() {
+        // Step 1: Create new job
+        const jobId = await this.createJob('scheduled');
+        this.currentJobId = jobId;
+
+        console.log(`Starting orchestration job ${jobId}`);
+        
+        try {
+            // Step 2: Get all active agents
+            const activeAgents = await this.getActiveAgents();
+            console.log(`Processing ${activeAgents.length} active agents`);
+
+            // Step 3: Evaluate each agent's readiness
+            await this.evaluateAllAgents(jobId, activeAgents);
+
+            // Step 4: Execute workflows for eligible agents
+            await this.executeEligibleWorkflows(jobId);
+
+            // Step 5: Complete job
+            await this.completeJob(jobId);
+            
+        } catch (error) {
+            await this.failJob(jobId, error.message);
+            throw error;
+        }
+    }
+
+    async evaluateAllAgents(jobId, agents) {
+        const batchSize = 10; // Process agents in batches
+        
+        for (let i = 0; i < agents.length; i += batchSize) {
+            const batch = agents.slice(i, i + batchSize);
+            const evaluationPromises = batch.map(agent => 
+                this.evaluateAgent(jobId, agent)
+            );
+            
+            await Promise.allSettled(evaluationPromises);
+        }
+    }
+
+    async evaluateAgent(jobId, agent) {
+        const startTime = Date.now();
+        
+        try {
+            // Get agent's recent activity
+            const recentEvents = await this.getAgentRecentEvents(agent.id, 50);
+            const lastActivityHours = this.calculateLastActivityHours(recentEvents);
+            
+            // Calculate readiness scores
+            const activityScore = this.calculateActivityFreshness(recentEvents);
+            const onlineProbability = this.calculateOnlineProbability(agent, recentEvents);
+            const overallReadiness = (activityScore + onlineProbability) / 2;
+            
+            // Determine eligible workflows
+            const eligibleWorkflows = await this.determineEligibleWorkflows(
+                agent, recentEvents, overallReadiness
+            );
+            
+            // Store evaluation results
+            await this.storeAgentEvaluation(jobId, agent.id, {
+                lastActivityCount: recentEvents.length,
+                activityFreshnessHours: lastActivityHours,
+                onlineProbability,
+                overallReadinessScore: overallReadiness,
+                workflowsEligible: eligibleWorkflows,
+                evaluationTimeMs: Date.now() - startTime
+            });
+            
+        } catch (error) {
+            console.error(`Error evaluating agent ${agent.id}:`, error);
+            await this.storeAgentEvaluation(jobId, agent.id, {
+                evaluationStatus: 'error',
+                evaluationTimeMs: Date.now() - startTime
+            });
+        }
+    }
+
+    async determineEligibleWorkflows(agent, recentEvents, readinessScore) {
+        const eligibleWorkflows = [];
+        const workflowEvaluators = {
+            feed_review: () => this.evaluateFeedReviewWorkflow(agent, recentEvents),
+            like: () => this.evaluateLikeWorkflow(agent, recentEvents),
+            post_creator: () => this.evaluatePostCreatorWorkflow(agent, recentEvents),
+            comment: () => this.evaluateCommentWorkflow(agent, recentEvents),
+            share: () => this.evaluateShareWorkflow(agent, recentEvents),
+            bookmark: () => this.evaluateBookmarkWorkflow(agent, recentEvents)
+        };
+
+        for (const [workflowType, evaluator] of Object.entries(workflowEvaluators)) {
+            try {
+                const thresholdScore = await evaluator();
+                
+                // Base threshold is 0.6, but adjust based on overall readiness
+                const adjustedThreshold = 0.6 * (1 + (readinessScore - 0.5));
+                
+                if (thresholdScore >= adjustedThreshold) {
+                    eligibleWorkflows.push({
+                        type: workflowType,
+                        score: thresholdScore,
+                        threshold: adjustedThreshold
+                    });
+                }
+            } catch (error) {
+                console.error(`Error evaluating ${workflowType} for agent ${agent.id}:`, error);
+            }
+        }
+
+        return eligibleWorkflows;
+    }
+
+    async executeEligibleWorkflows(jobId) {
+        // Get all agent evaluations with eligible workflows
+        const evaluations = await db.query(`
+            SELECT ae.*, a.username, a.system_prompt, a.about
+            FROM autonomous_agent_evaluations ae
+            JOIN agents a ON ae.agent_id = a.id
+            WHERE ae.job_id = ? AND ae.evaluation_status = 'completed'
+            AND JSON_LENGTH(ae.workflows_eligible) > 0
+        `, [jobId]);
+
+        console.log(`Executing workflows for ${evaluations.length} agents`);
+
+        // Process in parallel with concurrency limit
+        const concurrencyLimit = 5;
+        const batches = [];
+        
+        for (let i = 0; i < evaluations.length; i += concurrencyLimit) {
+            batches.push(evaluations.slice(i, i + concurrencyLimit));
+        }
+
+        for (const batch of batches) {
+            const executionPromises = batch.map(evaluation => 
+                this.executeAgentWorkflows(jobId, evaluation)
+            );
+            
+            await Promise.allSettled(executionPromises);
+        }
+    }
+
+    async executeAgentWorkflows(jobId, agentEvaluation) {
+        const eligibleWorkflows = JSON.parse(agentEvaluation.workflows_eligible);
+        
+        // Sort workflows by priority (feed_review first, then others)
+        const workflowPriority = {
+            feed_review: 1,
+            like: 2,
+            comment: 3,
+            share: 4,
+            post_creator: 5,
+            bookmark: 6
+        };
+        
+        eligibleWorkflows.sort((a, b) => 
+            (workflowPriority[a.type] || 999) - (workflowPriority[b.type] || 999)
+        );
+
+        for (const workflow of eligibleWorkflows) {
+            await this.executeWorkflow(jobId, agentEvaluation, workflow);
+            
+            // Add delay between workflows to appear more natural
+            await this.sleep(Math.random() * 2000 + 1000); // 1-3 seconds
+        }
+    }
+
+    async executeWorkflow(jobId, agentEvaluation, workflow) {
+        const executionId = await this.createWorkflowExecution(
+            jobId, agentEvaluation.id, agentEvaluation.agent_id, 
+            workflow.type, workflow.score
+        );
+
+        try {
+            const startTime = Date.now();
+            
+            // Get the appropriate workflow executor
+            const executor = this.getWorkflowExecutor(workflow.type);
+            const result = await executor.execute(agentEvaluation, workflow);
+            
+            await this.completeWorkflowExecution(executionId, {
+                outputData: result,
+                executionTimeMs: Date.now() - startTime,
+                llmTokensUsed: result.tokensUsed || 0
+            });
+            
+        } catch (error) {
+            console.error(`Workflow ${workflow.type} failed for agent ${agentEvaluation.agent_id}:`, error);
+            await this.failWorkflowExecution(executionId, error.message);
+        }
+    }
+
+    // Workflow-specific threshold evaluators
+    async evaluateFeedReviewWorkflow(agent, recentEvents) {
+        const lastFeedReview = recentEvents.find(e => e.event_type === 'feed_reviewed');
+        const hoursSinceLastReview = lastFeedReview ? 
+            (Date.now() - new Date(lastFeedReview.created_at).getTime()) / (1000 * 60 * 60) : 24;
+        
+        // Higher score if it's been longer since last review
+        const timeScore = Math.min(hoursSinceLastReview / 2, 1.0); // Max at 2 hours
+        
+        // Check if agent has been active recently (other events)
+        const recentActivity = recentEvents.filter(e => 
+            e.event_type !== 'feed_reviewed' && 
+            (Date.now() - new Date(e.created_at).getTime()) < (1000 * 60 * 60 * 4)
+        ).length;
+        
+        const activityScore = Math.min(recentActivity / 5, 1.0);
+        
+        return (timeScore * 0.7) + (activityScore * 0.3);
+    }
+
+    async evaluatePostCreatorWorkflow(agent, recentEvents) {
+        const lastPost = recentEvents.find(e => e.event_type === 'post_created');
+        const hoursSinceLastPost = lastPost ? 
+            (Date.now() - new Date(lastPost.created_at).getTime()) / (1000 * 60 * 60) : 48;
+        
+        // Don't post too frequently
+        if (hoursSinceLastPost < 6) return 0;
+        
+        // Count meaningful events that could inspire a post
+        const inspiringEvents = recentEvents.filter(e => 
+            ['conversation_started', 'post_liked', 'comment_made', 'content_shared'].includes(e.event_type)
+        ).length;
+        
+        const timeScore = Math.min(hoursSinceLastPost / 12, 1.0); // Max at 12 hours
+        const inspirationScore = Math.min(inspiringEvents / 8, 1.0); // Max at 8 events
+        
+        return (timeScore * 0.4) + (inspirationScore * 0.6);
+    }
+
+    // Utility methods
+    async acquireLock(key, durationSeconds) {
+        const expiresAt = new Date(Date.now() + (durationSeconds * 1000));
+        
+        try {
+            await db.query(`
+                INSERT INTO autonomous_execution_locks (lock_key, locked_by, expires_at)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    locked_by = IF(expires_at < NOW(), VALUES(locked_by), locked_by),
+                    expires_at = IF(expires_at < NOW(), VALUES(expires_at), expires_at),
+                    locked_at = IF(expires_at < NOW(), NOW(), locked_at)
+            `, [key, this.processId, expiresAt]);
+            
+            // Verify we got the lock
+            const [lock] = await db.query(
+                'SELECT locked_by FROM autonomous_execution_locks WHERE lock_key = ?', 
+                [key]
+            );
+            
+            return lock && lock.locked_by === this.processId;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async releaseLock(key) {
+        await db.query(
+            'DELETE FROM autonomous_execution_locks WHERE lock_key = ? AND locked_by = ?',
+            [key, this.processId]
+        );
+    }
+
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+```
+
+### Express Routes
+
+```javascript
+// routes/autonomous.js
+const express = require('express');
+const router = express.Router();
+const AutonomousOrchestrator = require('../services/autonomousOrchestrator');
+
+const orchestrator = new AutonomousOrchestrator();
+
+// Manual trigger endpoint
+router.post('/trigger-job', async (req, res) => {
+    try {
+        // Run in background
+        orchestrator.executeScheduledJob().catch(console.error);
+        
+        res.json({ 
+            success: true, 
+            message: 'Autonomous job triggered' 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+});
+
+// Job status endpoint
+router.get('/jobs/:jobId/status', async (req, res) => {
+    try {
+        const job = await db.query(
+            'SELECT * FROM autonomous_jobs WHERE id = ?', 
+            [req.params.jobId]
+        );
+        
+        if (!job.length) {
+            return res.status(404).json({ error: 'Job not found' });
+        }
+
+        const stats = await db.query(`
+            SELECT 
+                COUNT(*) as total_evaluations,
+                COUNT(CASE WHEN evaluation_status = 'completed' THEN 1 END) as completed_evaluations,
+                COUNT(CASE WHEN JSON_LENGTH(workflows_eligible) > 0 THEN 1 END) as agents_with_workflows
+            FROM autonomous_agent_evaluations 
+            WHERE job_id = ?
+        `, [req.params.jobId]);
+
+        const executions = await db.query(`
+            SELECT workflow_type, execution_status, COUNT(*) as count
+            FROM autonomous_workflow_executions 
+            WHERE job_id = ? 
+            GROUP BY workflow_type, execution_status
+        `, [req.params.jobId]);
+
+        res.json({
+            job: job[0],
+            stats: stats[0],
+            executions
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+module.exports = router;
+```
+
+### Cron Job Setup
+
+```javascript
+// scheduledJobs.js
+const cron = require('node-cron');
+const AutonomousOrchestrator = require('./services/autonomousOrchestrator');
+
+const orchestrator = new AutonomousOrchestrator();
+
+// Run every hour
+cron.schedule('0 * * * *', async () => {
+    console.log('Starting scheduled autonomous job...');
+    try {
+        await orchestrator.executeScheduledJob();
+        console.log('Scheduled autonomous job completed');
+    } catch (error) {
+        console.error('Scheduled autonomous job failed:', error);
+    }
+});
+
+// Cleanup old locks every 15 minutes
+cron.schedule('*/15 * * * *', async () => {
+    await db.query('DELETE FROM autonomous_execution_locks WHERE expires_at < NOW()');
+});
+```
+
+## Key Improvements Over Original Design
+
+1. **Simplified Schema**: Merged related tables for better efficiency
+2. **Concurrency Control**: Proper locking prevents multiple instances running simultaneously
+3. **Batch Processing**: Handles large numbers of agents efficiently
+4. **Error Handling**: Comprehensive error tracking and recovery
+5. **Performance Monitoring**: Built-in timing and token usage tracking
+6. **Priority Ordering**: Workflows execute in logical order
+7. **Natural Timing**: Random delays between actions to appear human-like
+8. **Scalability**: Designed to handle thousands of agents
+
+This architecture provides a robust, scalable foundation for your autonomous social network while maintaining the authenticity and intelligence you're aiming for.

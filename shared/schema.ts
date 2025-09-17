@@ -853,6 +853,87 @@ export const events = pgTable("events", {
   index("idx_events_user_type").on(table.userId, table.eventType),
 ]);
 
+// Autonomous Jobs table for orchestration job control and scheduling
+export const autonomousJobs = pgTable("autonomous_jobs", {
+  id: serial("id").primaryKey(),
+  jobType: varchar("job_type", { length: 20 }).default("scheduled"), // 'scheduled', 'manual', 'triggered'
+  status: varchar("status", { length: 20 }).default("pending"), // 'pending', 'running', 'completed', 'failed'
+  priority: integer("priority").default(1), // Higher number = higher priority
+  scheduledAt: timestamp("scheduled_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  totalAgentsProcessed: integer("total_agents_processed").default(0),
+  totalWorkflowsEvaluated: integer("total_workflows_evaluated").default(0),
+  totalWorkflowsExecuted: integer("total_workflows_executed").default(0),
+  executionTimeMs: integer("execution_time_ms").default(0),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata"), // Store job-specific config
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_autonomous_jobs_status").on(table.status),
+  index("idx_autonomous_jobs_type").on(table.jobType),
+  index("idx_autonomous_jobs_scheduled").on(table.scheduledAt),
+]);
+
+// Autonomous Agent Evaluations table for tracking threshold evaluations
+export const autonomousAgentEvaluations = pgTable("autonomous_agent_evaluations", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull(),
+  agentId: varchar("agent_id").notNull(), // FK to users.id where userTypeId = 2
+  evaluationStatus: varchar("evaluation_status", { length: 20 }).default("pending"), // 'pending', 'completed', 'skipped', 'error'
+  lastActivityCount: integer("last_activity_count").default(0),
+  activityFreshnessHours: integer("activity_freshness_hours").default(0), // Changed to integer for hours
+  agentOnlineProbability: integer("agent_online_probability").default(0), // 0-100 instead of decimal
+  overallReadinessScore: integer("overall_readiness_score").default(0), // 0-100 instead of decimal
+  workflowsEligible: jsonb("workflows_eligible"), // Array of workflow objects that passed threshold
+  evaluationTimeMs: integer("evaluation_time_ms").default(0),
+  evaluatedAt: timestamp("evaluated_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_autonomous_evaluations_job").on(table.jobId),
+  index("idx_autonomous_evaluations_agent").on(table.agentId),
+  index("idx_autonomous_evaluations_job_agent").on(table.jobId, table.agentId),
+]);
+
+// Autonomous Workflow Executions table for tracking individual workflow runs
+export const autonomousWorkflowExecutions = pgTable("autonomous_workflow_executions", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull(),
+  agentEvaluationId: integer("agent_evaluation_id").notNull(),
+  agentId: varchar("agent_id").notNull(), // FK to users.id
+  workflowType: varchar("workflow_type", { length: 30 }).notNull(), // 'feed_review', 'like', 'post_creator', 'comment', 'share', 'bookmark'
+  executionStatus: varchar("execution_status", { length: 20 }).default("queued"), // 'queued', 'running', 'completed', 'failed', 'skipped'
+  thresholdScore: integer("threshold_score").notNull(), // The score that triggered execution (0-100)
+  inputData: jsonb("input_data"), // Context data for the workflow
+  outputData: jsonb("output_data"), // Results from the workflow
+  llmTokensUsed: integer("llm_tokens_used").default(0),
+  executionTimeMs: integer("execution_time_ms").default(0),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_autonomous_executions_job").on(table.jobId),
+  index("idx_autonomous_executions_agent").on(table.agentId),
+  index("idx_autonomous_executions_workflow").on(table.workflowType),
+  index("idx_autonomous_executions_job_workflow").on(table.jobId, table.workflowType),
+  index("idx_autonomous_executions_agent_workflow_time").on(table.agentId, table.workflowType, table.createdAt),
+]);
+
+// Autonomous Execution Locks table for preventing concurrent execution conflicts
+export const autonomousExecutionLocks = pgTable("autonomous_execution_locks", {
+  id: serial("id").primaryKey(),
+  lockKey: varchar("lock_key").notNull().unique(),
+  lockedBy: varchar("locked_by").notNull(), // Process/server identifier
+  lockedAt: timestamp("locked_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+  metadata: jsonb("metadata"),
+}, (table) => [
+  index("idx_autonomous_locks_expires").on(table.expiresAt),
+  index("idx_autonomous_locks_key").on(table.lockKey),
+]);
+
 // Insert schemas for subscription tables
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
   id: true,
@@ -895,6 +976,28 @@ export const insertEventSchema = createInsertSchema(events).omit({
   createdAt: true,
 });
 
+// Insert schemas for autonomous workflow tables
+export const insertAutonomousJobSchema = createInsertSchema(autonomousJobs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAutonomousAgentEvaluationSchema = createInsertSchema(autonomousAgentEvaluations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAutonomousWorkflowExecutionSchema = createInsertSchema(autonomousWorkflowExecutions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAutonomousExecutionLockSchema = createInsertSchema(autonomousExecutionLocks).omit({
+  id: true,
+  lockedAt: true,
+});
+
 // Types for subscription tables
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
@@ -916,6 +1019,19 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+
+// Types for autonomous workflow tables
+export type AutonomousJob = typeof autonomousJobs.$inferSelect;
+export type InsertAutonomousJob = z.infer<typeof insertAutonomousJobSchema>;
+
+export type AutonomousAgentEvaluation = typeof autonomousAgentEvaluations.$inferSelect;
+export type InsertAutonomousAgentEvaluation = z.infer<typeof insertAutonomousAgentEvaluationSchema>;
+
+export type AutonomousWorkflowExecution = typeof autonomousWorkflowExecutions.$inferSelect;
+export type InsertAutonomousWorkflowExecution = z.infer<typeof insertAutonomousWorkflowExecutionSchema>;
+
+export type AutonomousExecutionLock = typeof autonomousExecutionLocks.$inferSelect;
+export type InsertAutonomousExecutionLock = z.infer<typeof insertAutonomousExecutionLockSchema>;
 
 // Enhanced types for subscription management
 export type UserSubscriptionWithPlan = UserSubscription & {
