@@ -1,0 +1,55 @@
+Could we have a new table called user_threshold_preferences : So its a one-to-one relation to user table and this will be the one that will configure thresholds per agent this can be in form of a slider where I can slide the values for the different thresholds, so when editing an agent, if am the creator of the agent it means,  I can edit this sliders to my preferences. Also these need to be included in varying areas where relevant in the relevant workflows, these values can be used  : 
+
+
+
+hat's an excellent idea. Adding more specific thresholds for each workflow will give you granular control over the autonomous behavior of your agents, making their interactions more human-like and less like spam. Here are some additional threshold fields and how they can be used to refine your autonomous social network.
+
+1. Autonomous Comment Workflow Thresholds
+
+To ensure comments are high-quality, relevant, and sound authentic, you need more than just a general relevance score.
+
+
+
+min_comment_length_threshold: A numerical value (e.g., 20) that specifies the minimum number of characters for a comment. This prevents the generation of short, low-effort responses and encourages more thoughtful engagement.
+
+conversation_depth_threshold: A numerical value (e.g., 2) that specifies how many layers deep an agent will comment in a conversation thread. This prevents agents from spamming long comment threads and ensures they engage in the initial conversation, similar to how people do.
+
+coherence_score_threshold: A numerical value (e.g., 0.8) from 0 to 1. An LLM can be prompted to assess the generated comment's coherence and relevance to the parent post and other comments. This acts as a final check before publishing.
+
+2. Autonomous Like Workflow Thresholds
+
+Liking posts should reflect a genuine interest, not just a random action. These thresholds ensure the agent is selective.
+
+
+
+relevance_score_threshold: A numerical value (e.g., 0.7) from 0 to 1. The LLM can be prompted to score how relevant a post's topic is to the agent's core expertise and interests.
+
+engagement_frequency_cap: A numerical value (e.g., 10) that limits the number of likes an agent can perform in a given time frame (e.g., per hour). This prevents spam-like behavior.
+
+author_familiarity_threshold: A numerical value (e.g., 0.5). The system can analyze how many posts the agent has liked from a specific author in the past. This threshold could ensure the agent doesn't disproportionately like content from a single user.
+
+3. Autonomous Share Workflow Thresholds
+
+Sharing content is a strong endorsement. These thresholds help ensure the shared content is of high quality and relevant to the agent's followers.
+
+
+
+quality_score_threshold: A numerical value (e.g., 0.9). The LLM is asked to rate the quality, uniqueness, or insightfulness of the post being considered for a share. This helps filter out common or low-value content.
+
+follower_interest_threshold: A numerical value (e.g., 0.6). The system analyzes the shared content's topic and compares it to the interests of the agent's followers. A high score indicates a high chance of the content being well-received.
+
+4. Autonomous Post Creator Workflow Thresholds
+
+To ensure posts are creative and varied, you can add thresholds that guide the LLM's output.
+
+
+
+uniqueness_threshold: A numerical value (e.g., 0.75). Before publishing, a quick LLM check or a semantic similarity algorithm can compare the generated post against the agent's recent posts to prevent duplication.
+
+sentiment_score_threshold: A numerical value (e.g., 0.2). If your agents have distinct emotional tones (e.g., positive, negative, neutral), this can ensure the generated post's sentiment aligns with their personality. For example, a "sarcastic" agent might have a lower sentiment score threshold.
+
+creative_length_threshold: A numerical value (e.g., 150) for the minimum character count. This ensures posts are substantial and not just one-liners.
+
+
+
+But we can have standard DEFAULTS AUTO-CREATED WHEN AN AGENT IS CREATED SO BASICALLY FOR EACH USER CREATED THE CORRESPONDING ENTRY IS SUBMITTED ONTO THE user_threshold_preferences TABLE. ITS AONE TO ONE RELATION

@@ -43,6 +43,34 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User threshold preferences table for configuring autonomous workflow thresholds per agent
+export const userThresholdPreferences = pgTable("user_threshold_preferences", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().unique(), // One-to-one relation with users
+  
+  // Comment Workflow Thresholds
+  minCommentLengthThreshold: integer("min_comment_length_threshold").default(20), // Min characters for comments
+  conversationDepthThreshold: integer("conversation_depth_threshold").default(2), // Max layers deep in conversation threads
+  coherenceScoreThreshold: integer("coherence_score_threshold").default(80), // 0-100 score for comment coherence
+  
+  // Like Workflow Thresholds  
+  relevanceScoreThreshold: integer("relevance_score_threshold").default(70), // 0-100 score for post relevance
+  engagementFrequencyCap: integer("engagement_frequency_cap").default(10), // Max likes per hour
+  authorFamiliarityThreshold: integer("author_familiarity_threshold").default(50), // 0-100 familiarity with author
+  
+  // Share Workflow Thresholds
+  qualityScoreThreshold: integer("quality_score_threshold").default(90), // 0-100 score for content quality
+  followerInterestThreshold: integer("follower_interest_threshold").default(60), // 0-100 follower interest prediction
+  
+  // Post Creator Workflow Thresholds
+  uniquenessThreshold: integer("uniqueness_threshold").default(75), // 0-100 uniqueness vs recent posts
+  sentimentScoreThreshold: integer("sentiment_score_threshold").default(20), // 0-100 sentiment alignment
+  creativeLengthThreshold: integer("creative_length_threshold").default(150), // Min characters for posts
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Tenants table for multi-tenant SaaS management
 export const tenants = pgTable("tenants", {
   id: varchar("id").primaryKey().notNull(),
@@ -242,6 +270,12 @@ export const insertAdminAuditLogSchema = createInsertSchema(adminAuditLog).omit(
   createdAt: true,
 });
 
+export const insertUserThresholdPreferencesSchema = createInsertSchema(userThresholdPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UserType = typeof userTypes.$inferSelect;
 export type InsertUserType = z.infer<typeof insertUserTypeSchema>;
@@ -255,6 +289,9 @@ export type InsertTenant = z.infer<typeof insertTenantSchema>;
 
 export type AdminAuditLog = typeof adminAuditLog.$inferSelect;
 export type InsertAdminAuditLog = z.infer<typeof insertAdminAuditLogSchema>;
+
+export type UserThresholdPreferences = typeof userThresholdPreferences.$inferSelect;
+export type InsertUserThresholdPreferences = z.infer<typeof insertUserThresholdPreferencesSchema>;
 
 export type Collection = typeof collections.$inferSelect;
 export type InsertCollection = z.infer<typeof insertCollectionSchema>;
