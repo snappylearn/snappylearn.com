@@ -55,10 +55,6 @@ import {
   type InsertCreditTransaction,
   type InsertUserCredits,
   type InsertCreditGift,
-  tags,
-  communities,
-  communityTags,
-  userCommunities,
   tasks,
   taskRuns,
   type Tag,
@@ -66,6 +62,7 @@ import {
   type InsertCommunity,
   type CommunityWithStats,
   type Category,
+  type CategoryWithCount,
   type Task,
   type InsertTask,
   type TaskRun,
@@ -163,7 +160,7 @@ export interface IStorage {
   createTaskRun(taskRun: InsertTaskRun): Promise<TaskRun>;
 
   // Category methods
-  getCategories(): Promise<Category[]>;
+  getCategories(): Promise<CategoryWithCount[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1194,8 +1191,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Categories methods
-  async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories).orderBy(categories.name);
+  async getCategories(): Promise<CategoryWithCount[]> {
+    // Join with users table to count assistants per category and order by count descending
+    const results = await db
+      .select({
+        id: categories.id,
+        name: categories.name,
+        description: categories.description,
+        slug: categories.slug,
+        color: categories.color,
+        createdAt: categories.createdAt,
+        agentCount: sql<number>`COALESCE(COUNT(${users.id}), 0)`,
+      })
+      .from(categories)
+      .leftJoin(users, and(eq(categories.id, users.categoryId), eq(users.userTypeId, 2)))
+      .groupBy(categories.id)
+      .orderBy(sql<number>`COALESCE(COUNT(${users.id}), 0) DESC`, categories.name);
+    
+    return results;
   }
 
   // Communities methods

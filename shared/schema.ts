@@ -278,6 +278,7 @@ export type Artifact = typeof artifacts.$inferSelect;
 export type InsertArtifact = z.infer<typeof insertArtifactSchema>;
 
 export type Category = typeof categories.$inferSelect;
+export type CategoryWithCount = Category & { agentCount: number };
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 export type VisibilityType = typeof visibilityTypes.$inferSelect;

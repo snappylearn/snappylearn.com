@@ -11,14 +11,7 @@ import { Search, Bot, Plus, Grid3X3, List } from "lucide-react";
 import { useUsers, useFollowUser } from "@/hooks/use-collections";
 import { categoriesApi } from "@/lib/api";
 
-// Assistant category mapping - will be calculated from user.categoryId
-const assistantCategoryMapping: { [key: string]: string } = {
-  "agent-einstein": "science-discovery",
-  "agent-curie": "science-discovery", 
-  "agent-tesla": "science-discovery",
-  "agent-socrates": "philosophy-wisdom",
-  "agent-davinci": "creativity-arts"
-};
+// No longer needed - using real categoryId from database
 
 export default function Assistants() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,7 +37,9 @@ export default function Assistants() {
       (assistant.about || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     // Filter by category if one is selected
-    const matchesCategory = selectedCategory === null || assistantCategoryMapping[assistant.id] === selectedCategory;
+    const matchesCategory = selectedCategory === null || 
+      (selectedCategory && assistant.categoryId && 
+       assistantCategories.find((cat: any) => cat.id === assistant.categoryId)?.slug === selectedCategory);
     
     return matchesSearch && matchesCategory;
   });
@@ -84,8 +79,8 @@ export default function Assistants() {
               All ({assistants.length})
             </Button>
             {assistantCategories.map((category: any) => {
-              // Count assistants in this category
-              const categoryCount = assistants.filter((assistant: any) => assistantCategoryMapping[assistant.id] === category.slug).length;
+              // Count assistants in this category using real categoryId
+              const categoryCount = assistants.filter((assistant: any) => assistant.categoryId === category.id).length;
               return (
                 <Button
                   key={category.id}
