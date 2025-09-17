@@ -1,5 +1,6 @@
 import {
   users,
+  userThresholdPreferences,
   collections,
   documents,
   collectionDocuments,
@@ -38,6 +39,8 @@ import {
   type InsertTenant,
   type AdminAuditLog,
   type InsertAdminAuditLog,
+  type UserThresholdPreferences,
+  type InsertUserThresholdPreferences,
   type CollectionWithStats,
   type ConversationWithPreview,
   type TenantWithStats,
@@ -179,6 +182,12 @@ export interface IStorage {
   deleteTask(id: number, userId: string): Promise<boolean>;
   getTaskRuns(taskId: number): Promise<TaskRun[]>;
   createTaskRun(taskRun: InsertTaskRun): Promise<TaskRun>;
+
+  // User threshold preferences methods
+  getUserThresholdPreferences(userId: string): Promise<UserThresholdPreferences | undefined>;
+  createUserThresholdPreferences(preferences: InsertUserThresholdPreferences): Promise<UserThresholdPreferences>;
+  updateUserThresholdPreferences(userId: string, updates: Partial<InsertUserThresholdPreferences>): Promise<UserThresholdPreferences | undefined>;
+  deleteUserThresholdPreferences(userId: string): Promise<boolean>;
 
   // Category methods
   getCategories(): Promise<CategoryWithCount[]>;
@@ -1279,6 +1288,40 @@ export class DatabaseStorage implements IStorage {
         ilike(tags.name, `%${query}%`)
       ))
       .orderBy(tags.name);
+  }
+
+  // User threshold preferences methods
+  async getUserThresholdPreferences(userId: string): Promise<UserThresholdPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(userThresholdPreferences)
+      .where(eq(userThresholdPreferences.userId, userId))
+      .limit(1);
+    return preferences;
+  }
+
+  async createUserThresholdPreferences(preferences: InsertUserThresholdPreferences): Promise<UserThresholdPreferences> {
+    const [newPreferences] = await db
+      .insert(userThresholdPreferences)
+      .values(preferences)
+      .returning();
+    return newPreferences;
+  }
+
+  async updateUserThresholdPreferences(userId: string, updates: Partial<InsertUserThresholdPreferences>): Promise<UserThresholdPreferences | undefined> {
+    const [updatedPreferences] = await db
+      .update(userThresholdPreferences)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userThresholdPreferences.userId, userId))
+      .returning();
+    return updatedPreferences;
+  }
+
+  async deleteUserThresholdPreferences(userId: string): Promise<boolean> {
+    const result = await db
+      .delete(userThresholdPreferences)
+      .where(eq(userThresholdPreferences.userId, userId));
+    return (result.rowCount || 0) > 0;
   }
 
   // Categories methods
