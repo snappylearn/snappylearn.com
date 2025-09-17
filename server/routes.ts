@@ -10,7 +10,9 @@ import {
   insertDocumentSchema, 
   insertConversationSchema, 
   insertMessageSchema,
-  insertCommunitySchema
+  insertCommunitySchema,
+  insertUserThresholdPreferencesSchema,
+  type UserThresholdPreferences
 } from "@shared/schema";
 import { z } from "zod";
 import { 
@@ -980,6 +982,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating settings:", error);
       res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // Threshold Preferences endpoints
+  app.get("/api/users/threshold-preferences", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      
+      const thresholdPreferences = await storage.getUserThresholdPreferences(userId);
+      
+      if (!thresholdPreferences) {
+        return res.status(404).json({ error: "Threshold preferences not found" });
+      }
+      
+      res.json(thresholdPreferences);
+    } catch (error) {
+      console.error("Error fetching threshold preferences:", error);
+      res.status(500).json({ error: "Failed to fetch threshold preferences" });
+    }
+  });
+
+  app.put("/api/users/threshold-preferences", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      
+      // Validate request body using schema (excluding id, createdAt, updatedAt)
+      const validatedData = insertUserThresholdPreferencesSchema.parse({
+        userId,
+        ...req.body
+      });
+      
+      // Check if user threshold preferences exist
+      const existingPreferences = await storage.getUserThresholdPreferences(userId);
+      
+      let updatedPreferences: UserThresholdPreferences;
+      
+      if (existingPreferences) {
+        // Update existing preferences
+        updatedPreferences = await storage.updateUserThresholdPreferences(userId, validatedData);
+      } else {
+        // Create new preferences
+        updatedPreferences = await storage.createUserThresholdPreferences(validatedData);
+      }
+      
+      res.json(updatedPreferences);
+    } catch (error) {
+      console.error("Error updating threshold preferences:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Invalid input data", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to update threshold preferences" });
+    }
+  });
+
+  app.delete("/api/users/threshold-preferences", jwtAuth, async (req: any, res) => {
+    try {
+      const userId = getJwtUserId(req);
+      
+      const success = await storage.deleteUserThresholdPreferences(userId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Threshold preferences not found" });
+      }
+      
+      res.json({ message: "Threshold preferences reset to defaults successfully" });
+    } catch (error) {
+      console.error("Error deleting threshold preferences:", error);
+      res.status(500).json({ error: "Failed to reset threshold preferences" });
     }
   });
 
