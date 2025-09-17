@@ -14,8 +14,6 @@ import {
   creditTransactions,
   userCredits,
   creditGifts,
-  posts,
-  follows,
   communities,
   communityTags,
   userCommunities,
@@ -74,6 +72,14 @@ import {
   autonomousAgentEvaluations,
   autonomousWorkflowExecutions,
   autonomousExecutionLocks,
+  posts,
+  likes,
+  comments,
+  bookmarks,
+  reposts,
+  follows,
+  topics,
+  postTopics,
   type AutonomousJob,
   type InsertAutonomousJob,
   type AutonomousAgentEvaluation,
@@ -183,6 +189,44 @@ export interface IStorage {
   getUserEvents(userId: string, limit?: number): Promise<Event[]>;
   getEventsByType(eventType: string, limit?: number): Promise<Event[]>;
   getRecentEvents(limit?: number): Promise<Event[]>;
+
+  // Social feature methods for autonomous workflows
+  // Post methods
+  createPost(post: { title?: string; content: string; authorId: string; communityId?: number; type?: string; metadata?: any }): Promise<any>;
+  getPost(id: number): Promise<any>;
+  getPostsByUser(userId: string, limit?: number): Promise<any[]>;
+  getRecentPosts(limit?: number): Promise<any[]>;
+  
+  // Like methods
+  likePost(userId: string, postId: number): Promise<any>;
+  unlikePost(userId: string, postId: number): Promise<boolean>;
+  likeComment(userId: string, commentId: number): Promise<any>;
+  unlikeComment(userId: string, commentId: number): Promise<boolean>;
+  getPostLikes(postId: number): Promise<any[]>;
+  
+  // Comment methods
+  createComment(comment: { content: string; authorId: string; postId: number; parentId?: number }): Promise<any>;
+  getCommentsForPost(postId: number): Promise<any[]>;
+  deleteComment(id: number, userId: string): Promise<boolean>;
+  
+  // Bookmark methods
+  bookmarkPost(userId: string, postId: number, collectionId: number): Promise<any>;
+  unbookmarkPost(userId: string, postId: number): Promise<boolean>;
+  getBookmarksByUser(userId: string): Promise<any[]>;
+  
+  // Repost/Share methods
+  repostPost(userId: string, postId: number, comment?: string): Promise<any>;
+  deleteRepost(userId: string, postId: number): Promise<boolean>;
+  getRepostsByUser(userId: string): Promise<any[]>;
+  
+  // Follow methods
+  followUser(followerId: string, followingId: string): Promise<any>;
+  unfollowUser(followerId: string, followingId: string): Promise<boolean>;
+  
+  // Feed methods for autonomous workflows
+  getFeedPosts(userId: string, limit?: number): Promise<any[]>;
+  getTrendingPosts(limit?: number): Promise<any[]>;
+  getTopicsForPost(postId: number): Promise<any[]>;
 
   // Autonomous workflow methods
   createAutonomousJob(job: InsertAutonomousJob): Promise<AutonomousJob>;
@@ -1664,6 +1708,310 @@ export class DatabaseStorage implements IStorage {
       console.error('Error releasing autonomous execution lock:', error);
       return false;
     }
+  }
+
+  // Social feature methods implementation
+  // Post methods
+  async createPost(post: { title?: string; content: string; authorId: string; communityId?: number; type?: string; metadata?: any }): Promise<any> {
+    const [newPost] = await db
+      .insert(posts)
+      .values({
+        title: post.title,
+        content: post.content,
+        authorId: post.authorId,
+        communityId: post.communityId,
+        type: post.type || 'text',
+        metadata: post.metadata,
+      })
+      .returning();
+    return newPost;
+  }
+
+  async getPost(id: number): Promise<any> {
+    const [post] = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, id));
+    return post || undefined;
+  }
+
+  async getPostsByUser(userId: string, limit = 20): Promise<any[]> {
+    return await db
+      .select()
+      .from(posts)
+      .where(eq(posts.authorId, userId))
+      .orderBy(desc(posts.createdAt))
+      .limit(limit);
+  }
+
+  async getRecentPosts(limit = 20): Promise<any[]> {
+    return await db
+      .select()
+      .from(posts)
+      .where(eq(posts.isPublished, true))
+      .orderBy(desc(posts.createdAt))
+      .limit(limit);
+  }
+
+  // Like methods
+  async likePost(userId: string, postId: number): Promise<any> {
+    const [newLike] = await db
+      .insert(likes)
+      .values({
+        userId,
+        targetType: 'post',
+        targetId: postId,
+      })
+      .returning();
+    return newLike;
+  }
+
+  async unlikePost(userId: string, postId: number): Promise<boolean> {
+    const result = await db
+      .delete(likes)
+      .where(and(
+        eq(likes.userId, userId),
+        eq(likes.targetType, 'post'),
+        eq(likes.targetId, postId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async likeComment(userId: string, commentId: number): Promise<any> {
+    const [newLike] = await db
+      .insert(likes)
+      .values({
+        userId,
+        targetType: 'comment',
+        targetId: commentId,
+      })
+      .returning();
+    return newLike;
+  }
+
+  async unlikeComment(userId: string, commentId: number): Promise<boolean> {
+    const result = await db
+      .delete(likes)
+      .where(and(
+        eq(likes.userId, userId),
+        eq(likes.targetType, 'comment'),
+        eq(likes.targetId, commentId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getPostLikes(postId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(likes)
+      .where(and(
+        eq(likes.targetType, 'post'),
+        eq(likes.targetId, postId)
+      ))
+      .orderBy(desc(likes.createdAt));
+  }
+
+  // Comment methods
+  async createComment(comment: { content: string; authorId: string; postId: number; parentId?: number }): Promise<any> {
+    const [newComment] = await db
+      .insert(comments)
+      .values({
+        content: comment.content,
+        authorId: comment.authorId,
+        postId: comment.postId,
+        parentId: comment.parentId,
+      })
+      .returning();
+    return newComment;
+  }
+
+  async getCommentsForPost(postId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(comments)
+      .where(eq(comments.postId, postId))
+      .orderBy(comments.createdAt);
+  }
+
+  async deleteComment(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(comments)
+      .where(and(
+        eq(comments.id, id),
+        eq(comments.authorId, userId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Bookmark methods
+  async bookmarkPost(userId: string, postId: number, collectionId: number): Promise<any> {
+    // Validate that the collection belongs to the user
+    const collection = await this.getCollection(collectionId);
+    if (!collection || collection.userId !== userId) {
+      throw new Error('Collection not found or access denied');
+    }
+
+    const [newBookmark] = await db
+      .insert(bookmarks)
+      .values({
+        userId,
+        postId,
+        collectionId,
+      })
+      .returning();
+    return newBookmark;
+  }
+
+  async unbookmarkPost(userId: string, postId: number): Promise<boolean> {
+    const result = await db
+      .delete(bookmarks)
+      .where(and(
+        eq(bookmarks.userId, userId),
+        eq(bookmarks.postId, postId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getBookmarksByUser(userId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(bookmarks)
+      .where(eq(bookmarks.userId, userId))
+      .orderBy(desc(bookmarks.createdAt));
+  }
+
+  // Repost/Share methods
+  async repostPost(userId: string, postId: number, comment?: string): Promise<any> {
+    const [newRepost] = await db
+      .insert(reposts)
+      .values({
+        userId,
+        postId,
+        comment,
+      })
+      .returning();
+    return newRepost;
+  }
+
+  async deleteRepost(userId: string, postId: number): Promise<boolean> {
+    const result = await db
+      .delete(reposts)
+      .where(and(
+        eq(reposts.userId, userId),
+        eq(reposts.postId, postId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getRepostsByUser(userId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(reposts)
+      .where(eq(reposts.userId, userId))
+      .orderBy(desc(reposts.createdAt));
+  }
+
+  // Follow methods
+  async followUser(followerId: string, followingId: string): Promise<any> {
+    const [newFollow] = await db
+      .insert(follows)
+      .values({
+        followerId,
+        followingId,
+      })
+      .returning();
+    return newFollow;
+  }
+
+  async unfollowUser(followerId: string, followingId: string): Promise<boolean> {
+    const result = await db
+      .delete(follows)
+      .where(and(
+        eq(follows.followerId, followerId),
+        eq(follows.followingId, followingId)
+      ));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Feed methods for autonomous workflows
+  async getFeedPosts(userId: string, limit = 20): Promise<any[]> {
+    // Get posts from followed users
+    const feedPosts = await db
+      .select({
+        id: posts.id,
+        title: posts.title,
+        content: posts.content,
+        excerpt: posts.excerpt,
+        authorId: posts.authorId,
+        communityId: posts.communityId,
+        type: posts.type,
+        metadata: posts.metadata,
+        isPublished: posts.isPublished,
+        isPinned: posts.isPinned,
+        viewCount: posts.viewCount,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+      })
+      .from(posts)
+      .innerJoin(follows, eq(posts.authorId, follows.followingId))
+      .where(and(
+        eq(follows.followerId, userId),
+        eq(posts.isPublished, true)
+      ))
+      .orderBy(desc(posts.createdAt))
+      .limit(limit);
+
+    return feedPosts;
+  }
+
+  async getTrendingPosts(limit = 20): Promise<any[]> {
+    // Simple trending algorithm: posts with most likes in last 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    return await db
+      .select({
+        id: posts.id,
+        title: posts.title,
+        content: posts.content,
+        excerpt: posts.excerpt,
+        authorId: posts.authorId,
+        communityId: posts.communityId,
+        type: posts.type,
+        metadata: posts.metadata,
+        isPublished: posts.isPublished,
+        isPinned: posts.isPinned,
+        viewCount: posts.viewCount,
+        createdAt: posts.createdAt,
+        updatedAt: posts.updatedAt,
+        likeCount: count(likes.id),
+      })
+      .from(posts)
+      .leftJoin(likes, and(
+        eq(likes.targetType, 'post'),
+        eq(likes.targetId, posts.id),
+        gte(likes.createdAt, sevenDaysAgo)
+      ))
+      .where(eq(posts.isPublished, true))
+      .groupBy(posts.id)
+      .orderBy(desc(count(likes.id)), desc(posts.createdAt))
+      .limit(limit);
+  }
+
+  async getTopicsForPost(postId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: topics.id,
+        name: topics.name,
+        slug: topics.slug,
+        description: topics.description,
+        color: topics.color,
+        icon: topics.icon,
+        isActive: topics.isActive,
+        createdAt: topics.createdAt,
+      })
+      .from(topics)
+      .innerJoin(postTopics, eq(topics.id, postTopics.topicId))
+      .where(eq(postTopics.postId, postId));
   }
 }
 

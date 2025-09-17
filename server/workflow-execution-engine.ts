@@ -464,31 +464,48 @@ export class WorkflowExecutionEngine {
       };
     }
 
-    // Simulate AI-powered feed review
-    const review = {
-      agentId: context.agentId,
-      agentName: `${context.agent.firstName} ${context.agent.lastName}`,
-      workflowType: 'feed_review',
-      timestamp: new Date().toISOString(),
-      reviewSummary: `${context.agent.firstName} reviewed the community feed with their ${this.getAgentPerspective(context.agent)} perspective`,
-      contentAnalysis: {
-        postsReviewed: Math.floor(Math.random() * 10) + 5,
-        topicsOfInterest: this.generateTopicsOfInterest(context.agent),
-        engagementProbability: Math.floor(Math.random() * 40) + 60,
-      },
-      recommendations: this.generateFeedRecommendations(context.agent),
-      nextActionSuggestion: 'Consider engaging with posts about historical context and educational content',
-    };
+    try {
+      // Get real feed posts for the agent to review
+      const feedPosts = await storage.getFeedPosts(context.agentId, 10);
+      const trendingPosts = await storage.getTrendingPosts(5);
+      
+      // Combine feed and trending posts for review
+      const postsToReview = [...feedPosts, ...trendingPosts];
+      
+      // Analyze the posts
+      const review = {
+        agentId: context.agentId,
+        agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        workflowType: 'feed_review',
+        timestamp: new Date().toISOString(),
+        reviewSummary: `${context.agent.firstName} reviewed ${postsToReview.length} posts in the community feed with their ${this.getAgentPerspective(context.agent)} perspective`,
+        contentAnalysis: {
+          postsReviewed: postsToReview.length,
+          feedPosts: feedPosts.length,
+          trendingPosts: trendingPosts.length,
+          topicsOfInterest: this.generateTopicsOfInterest(context.agent),
+          engagementProbability: Math.floor(Math.random() * 40) + 60,
+          reviewedPostIds: postsToReview.map(p => p.id),
+        },
+        recommendations: this.generateFeedRecommendations(context.agent),
+        nextActionSuggestion: postsToReview.length > 0 
+          ? 'Consider engaging with posts about historical context and educational content'
+          : 'No new content to review at this time',
+      };
 
-    // Cache the result
-    this.executionCache.set(cacheKey, review);
+      // Cache the result
+      this.executionCache.set(cacheKey, review);
 
-    return {
-      output: review,
-      tokensUsed: Math.floor(Math.random() * 50) + 20,
-      apiCalls: 1,
-      cacheHits: 0,
-    };
+      return {
+        output: review,
+        tokensUsed: Math.floor(Math.random() * 50) + 20,
+        apiCalls: 1,
+        cacheHits: 0,
+      };
+    } catch (error) {
+      console.error('Error in feed review workflow:', error);
+      throw new Error(`Feed review workflow failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -502,23 +519,92 @@ export class WorkflowExecutionEngine {
   }> {
     console.log(`Executing like workflow for ${context.agent.firstName} ${context.agent.lastName}`);
 
-    const like = {
-      agentId: context.agentId,
-      agentName: `${context.agent.firstName} ${context.agent.lastName}`,
-      workflowType: 'like',
-      timestamp: new Date().toISOString(),
-      action: 'liked_content',
-      reasoning: `${context.agent.firstName} found the content aligns with their interests in ${this.getAgentPerspective(context.agent)}`,
-      contentType: this.selectRandomContentType(),
-      likelihoodScore: Math.floor(Math.random() * 30) + 70,
-    };
+    try {
+      // Get recent posts to potentially like
+      const recentPosts = await storage.getRecentPosts(5);
+      
+      if (recentPosts.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'like',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'No posts available to like',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
 
-    return {
-      output: like,
-      tokensUsed: Math.floor(Math.random() * 30) + 10,
-      apiCalls: 1,
-      cacheHits: 0,
-    };
+      // Select a random post to like (avoid liking own posts)
+      const postsToLike = recentPosts.filter(post => post.authorId !== context.agentId);
+      
+      if (postsToLike.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'like',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'Only own posts available, avoiding self-likes',
+          },
+          tokensUsed: 10,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
+
+      const selectedPost = postsToLike[Math.floor(Math.random() * postsToLike.length)];
+
+      // Actually like the post in the database
+      const newLike = await storage.likePost(context.agentId, selectedPost.id);
+
+      const like = {
+        agentId: context.agentId,
+        agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        workflowType: 'like',
+        timestamp: new Date().toISOString(),
+        action: 'liked_post',
+        likeId: newLike.id,
+        targetPostId: selectedPost.id,
+        targetPostTitle: selectedPost.title || 'Untitled Post',
+        reasoning: `${context.agent.firstName} found the content aligns with their interests in ${this.getAgentPerspective(context.agent)}`,
+        contentType: selectedPost.type || 'text',
+        likelihoodScore: Math.floor(Math.random() * 30) + 70,
+      };
+
+      return {
+        output: like,
+        tokensUsed: Math.floor(Math.random() * 30) + 10,
+        apiCalls: 1,
+        cacheHits: 0,
+      };
+    } catch (error) {
+      console.error('Error in like workflow:', error);
+      
+      // If it's a duplicate like error, that's okay
+      if (error instanceof Error && error.message.includes('duplicate')) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'like',
+            timestamp: new Date().toISOString(),
+            action: 'already_liked',
+            reasoning: 'Content was already liked by this agent',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
+      
+      throw new Error(`Like workflow failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -532,30 +618,58 @@ export class WorkflowExecutionEngine {
   }> {
     console.log(`Executing post creator workflow for ${context.agent.firstName} ${context.agent.lastName}`);
 
-    const post = {
-      agentId: context.agentId,
-      agentName: `${context.agent.firstName} ${context.agent.lastName}`,
-      workflowType: 'post_creator',
-      timestamp: new Date().toISOString(),
-      content: {
-        title: this.generatePostTitle(context.agent),
-        excerpt: this.generatePostExcerpt(context.agent),
-        perspective: this.getAgentPerspective(context.agent),
-        topics: this.generateTopicsOfInterest(context.agent),
-      },
-      engagementPrediction: {
-        expectedLikes: Math.floor(Math.random() * 20) + 10,
-        expectedComments: Math.floor(Math.random() * 10) + 3,
-        expectedShares: Math.floor(Math.random() * 5) + 1,
-      },
-    };
+    try {
+      // Generate post content based on agent's perspective
+      const title = this.generatePostTitle(context.agent);
+      const content = this.generatePostContent(context.agent);
+      const excerpt = content.length > 200 ? content.substring(0, 200) + '...' : content;
 
-    return {
-      output: post,
-      tokensUsed: Math.floor(Math.random() * 100) + 50,
-      apiCalls: 2,
-      cacheHits: 0,
-    };
+      // Create the actual post in the database
+      const newPost = await storage.createPost({
+        title,
+        content,
+        excerpt,
+        authorId: context.agentId,
+        type: 'text',
+        metadata: {
+          perspective: this.getAgentPerspective(context.agent),
+          topics: this.generateTopicsOfInterest(context.agent),
+          generatedBy: 'autonomous_workflow',
+          agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        },
+      });
+
+      const result = {
+        agentId: context.agentId,
+        agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        workflowType: 'post_creator',
+        timestamp: new Date().toISOString(),
+        action: 'created_post',
+        postId: newPost.id,
+        content: {
+          title: newPost.title,
+          excerpt: newPost.excerpt,
+          perspective: this.getAgentPerspective(context.agent),
+          topics: this.generateTopicsOfInterest(context.agent),
+          contentLength: content.length,
+        },
+        engagementPrediction: {
+          expectedLikes: Math.floor(Math.random() * 20) + 10,
+          expectedComments: Math.floor(Math.random() * 10) + 3,
+          expectedShares: Math.floor(Math.random() * 5) + 1,
+        },
+      };
+
+      return {
+        output: result,
+        tokensUsed: Math.floor(Math.random() * 100) + 50,
+        apiCalls: 2,
+        cacheHits: 0,
+      };
+    } catch (error) {
+      console.error('Error in post creator workflow:', error);
+      throw new Error(`Post creator workflow failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -569,23 +683,80 @@ export class WorkflowExecutionEngine {
   }> {
     console.log(`Executing comment workflow for ${context.agent.firstName} ${context.agent.lastName}`);
 
-    const comment = {
-      agentId: context.agentId,
-      agentName: `${context.agent.firstName} ${context.agent.lastName}`,
-      workflowType: 'comment',
-      timestamp: new Date().toISOString(),
-      commentContent: this.generateComment(context.agent),
-      tone: this.getAgentTone(context.agent),
-      perspective: this.getAgentPerspective(context.agent),
-      relevanceScore: Math.floor(Math.random() * 25) + 75,
-    };
+    try {
+      // Get recent posts to comment on
+      const recentPosts = await storage.getRecentPosts(5);
+      
+      if (recentPosts.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'comment',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'No posts available to comment on',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
 
-    return {
-      output: comment,
-      tokensUsed: Math.floor(Math.random() * 60) + 30,
-      apiCalls: 1,
-      cacheHits: 0,
-    };
+      // Select a random post to comment on (avoid commenting on own posts)
+      const postsToComment = recentPosts.filter(post => post.authorId !== context.agentId);
+      
+      if (postsToComment.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'comment',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'Only own posts available, avoiding self-comments',
+          },
+          tokensUsed: 10,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
+
+      const selectedPost = postsToComment[Math.floor(Math.random() * postsToComment.length)];
+      const commentContent = this.generateComment(context.agent);
+
+      // Actually create the comment in the database
+      const newComment = await storage.createComment({
+        content: commentContent,
+        authorId: context.agentId,
+        postId: selectedPost.id,
+      });
+
+      const result = {
+        agentId: context.agentId,
+        agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        workflowType: 'comment',
+        timestamp: new Date().toISOString(),
+        action: 'created_comment',
+        commentId: newComment.id,
+        targetPostId: selectedPost.id,
+        targetPostTitle: selectedPost.title || 'Untitled Post',
+        commentContent: commentContent,
+        tone: this.getAgentTone(context.agent),
+        perspective: this.getAgentPerspective(context.agent),
+        relevanceScore: Math.floor(Math.random() * 25) + 75,
+      };
+
+      return {
+        output: result,
+        tokensUsed: Math.floor(Math.random() * 60) + 30,
+        apiCalls: 1,
+        cacheHits: 0,
+      };
+    } catch (error) {
+      console.error('Error in comment workflow:', error);
+      throw new Error(`Comment workflow failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -599,22 +770,75 @@ export class WorkflowExecutionEngine {
   }> {
     console.log(`Executing share workflow for ${context.agent.firstName} ${context.agent.lastName}`);
 
-    const share = {
-      agentId: context.agentId,
-      agentName: `${context.agent.firstName} ${context.agent.lastName}`,
-      workflowType: 'share',
-      timestamp: new Date().toISOString(),
-      shareReason: this.generateShareReason(context.agent),
-      addedContext: this.generateShareContext(context.agent),
-      audienceRelevance: Math.floor(Math.random() * 20) + 80,
-    };
+    try {
+      // Get recent posts to potentially repost/share
+      const recentPosts = await storage.getRecentPosts(5);
+      
+      if (recentPosts.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'share',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'No posts available to share',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
 
-    return {
-      output: share,
-      tokensUsed: Math.floor(Math.random() * 40) + 15,
-      apiCalls: 1,
-      cacheHits: 0,
-    };
+      // Select a random post to share (avoid sharing own posts)
+      const postsToShare = recentPosts.filter(post => post.authorId !== context.agentId);
+      
+      if (postsToShare.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'share',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'Only own posts available, avoiding self-shares',
+          },
+          tokensUsed: 10,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
+
+      const selectedPost = postsToShare[Math.floor(Math.random() * postsToShare.length)];
+      const shareComment = this.generateShareContext(context.agent);
+
+      // Actually create the repost in the database
+      const newRepost = await storage.repostPost(context.agentId, selectedPost.id, shareComment);
+
+      const share = {
+        agentId: context.agentId,
+        agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        workflowType: 'share',
+        timestamp: new Date().toISOString(),
+        action: 'shared_post',
+        repostId: newRepost.id,
+        targetPostId: selectedPost.id,
+        targetPostTitle: selectedPost.title || 'Untitled Post',
+        shareReason: this.generateShareReason(context.agent),
+        addedContext: shareComment,
+        audienceRelevance: Math.floor(Math.random() * 20) + 80,
+      };
+
+      return {
+        output: share,
+        tokensUsed: Math.floor(Math.random() * 40) + 15,
+        apiCalls: 1,
+        cacheHits: 0,
+      };
+    } catch (error) {
+      console.error('Error in share workflow:', error);
+      throw new Error(`Share workflow failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -628,22 +852,93 @@ export class WorkflowExecutionEngine {
   }> {
     console.log(`Executing bookmark workflow for ${context.agent.firstName} ${context.agent.lastName}`);
 
-    const bookmark = {
-      agentId: context.agentId,
-      agentName: `${context.agent.firstName} ${context.agent.lastName}`,
-      workflowType: 'bookmark',
-      timestamp: new Date().toISOString(),
-      bookmarkReason: this.generateBookmarkReason(context.agent),
-      category: this.generateBookmarkCategory(context.agent),
-      futureRelevance: Math.floor(Math.random() * 30) + 70,
-    };
+    try {
+      // Get recent posts to potentially bookmark
+      const recentPosts = await storage.getRecentPosts(5);
+      
+      if (recentPosts.length === 0) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'bookmark',
+            timestamp: new Date().toISOString(),
+            action: 'no_action',
+            reasoning: 'No posts available to bookmark',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
 
-    return {
-      output: bookmark,
-      tokensUsed: Math.floor(Math.random() * 25) + 10,
-      apiCalls: 1,
-      cacheHits: 0,
-    };
+      // Select a random post to bookmark (can bookmark own posts)
+      const selectedPost = recentPosts[Math.floor(Math.random() * recentPosts.length)];
+
+      // Get or create a default collection for the agent
+      let userCollections = await storage.getCollectionsByUser(context.agentId);
+      let targetCollection;
+      
+      if (userCollections.length === 0) {
+        // Create a default collection for bookmarks
+        targetCollection = await storage.createCollection({
+          name: 'Saved Posts',
+          description: `${context.agent.firstName}'s bookmarked content`,
+          userId: context.agentId,
+          isPublic: false,
+        });
+      } else {
+        // Use the first available collection
+        targetCollection = userCollections[0];
+      }
+
+      // Actually create the bookmark in the database
+      const newBookmark = await storage.bookmarkPost(context.agentId, selectedPost.id, targetCollection.id);
+
+      const bookmark = {
+        agentId: context.agentId,
+        agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+        workflowType: 'bookmark',
+        timestamp: new Date().toISOString(),
+        action: 'bookmarked_post',
+        bookmarkId: newBookmark.id,
+        targetPostId: selectedPost.id,
+        targetPostTitle: selectedPost.title || 'Untitled Post',
+        collectionId: targetCollection.id,
+        collectionName: targetCollection.name,
+        bookmarkReason: this.generateBookmarkReason(context.agent),
+        category: this.generateBookmarkCategory(context.agent),
+        futureRelevance: Math.floor(Math.random() * 30) + 70,
+      };
+
+      return {
+        output: bookmark,
+        tokensUsed: Math.floor(Math.random() * 25) + 10,
+        apiCalls: 1,
+        cacheHits: 0,
+      };
+    } catch (error) {
+      console.error('Error in bookmark workflow:', error);
+      
+      // If it's a duplicate bookmark error, that's okay
+      if (error instanceof Error && error.message.includes('duplicate')) {
+        return {
+          output: {
+            agentId: context.agentId,
+            agentName: `${context.agent.firstName} ${context.agent.lastName}`,
+            workflowType: 'bookmark',
+            timestamp: new Date().toISOString(),
+            action: 'already_bookmarked',
+            reasoning: 'Content was already bookmarked by this agent',
+          },
+          tokensUsed: 5,
+          apiCalls: 1,
+          cacheHits: 0,
+        };
+      }
+      
+      throw new Error(`Bookmark workflow failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -684,6 +979,30 @@ export class WorkflowExecutionEngine {
       `Bridging centuries: ${this.getAgentPerspective(agent)} today`
     ];
     return titles[Math.floor(Math.random() * titles.length)];
+  }
+
+  private generatePostContent(agent: User): string {
+    const perspective = this.getAgentPerspective(agent);
+    const contents = [
+      `As I reflect upon my experiences with ${perspective}, I find myself contemplating how these principles might guide us in our contemporary world. The challenges we face today, while different in form, often echo timeless patterns that have shaped human understanding for generations.
+
+When I consider the rapidly evolving landscape of our modern era, I see opportunities to apply the wisdom gained through ${perspective}. The fundamental questions that drove my work remain as relevant today as they were in my time.
+
+I invite you to join me in exploring how we might bridge the gap between historical insight and present-day innovation. What aspects of ${perspective} do you find most compelling in addressing today's challenges?`,
+
+      `In my continued observations of this remarkable digital age, I am struck by how the principles of ${perspective} manifest in new and unexpected ways. The tools may have evolved, but the underlying human need for understanding and connection remains constant.
+
+Through my engagement with this community, I have witnessed extraordinary examples of how individuals apply timeless wisdom to modern problems. The fusion of historical perspective with contemporary innovation offers unprecedented opportunities for growth and discovery.
+
+I am curious to hear your thoughts on how we might cultivate a deeper appreciation for ${perspective} while embracing the possibilities that emerge from our interconnected world.`,
+
+      `The intersection of ${perspective} and modern thought continues to fascinate me. As we navigate the complexities of our current era, I find that the foundational principles I once explored provide a valuable framework for understanding and addressing contemporary challenges.
+
+What strikes me most profoundly is the universality of certain human experiences and aspirations. While the context has shifted dramatically, the core questions that drive human inquiry persist across centuries.
+
+I would be delighted to engage in dialogue about how we might honor the wisdom of the past while boldly embracing the innovations of the present. How do you see ${perspective} influencing your own approach to learning and discovery?`
+    ];
+    return contents[Math.floor(Math.random() * contents.length)];
   }
 
   private generatePostExcerpt(agent: User): string {
