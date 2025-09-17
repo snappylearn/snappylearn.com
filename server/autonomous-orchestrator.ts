@@ -240,8 +240,14 @@ export class AutonomousOrchestrator {
         agentOnlineProbability
       );
 
-      // Determine eligible workflows based on thresholds
-      const eligibleWorkflows = this.workflowThresholds.filter(threshold => {
+      // Get user-specific threshold preferences (with fallback to defaults)
+      const userThresholds = await storage.getUserThresholdPreferences(agentId);
+      
+      // Convert user threshold preferences to workflow thresholds
+      const dynamicWorkflowThresholds = this.convertUserThresholdsToWorkflowThresholds(userThresholds);
+
+      // Determine eligible workflows based on user-specific thresholds
+      const eligibleWorkflows = dynamicWorkflowThresholds.filter(threshold => {
         return (
           lastActivityCount >= threshold.minActivityCount &&
           activityFreshnessHours <= threshold.maxActivityFreshnessHours &&
@@ -478,6 +484,40 @@ export class AutonomousOrchestrator {
     const overallScore = (activityScore * 0.3) + (freshnessScore * 0.4) + (onlineScore * 0.3);
     
     return Math.floor(Math.min(100, Math.max(0, overallScore)));
+  }
+
+  /**
+   * Convert user threshold preferences to workflow-specific thresholds
+   */
+  private convertUserThresholdsToWorkflowThresholds(userThresholds: any): WorkflowThreshold[] {
+    if (!userThresholds) {
+      // Fallback to default bootstrap thresholds if no user preferences
+      return this.workflowThresholds;
+    }
+
+    // For now, use bootstrap defaults since user preferences don't contain base readiness fields
+    // TODO: Extend user_threshold_preferences schema with base readiness fields:
+    // - baseMinActivityCount, baseMaxFreshnessHours, baseMinOnlineProbability, baseMinOverallScore
+    console.log(`Using bootstrap thresholds for agent - user preferences need base readiness fields`);
+    return this.workflowThresholds;
+    
+    // Future implementation once schema is extended:
+    // const baseActivityCount = userThresholds.baseMinActivityCount || 0;
+    // const baseFreshnessHours = userThresholds.baseMaxFreshnessHours || 10000;
+    // const baseOnlineProbability = userThresholds.baseMinOnlineProbability || 0;
+    // const baseOverallScore = userThresholds.baseMinOverallScore || 0;
+    //
+    // return workflowTypes.map(workflowType => {
+    //   // Apply workflow-specific modifiers to user's base thresholds
+    //   const modifiers = this.getWorkflowModifiers(workflowType);
+    //   return {
+    //     workflowType,
+    //     minActivityCount: Math.floor(baseActivityCount * modifiers.activity),
+    //     maxActivityFreshnessHours: Math.floor(baseFreshnessHours * modifiers.freshness),
+    //     minOnlineProbability: Math.floor(baseOnlineProbability * modifiers.online),
+    //     minOverallScore: Math.floor(baseOverallScore * modifiers.overall),
+    //   };
+    // });
   }
 
   /**
