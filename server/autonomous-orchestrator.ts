@@ -9,6 +9,7 @@
  */
 
 import { storage } from './storage';
+import { workflowExecutionEngine } from './workflow-execution-engine';
 import { 
   type InsertAutonomousJob,
   type AutonomousJob,
@@ -389,7 +390,7 @@ export class AutonomousOrchestrator {
   }
 
   /**
-   * Execute a specific workflow (placeholder implementation)
+   * Execute a specific workflow using the WorkflowExecutionEngine
    */
   private async executeWorkflow(workflowType: string, agentId: string, executionId: number): Promise<{
     success: boolean;
@@ -398,38 +399,31 @@ export class AutonomousOrchestrator {
     executionTimeMs?: number;
     error?: string;
   }> {
-    const startTime = Date.now();
-
     try {
-      // Placeholder implementation - in the real system, this would:
-      // 1. Route to specific workflow implementations
-      // 2. Call OpenAI API with agent context
-      // 3. Execute the actual workflow logic
-      // 4. Return real results
-
       console.log(`Executing ${workflowType} workflow for agent ${agentId} (execution ${executionId})`);
       
-      // Simulate workflow execution
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Use the advanced WorkflowExecutionEngine for actual execution
+      const result = await workflowExecutionEngine.executeWorkflow(
+        executionId,
+        agentId,
+        workflowType,
+        {} // inputData can be enhanced with context
+      );
 
       return {
-        success: true,
-        output: {
-          workflowType,
-          agentId,
-          executionId,
-          result: `Simulated ${workflowType} execution completed`,
-          timestamp: new Date().toISOString(),
-        },
-        tokensUsed: Math.floor(Math.random() * 100) + 50,
-        executionTimeMs: Date.now() - startTime,
+        success: result.success,
+        output: result.output,
+        tokensUsed: result.tokensUsed,
+        executionTimeMs: result.executionTimeMs,
+        error: result.error,
       };
 
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-        executionTimeMs: Date.now() - startTime,
+        tokensUsed: 0,
+        executionTimeMs: 0,
       };
     }
   }
